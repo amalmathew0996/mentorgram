@@ -122,6 +122,92 @@ const S = {
 };
 
 // ─── Jobs Page (outside main component to prevent remounting) ──────────────
+function ShareButton({ job }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handle(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
+
+  const shareText = `🇬🇧 UK Job with Visa Sponsorship!\n\n💼 ${job.title}\n🏢 ${job.company}\n📍 ${job.location}\n💰 ${job.salary}\n\n👉 Apply: ${job.url}\n\n🎓 Find more sponsored jobs at mentorgramai.com`;
+  const siteUrl = "https://mentorgramai.com";
+
+  const options = [
+    {
+      label: "WhatsApp",
+      color: "#25D366",
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
+      href: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
+    },
+    {
+      label: "Telegram",
+      color: "#229ED9",
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>,
+      href: `https://t.me/share/url?url=${encodeURIComponent(siteUrl)}&text=${encodeURIComponent(shareText)}`,
+    },
+    {
+      label: "Email",
+      color: "#EA4335",
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>,
+      href: `mailto:?subject=${encodeURIComponent(`Job: ${job.title} at ${job.company}`)}&body=${encodeURIComponent(shareText)}`,
+    },
+    {
+      label: "Copy link",
+      color: "#534AB7",
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>,
+      action: () => { navigator.clipboard.writeText(`${shareText}`); setOpen(false); },
+    },
+  ];
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        title="Share this job"
+        style={{ width: "34px", height: "34px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </button>
+
+      {open && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", right: 0, background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "6px", zIndex: 50, minWidth: "150px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", padding: "4px 10px 6px", margin: 0, borderBottom: "0.5px solid var(--color-border-tertiary)" }}>Share this job</p>
+          {options.map(opt => (
+            opt.href ? (
+              <a key={opt.label} href={opt.href} target="_blank" rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", textDecoration: "none", fontSize: "13px", cursor: "pointer" }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              >
+                <span style={{ color: opt.color, display: "flex" }}>{opt.icon}</span>
+                {opt.label}
+              </a>
+            ) : (
+              <button key={opt.label}
+                onClick={opt.action}
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", fontSize: "13px", cursor: "pointer", width: "100%", border: "none", background: "transparent", fontFamily: "inherit", textAlign: "left" }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              >
+                <span style={{ color: opt.color, display: "flex" }}>{opt.icon}</span>
+                {opt.label}
+              </button>
+            )
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs }) {
   const [sector, setSector] = useState("All");
   const [visaType, setVisaType] = useState("All Jobs");
@@ -307,19 +393,8 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs }) {
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                <div style={{ display: "flex", gap: "6px" }}>
-                  {j.url && (
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(`🇬🇧 UK Job with Visa Sponsorship!\n\n💼 ${j.title}\n🏢 ${j.company}\n📍 ${j.location}\n💰 ${j.salary}\n\n👉 Apply here: ${j.url}\n\nFound on Mentorgram AI - mentorgramai.com`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Share on WhatsApp"
-                      style={{ padding: "7px 10px", borderRadius: "var(--border-radius-md)", background: "#25D366", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500, display: "flex", alignItems: "center", gap: "4px" }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                      Share
-                    </a>
-                  )}
+                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  <ShareButton job={j} />
                   {j.url && (
                     <a href={j.url} target="_blank" rel="noopener noreferrer"
                       style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>
