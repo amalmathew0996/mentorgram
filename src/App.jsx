@@ -129,48 +129,43 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
         <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Search UK jobs offering visa sponsorship.</p>
       </div>
 
-      {/* Live search box */}
+      {/* Single unified search box */}
       <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <input
-            style={{ ...S.input, flex: 2, minWidth: "160px", paddingLeft: "14px" }}
+            style={{ ...S.input, flex: 2, minWidth: "160px" }}
             placeholder="🔍 Job title or keywords..."
-            value={liveSearch}
-            onChange={e => setLiveSearch(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && onFetchJobs(liveSearch, locationSearch)}
+            value={filterQuery}
+            onChange={e => { setFilterQuery(e.target.value); setLiveSearch(e.target.value); }}
+            onKeyDown={e => e.key === "Enter" && onFetchJobs(filterQuery, locationSearch)}
           />
           <input
-            style={{ ...S.input, flex: 1, minWidth: "120px", paddingLeft: "14px" }}
+            style={{ ...S.input, flex: 1, minWidth: "120px" }}
             placeholder="📍 Location (UK)"
             value={locationSearch}
             onChange={e => setLocationSearch(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && onFetchJobs(liveSearch, locationSearch)}
+            onKeyDown={e => e.key === "Enter" && onFetchJobs(filterQuery, locationSearch)}
           />
           <button
             style={{ ...S.btnPrimary, padding: "10px 20px", fontSize: "14px", whiteSpace: "nowrap" }}
-            onClick={() => onFetchJobs(liveSearch, locationSearch)}
+            onClick={() => onFetchJobs(filterQuery, locationSearch)}
             disabled={jobsLoading}
           >
-            {jobsLoading ? "Searching..." : "Search"}
+            {jobsLoading ? "Searching..." : "Search Indeed"}
           </button>
         </div>
+        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 0" }}>
+          Type to filter results instantly · Click <strong>Search Indeed</strong> for fresh results
+        </p>
 
         {/* Quick search chips */}
         <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
           {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager"].map(q => (
-            <button key={q} style={{ ...S.filterBtn(false), fontSize: "12px" }} onClick={() => { setLiveSearch(q); onFetchJobs(q, locationSearch); }}>{q}</button>
+            <button key={q} style={{ ...S.filterBtn(false), fontSize: "12px" }} onClick={() => { setFilterQuery(q); setLiveSearch(q); onFetchJobs(q, locationSearch); }}>{q}</button>
           ))}
         </div>
         {updatedAt && <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>Updated: {new Date(updatedAt).toLocaleTimeString()}</p>}
       </div>
-
-      {/* Filter loaded results */}
-      <input
-        style={{ ...S.input, marginBottom: "1rem", paddingLeft: "14px" }}
-        placeholder="⚡ Filter results by title, company or location..."
-        value={filterQuery}
-        onChange={e => setFilterQuery(e.target.value)}
-      />
 
       {/* Sector pills */}
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "1rem" }}>
