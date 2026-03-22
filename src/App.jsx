@@ -126,25 +126,30 @@ function ShareButton({ job }) {
         </svg>
       </button>
       {open && (
-        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", right: 0, background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "6px", zIndex: 50, minWidth: "155px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
-          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", padding: "4px 10px 6px", margin: 0, borderBottom: "0.5px solid var(--color-border-tertiary)" }}>Share this job</p>
-          {options.map(opt => opt.href ? (
-            <a key={opt.label} href={opt.href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", textDecoration: "none", fontSize: "13px" }}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill={opt.color}><path d={opt.icon}/></svg>{opt.label}
-            </a>
-          ) : (
-            <button key={opt.label} onClick={opt.action}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", fontSize: "13px", cursor: "pointer", width: "100%", border: "none", background: "transparent", fontFamily: "inherit", textAlign: "left" }}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill={opt.color}><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <>
+          {/* Backdrop to catch outside clicks on mobile */}
+          <div style={{ position: "fixed", inset: 0, zIndex: 49 }} onClick={() => setOpen(false)} />
+          <div style={{ position: "fixed", bottom: "auto", right: "1rem", left: "auto", top: "auto", marginTop: "8px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "6px", zIndex: 200, minWidth: "165px", boxShadow: "0 8px 30px rgba(0,0,0,0.2)" }}
+            ref={node => { if (node && ref.current) { const btn = ref.current.getBoundingClientRect(); node.style.top = (btn.bottom + 8) + "px"; node.style.left = Math.min(btn.left, window.innerWidth - 175) + "px"; } }}>
+            <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", padding: "4px 10px 6px", margin: 0, borderBottom: "0.5px solid var(--color-border-tertiary)" }}>Share this job</p>
+            {options.map(opt => opt.href ? (
+              <a key={opt.label} href={opt.href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", textDecoration: "none", fontSize: "14px" }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={opt.color}><path d={opt.icon}/></svg>{opt.label}
+              </a>
+            ) : (
+              <button key={opt.label} onClick={opt.action}
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", fontSize: "14px", cursor: "pointer", width: "100%", border: "none", background: "transparent", fontFamily: "inherit", textAlign: "left" }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={opt.color}><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
