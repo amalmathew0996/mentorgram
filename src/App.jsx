@@ -29,24 +29,42 @@ const FEATURES = [
   { icon: "🌍", title: "Global Reach", desc: "Supporting students from 50+ countries on their journey to UK education." },
 ];
 
-// Real UK sponsorship jobs fetched from Indeed - March 2026
-const ALL_JOBS = [
+// Fallback jobs shown while live jobs load or if fetch fails
+const FALLBACK_JOBS = [
   { title: "Software Engineer (Backend)", company: "Duffel", location: "London", salary: "Competitive", sector: "Technology", posted: "Mar 10, 2026", url: "https://to.indeed.com/aa8lkh89tm2f" },
-  { title: "kdb+ Developer (Sponsorship available)", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", posted: "Mar 18, 2026", url: "https://to.indeed.com/aacy7qmtdngf" },
+  { title: "kdb+ Developer", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", posted: "Mar 18, 2026", url: "https://to.indeed.com/aacy7qmtdngf" },
+  { title: "Junior Automation Developer", company: "Yu Group", location: "Nottingham", salary: "£30,000–£35,000", sector: "Technology", posted: "Mar 17, 2026", url: "https://to.indeed.com/aazw9p7dtkzw" },
+  { title: "IT Consultant", company: "I-NET Software Solutions", location: "Hounslow", salary: "£40,000–£45,000", sector: "Technology", posted: "Feb 23, 2026", url: "https://to.indeed.com/aaftt8kkjy44" },
+  { title: "Senior Software Developer", company: "Auto Integrate", location: "Portsmouth", salary: "£68,000–£87,000", sector: "Technology", posted: "Mar 17, 2026", url: "https://to.indeed.com/aarkm6dwyhhx" },
+  { title: "C++ Software Engineer", company: "Insignis", location: "Lincoln", salary: "From £60,000", sector: "Technology", posted: "Feb 12, 2026", url: "https://to.indeed.com/aa9ygglssp8f" },
+  { title: "Web Developer & Programmer", company: "Vape Wholesale Store", location: "Manchester", salary: "£45,000–£46,000", sector: "Technology", posted: "Jan 15, 2026", url: "https://to.indeed.com/aazmpnfjsqxl" },
+  { title: "Mobile App Developer (Flutter)", company: "Blackstar Amplification", location: "Northampton", salary: "£26,000–£45,000", sector: "Technology", posted: "Sep 25, 2025", url: "https://to.indeed.com/aaqqtxgvhf94" },
+  { title: "Test & Release Analyst", company: "ACI-UK", location: "Blackpool", salary: "From £40,000", sector: "Technology", posted: "Mar 04, 2026", url: "https://to.indeed.com/aam9j284xvzb" },
+  { title: "Senior Test & Validation Engineer", company: "Pearson Whiffin", location: "Sandwich", salary: "£45,000–£50,000", sector: "Technology", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa4vtj4y4b8j" },
+  { title: "Data Engineer", company: "Cathedral Appointments", location: "Exeter", salary: "£50,000", sector: "AI & Data", posted: "Mar 06, 2026", url: "https://to.indeed.com/aam2lxzb4qg6" },
   { title: "Data Scientist", company: "Ecotricity Group", location: "Stroud", salary: "£55,000–£65,000", sector: "AI & Data", posted: "Feb 17, 2026", url: "https://to.indeed.com/aanpm8v78c4q" },
-  { title: "Applied Research Scientist (Speech)", company: "Emotech LTD", location: "London", salary: "From £45,000", sector: "AI & Data", posted: "Mar 20, 2026", url: "https://to.indeed.com/aadkm9q8xclx" },
+  { title: "Applied Research Scientist", company: "Emotech LTD", location: "London", salary: "From £45,000", sector: "AI & Data", posted: "Mar 20, 2026", url: "https://to.indeed.com/aadkm9q8xclx" },
   { title: "Senior Data Engineer", company: "AECOM", location: "Bristol", salary: "£58,500–£71,812", sector: "AI & Data", posted: "Mar 11, 2026", url: "https://to.indeed.com/aaz2vplvmxll" },
   { title: "Epidemiology Scientist", company: "MSD", location: "London", salary: "Competitive", sector: "Healthcare", posted: "Mar 10, 2026", url: "https://to.indeed.com/aatbqs2gbt6m" },
   { title: "Medical Secretary", company: "NHS", location: "North Hykeham", salary: "£27,485–£30,162", sector: "Healthcare", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa62hddsjc7x" },
   { title: "School Nurse Assistant", company: "Rikkyo School", location: "Rudgwick", salary: "£27,000–£36,000", sector: "Healthcare", posted: "Mar 03, 2026", url: "https://to.indeed.com/aaqfn8qxl7vc" },
   { title: "Financial Analyst", company: "Confidential", location: "Bromley", salary: "£45,800–£100,000", sector: "Finance", posted: "Mar 12, 2026", url: "https://to.indeed.com/aagp8bkm6tfb" },
+  { title: "Head of Marketing", company: "VeryConnect", location: "Glasgow", salary: "£85,000–£110,000", sector: "Business", posted: "Feb 25, 2026", url: "https://to.indeed.com/aad9y6rb22hy" },
+  { title: "Communications Manager", company: "Calex UK Ltd", location: "Coventry", salary: "Up to £44,000", sector: "Business", posted: "Mar 19, 2026", url: "https://to.indeed.com/aa967gjhplpf" },
+  { title: "Event Sponsorship Sales Manager", company: "IQPC", location: "London", salary: "£45,000–£55,000", sector: "Business", posted: "Mar 17, 2026", url: "https://to.indeed.com/aa8crzb2lbc9" },
+  { title: "Business Development Manager", company: "London Orthodontic Group", location: "Richmond", salary: "£38,000–£55,000", sector: "Business", posted: "Feb 03, 2026", url: "https://to.indeed.com/aaxjflx28vww" },
+  { title: "Client Relationship Manager", company: "The Lettings Hub", location: "Peterborough", salary: "£28,000–£35,000", sector: "Business", posted: "Jan 20, 2026", url: "https://to.indeed.com/aac2mqgsqg9d" },
   { title: "Equipment Engineer", company: "Seagate Technology", location: "Derry", salary: "£27,827–£35,875", sector: "Engineering", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa96f2kjv2np" },
   { title: "Civil Engineer Project Leader", company: "JN Bentley", location: "Reading", salary: "£36,000–£66,000", sector: "Engineering", posted: "Aug 12, 2025", url: "https://to.indeed.com/aa6tvqx8gsfd" },
   { title: "Project Leader", company: "Mott MacDonald", location: "Newport", salary: "£36,500–£55,000", sector: "Engineering", posted: "Jul 25, 2025", url: "https://to.indeed.com/aadr7s9xb4fw" },
   { title: "Lead Manufacturing Engineer", company: "GE Aerospace", location: "Gloucester", salary: "£23,795–£40,500", sector: "Engineering", posted: "Feb 25, 2026", url: "https://to.indeed.com/aagryjj7g7pb" },
+  { title: "Product R&D Co-ordinator", company: "Glasdon Group", location: "Blackpool", salary: "£45,450–£70,875", sector: "Engineering", posted: "Mar 12, 2026", url: "https://to.indeed.com/aafvw7lcz8pb" },
+  { title: "International Sales Executive", company: "Glasdon Group", location: "Blackpool", salary: "Competitive", sector: "Business", posted: "Mar 12, 2026", url: "https://to.indeed.com/aabtpz8lk26q" },
+  { title: "Sales Development Representative", company: "Nurtur Group", location: "Derby", salary: "From £26,000", sector: "Business", posted: "Mar 17, 2026", url: "https://to.indeed.com/aawpzfbslhm2" },
 ];
 
-const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering"];
+const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business"];
+const JOBS_PER_PAGE = 6;
 
 export default function Mentorgram() {
   const [activePage, setActivePage] = useState("Home");
@@ -55,16 +73,84 @@ export default function Mentorgram() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [allJobs, setAllJobs] = useState(FALLBACK_JOBS);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(null);
   const [sector, setSector] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [liveSearch, setLiveSearch] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [currentJobPage, setCurrentJobPage] = useState(1);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const messagesEndRef = useRef(null);
+  const jobsTopRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const filteredJobs = sector === "All" ? ALL_JOBS : ALL_JOBS.filter(j => j.sector === sector);
+  // Reset to page 1 when filters change
+  useEffect(() => { setCurrentJobPage(1); }, [sector, searchQuery]);
+
+  // Scroll to top of jobs list when page changes
+  useEffect(() => {
+    if (jobsTopRef.current) {
+      jobsTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [currentJobPage]);
+
+  // Fetch jobs — optionally with a custom search query
+  async function fetchJobs(q = "", loc = "") {
+    setJobsLoading(true);
+    setCurrentJobPage(1);
+    try {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (loc) params.set("location", loc);
+      const res = await fetch(`/api/jobs?${params.toString()}`);
+      const data = await res.json();
+      if (data.jobs && data.jobs.length > 0) {
+        setAllJobs(data.jobs);
+        setUpdatedAt(data.updatedAt);
+        setSector("All");
+        setSearchQuery("");
+      }
+    } catch {
+      // silently keep fallback jobs
+    }
+    setJobsLoading(false);
+  }
+
+  useEffect(() => {
+    if (activePage === "Sponsorship Jobs") {
+      fetchJobs();
+    }
+  }, [activePage]);
+
+  // Filtering
+  const filteredJobs = allJobs.filter(j => {
+    const matchesSector = sector === "All" || j.sector === sector;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      j.title.toLowerCase().includes(q) ||
+      j.company.toLowerCase().includes(q) ||
+      j.location.toLowerCase().includes(q) ||
+      j.sector.toLowerCase().includes(q);
+    return matchesSector && matchesSearch;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / JOBS_PER_PAGE));
+  const safePage = Math.min(currentJobPage, totalPages);
+  const paginatedJobs = filteredJobs.slice((safePage - 1) * JOBS_PER_PAGE, safePage * JOBS_PER_PAGE);
+
+  // Page numbers to show (show max 5 at a time)
+  function getPageNumbers() {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (safePage <= 3) return [1, 2, 3, 4, 5];
+    if (safePage >= totalPages - 2) return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    return [safePage - 2, safePage - 1, safePage, safePage + 1, safePage + 2];
+  }
 
   async function sendMessage() {
     if (!input.trim() || loading) return;
@@ -84,7 +170,7 @@ export default function Mentorgram() {
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
-          system: "You are the Mentorgram AI Mentor — a friendly, expert career and education advisor. You help students worldwide navigate education pathways, UK university applications, visa processes, and career planning. Specialise in UK education (GCSEs, A-Levels, UCAS), international student pathways, UK visa sponsorship jobs, and career guidance in AI, healthcare, engineering, finance, cybersecurity, and green energy. Be concise, warm, and actionable.",
+          system: "You are the Mentorgram AI Mentor — a friendly, expert career and education advisor. Help students worldwide with UK education pathways, university applications, visa processes, and career planning. Be concise, warm, and actionable.",
           messages: [...messages, { role: "user", content: userMsg }].map(m => ({ role: m.role, content: m.content }))
         })
       });
@@ -92,7 +178,7 @@ export default function Mentorgram() {
       const reply = data.content?.[0]?.text || "I'm here to help! Could you rephrase your question?";
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I'm having trouble connecting. Please try again in a moment." }]);
+      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I'm having trouble connecting. Please try again." }]);
     }
     setLoading(false);
   }
@@ -106,13 +192,13 @@ export default function Mentorgram() {
     navLinks: { display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap" },
     navLink: (active) => ({ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: active ? "var(--color-background-secondary)" : "transparent", color: active ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }),
     hero: { padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "720px", margin: "0 auto" },
-    heroTitle: { fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 500, lineHeight: 1.2, margin: "0 0 1rem", color: "var(--color-text-primary)" },
+    heroTitle: { fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 500, lineHeight: 1.2, margin: "0 0 1rem" },
     heroAccent: { background: "linear-gradient(135deg, #534AB7, #1D9E75)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
     heroSub: { fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 2rem" },
-    btnPrimary: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer" },
-    btnOutline: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer" },
+    btnPrimary: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
+    btnOutline: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
     section: { maxWidth: "1100px", margin: "0 auto", padding: "3rem 1.5rem" },
-    sectionTitle: { fontSize: "1.6rem", fontWeight: 500, margin: "0 0 0.5rem", color: "var(--color-text-primary)" },
+    sectionTitle: { fontSize: "1.6rem", fontWeight: 500, margin: "0 0 0.5rem" },
     sectionSub: { color: "var(--color-text-secondary)", margin: "0 0 2rem", fontSize: "15px" },
     grid3: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" },
     grid2: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" },
@@ -124,15 +210,19 @@ export default function Mentorgram() {
     msgUser: { alignSelf: "flex-end", background: "#534AB7", color: "#fff", padding: "10px 14px", borderRadius: "16px 16px 4px 16px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 },
     msgBot: { alignSelf: "flex-start", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", padding: "10px 14px", borderRadius: "16px 16px 16px 4px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 },
     chatInputRow: { display: "flex", gap: "8px", padding: "1rem", borderTop: "0.5px solid var(--color-border-tertiary)" },
-    input: { flex: 1, padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none" },
-    sendBtn: { padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "14px", cursor: "pointer", fontWeight: 500 },
-    filterRow: { display: "flex", gap: "8px", flexWrap: "wrap", margin: "0 0 1.5rem" },
-    filterBtn: (active) => ({ padding: "6px 16px", borderRadius: "20px", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer" }),
+    input: { flex: 1, padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit" },
+    sendBtn: { padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "14px", cursor: "pointer", fontWeight: 500, fontFamily: "inherit" },
+    filterRow: { display: "flex", gap: "8px", flexWrap: "wrap", margin: "0 0 1rem" },
+    filterBtn: (active) => ({ padding: "6px 16px", borderRadius: "20px", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }),
     footer: { borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "2rem 1.5rem", textAlign: "center" },
     statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", margin: "2rem 0" },
     statCard: { background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem", textAlign: "center" },
-    liveTag: { display: "inline-flex", alignItems: "center", gap: "5px", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", background: "#E1F5EE", color: "#085041", fontWeight: 500, marginLeft: "10px" },
-    liveDot: { width: "6px", height: "6px", borderRadius: "50%", background: "#1D9E75", display: "inline-block" },
+    searchWrap: { position: "relative", marginBottom: "1.25rem" },
+    searchBox: { width: "100%", padding: "11px 16px 11px 42px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", boxSizing: "border-box", fontFamily: "inherit" },
+    searchIcon: { position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-secondary)", fontSize: "16px", pointerEvents: "none" },
+    pageNav: { display: "flex", gap: "6px", justifyContent: "center", alignItems: "center", marginTop: "2rem", flexWrap: "wrap" },
+    pageBtn: (active) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: active ? "default" : "pointer", fontFamily: "inherit", fontWeight: active ? 500 : 400 }),
+    pageArrow: (disabled) => ({ width: "36px", height: "36px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", color: disabled ? "var(--color-border-secondary)" : "var(--color-text-primary)", fontSize: "18px", cursor: disabled ? "default" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center" }),
   };
 
   function HomePage() {
@@ -141,13 +231,13 @@ export default function Mentorgram() {
         <div style={s.hero}>
           <div style={{ ...s.tag("purple"), marginBottom: "1rem", fontSize: "13px" }}>🚀 AI-Powered Education & Career Platform</div>
           <h1 style={s.heroTitle}>Your AI Mentor for<br /><span style={s.heroAccent}>Education & UK Careers</span></h1>
-          <p style={s.heroSub}>Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and live visa-sponsored job opportunities.</p>
+          <p style={s.heroSub}>Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and visa-sponsored job opportunities.</p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <button style={s.btnPrimary} onClick={() => setActivePage("AI Mentor")}>Chat with AI Mentor</button>
-            <button style={s.btnOutline} onClick={() => setActivePage("Sponsorship Jobs")}>Browse Live Jobs</button>
+            <button style={s.btnOutline} onClick={() => setActivePage("Sponsorship Jobs")}>Browse Jobs</button>
           </div>
           <div style={s.statsRow}>
-            {[["50+", "Countries Supported"], ["100K+", "Students Guided"], ["500+", "UK Employers"], ["Live", "Job Listings"]].map(([n, l]) => (
+            {[["50+", "Countries Supported"], ["100K+", "Students Guided"], ["500+", "UK Employers"], [FALLBACK_JOBS.length + "+", "Job Listings"]].map(([n, l]) => (
               <div key={l} style={s.statCard}>
                 <p style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px" }}>{n}</p>
                 <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>{l}</p>
@@ -269,41 +359,153 @@ export default function Mentorgram() {
   function JobsPage() {
     return (
       <div style={s.section}>
-        <div style={{ display: "flex", alignItems: "center", marginBottom: "0.25rem" }}>
-          <h2 style={{ ...s.sectionTitle, margin: 0 }}>Sponsorship jobs</h2>
-          <span style={s.liveTag}><span style={s.liveDot} />&nbsp;Live from Indeed</span>
+        <div ref={jobsTopRef}>
+          <h2 style={s.sectionTitle}>Sponsorship jobs</h2>
+          <p style={{ ...s.sectionSub, marginBottom: "1.5rem" }}>Search thousands of UK jobs offering visa sponsorship.</p>
         </div>
-        <p style={s.sectionSub}>Real UK jobs with visa sponsorship — sourced from Indeed.</p>
+
+        {/* Live search bar */}
+        <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <div style={{ ...s.searchWrap, flex: 2, minWidth: "180px", margin: 0 }}>
+              <span style={s.searchIcon}>🔍</span>
+              <input
+                style={{ ...s.searchBox, background: "var(--color-background-secondary)" }}
+                placeholder="Job title, keywords..."
+                value={liveSearch}
+                onChange={e => setLiveSearch(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && fetchJobs(liveSearch, locationSearch)}
+              />
+            </div>
+            <div style={{ ...s.searchWrap, flex: 1, minWidth: "140px", margin: 0 }}>
+              <span style={s.searchIcon}>📍</span>
+              <input
+                style={{ ...s.searchBox, background: "var(--color-background-secondary)" }}
+                placeholder="Location (UK)"
+                value={locationSearch}
+                onChange={e => setLocationSearch(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && fetchJobs(liveSearch, locationSearch)}
+              />
+            </div>
+            <button
+              style={{ ...s.btnPrimary, padding: "10px 24px", fontSize: "14px", whiteSpace: "nowrap" }}
+              onClick={() => fetchJobs(liveSearch, locationSearch)}
+              disabled={jobsLoading}
+            >
+              {jobsLoading ? "Searching..." : "Search Jobs"}
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
+            {["Software Engineer", "Data Scientist", "Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager"].map(q => (
+              <button key={q} style={{ ...s.filterBtn(false), fontSize: "12px" }} onClick={() => { setLiveSearch(q); fetchJobs(q, locationSearch); }}>{q}</button>
+            ))}
+          </div>
+          {updatedAt && (
+            <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>
+              Last updated: {new Date(updatedAt).toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+
+        {/* Filter within results */}
+        <div style={s.searchWrap}>
+          <span style={s.searchIcon}>⚡</span>
+          <input style={s.searchBox} placeholder="Filter results by title, company or location..." value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentJobPage(1); }} />
+        </div>
+
+        {/* Sector filters */}
         <div style={s.filterRow}>
           {SECTORS.map(sec => (
             <button key={sec} style={s.filterBtn(sector === sec)} onClick={() => setSector(sec)}>{sec}</button>
           ))}
         </div>
-        <div style={s.grid2}>
-          {filteredJobs.map((j, i) => (
-            <div key={i} style={{ ...s.card, display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1, marginRight: "10px" }}>
-                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{j.title}</p>
-                  <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
+
+        {/* Results count */}
+        <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1.25rem" }}>
+          Showing {paginatedJobs.length} of {filteredJobs.length} jobs
+          {searchQuery && ` matching "${searchQuery}"`}
+          {sector !== "All" && ` in ${sector}`}
+          {jobsLoading && " — refreshing..."}
+        </p>
+
+        {/* Job cards */}
+        {paginatedJobs.length > 0 ? (
+          <div style={s.grid2}>
+            {paginatedJobs.map((j, i) => (
+              <div key={i} style={{ ...s.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ flex: 1, marginRight: "10px" }}>
+                    <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{j.title}</p>
+                    <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
+                  </div>
+                  <span style={s.tag("teal")}>Visa Sponsor</span>
                 </div>
-                <span style={s.tag("teal")}>Visa Sponsor</span>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                  {j.sector && <span style={s.tag("purple")}>{j.sector}</span>}
+                  <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
+                  {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
+                  {j.url && (
+                    <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>
+                  )}
+                </div>
               </div>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <span style={s.tag("purple")}>{j.sector}</span>
-                <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
-                <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>
-              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ ...s.card, textAlign: "center", padding: "2.5rem" }}>
+            <p style={{ color: "var(--color-text-secondary)", marginBottom: "1rem" }}>No jobs found matching your search.</p>
+            <button style={s.btnOutline} onClick={() => { setSearchQuery(""); setSector("All"); }}>Clear filters</button>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <>
+            <div style={s.pageNav}>
+              {/* First page */}
+              {safePage > 3 && totalPages > 5 && (
+                <>
+                  <button style={s.pageBtn(false)} onClick={() => setCurrentJobPage(1)}>1</button>
+                  <span style={{ color: "var(--color-text-secondary)", fontSize: "14px" }}>…</span>
+                </>
+              )}
+
+              {/* Page number buttons */}
+              {getPageNumbers().map(p => (
+                <button key={p} style={s.pageBtn(p === safePage)} onClick={() => setCurrentJobPage(p)}>{p}</button>
+              ))}
+
+              {/* Last page */}
+              {safePage < totalPages - 2 && totalPages > 5 && (
+                <>
+                  <span style={{ color: "var(--color-text-secondary)", fontSize: "14px" }}>…</span>
+                  <button style={s.pageBtn(false)} onClick={() => setCurrentJobPage(totalPages)}>{totalPages}</button>
+                </>
+              )}
             </div>
-          ))}
-        </div>
-        <div style={{ textAlign: "center", marginTop: "2rem" }}>
-          <a href="https://uk.indeed.com/jobs?q=visa+sponsorship&l=United+Kingdom" target="_blank" rel="noopener noreferrer" style={{ ...s.btnOutline, textDecoration: "none", display: "inline-block" }}>View all jobs on Indeed ↗</a>
-        </div>
+
+            {/* Prev / Next arrows */}
+            <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "10px" }}>
+              <button
+                style={{ ...s.btnOutline, padding: "8px 20px", fontSize: "13px", opacity: safePage === 1 ? 0.4 : 1 }}
+                onClick={() => safePage > 1 && setCurrentJobPage(p => p - 1)}
+                disabled={safePage === 1}
+              >← Previous</button>
+              <button
+                style={{ ...s.btnPrimary, padding: "8px 20px", fontSize: "13px", opacity: safePage === totalPages ? 0.4 : 1 }}
+                onClick={() => safePage < totalPages && setCurrentJobPage(p => p + 1)}
+                disabled={safePage === totalPages}
+              >Next →</button>
+            </div>
+
+            <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "0.75rem" }}>
+              Page {safePage} of {totalPages} · {filteredJobs.length} total listings
+            </p>
+          </>
+        )}
       </div>
     );
   }
