@@ -119,6 +119,7 @@ export default function Mentorgram() {
   const [currentJobPage, setCurrentJobPage] = useState(1);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
   const messagesEndRef = useRef(null);
   const jobsTopRef = useRef(null);
 
