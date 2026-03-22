@@ -122,33 +122,48 @@ const S = {
 };
 
 // ─── Jobs Page (outside main component to prevent remounting) ──────────────
-function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) {
+function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs }) {
   const [sector, setSector] = useState("All");
   const [visaType, setVisaType] = useState("All Jobs");
-  const [filterQuery, setFilterQuery] = useState("");
-  const [liveSearch, setLiveSearch] = useState("");
-  const [locationSearch, setLocationSearch] = useState("");
+  const [titleQuery, setTitleQuery] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
   const [page, setPage] = useState(1);
   const topRef = useRef(null);
+  const searchTimer = useRef(null);
 
-  // Reset page when filters change
-  useEffect(() => { setPage(1); }, [sector, visaType, filterQuery, locationSearch]);
-
-  // Scroll to top on page change
+  useEffect(() => { setPage(1); }, [sector, visaType, titleQuery, locationQuery]);
   useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [page]);
 
+  // Auto-search Indeed when user stops typing (500ms debounce)
+  function handleTitleChange(val) {
+    setTitleQuery(val);
+    clearTimeout(searchTimer.current);
+    if (val.length >= 3) {
+      searchTimer.current = setTimeout(() => {
+        onFetchJobs(val, locationQuery);
+      }, 500);
+    }
+  }
+
+  function handleLocationChange(val) {
+    setLocationQuery(val);
+    clearTimeout(searchTimer.current);
+    if (val.length >= 2) {
+      searchTimer.current = setTimeout(() => {
+        onFetchJobs(titleQuery, val);
+      }, 500);
+    }
+  }
+
+  // Filter loaded jobs
   const filtered = allJobs.filter(j => {
     const matchSector = sector === "All" || j.sector === sector;
     const matchVisa = visaType === "All Jobs" || j.visaType === visaType;
-    const q = filterQuery.toLowerCase().trim();
-    const matchSearch = !q ||
-      j.title.toLowerCase().includes(q) ||
-      j.company.toLowerCase().includes(q) ||
-      j.location.toLowerCase().includes(q) ||
-      j.sector.toLowerCase().includes(q);
-    const loc = locationSearch.toLowerCase().trim();
-    const matchLocation = !loc || j.location.toLowerCase().includes(loc);
-    return matchSector && matchVisa && matchSearch && matchLocation;
+    const q = titleQuery.toLowerCase().trim();
+    const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
+    const loc = locationQuery.toLowerCase().trim();
+    const matchLoc = !loc || j.location.toLowerCase().includes(loc);
+    return matchSector && matchVisa && matchTitle && matchLoc;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
@@ -164,82 +179,112 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
 
   return (
     <div style={S.section}>
+      <style>{`
+        .search-input:focus { border-color: #534AB7 !important; box-shadow: 0 0 0 3px rgba(83,74,183,0.15); }
+        .job-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .job-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(83,74,183,0.1); }
+      `}</style>
+
       <div ref={topRef}>
         <h2 style={S.sectionTitle}>Sponsorship jobs</h2>
-        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Search UK jobs offering visa sponsorship.</p>
+        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>
+          Search thousands of UK jobs with visa sponsorship — results update as you type.
+        </p>
       </div>
 
-      {/* Single unified search box */}
+      {/* Search box */}
       <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <input
-            style={{ ...S.input, flex: 2, minWidth: "160px" }}
-            placeholder="🔍 Job title or keywords..."
-            value={filterQuery}
-            onChange={e => { setFilterQuery(e.target.value); setLiveSearch(e.target.value); }}
-            onKeyDown={e => e.key === "Enter" && onFetchJobs(filterQuery, locationSearch)}
-          />
-          <input
-            style={{ ...S.input, flex: 1, minWidth: "120px" }}
-            placeholder="📍 Location (UK)"
-            value={locationSearch}
-            onChange={e => { setLocationSearch(e.target.value); setPage(1); }}
-            onKeyDown={e => e.key === "Enter" && onFetchJobs(filterQuery, locationSearch)}
-          />
+          <div style={{ flex: 2, minWidth: "180px", position: "relative" }}>
+            <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", pointerEvents: "none" }}>🔍</span>
+            <input
+              className="search-input"
+              style={{ ...S.input, paddingLeft: "38px", transition: "border-color 0.15s, box-shadow 0.15s" }}
+              placeholder="Job title or keywords..."
+              value={titleQuery}
+              onChange={e => handleTitleChange(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: "130px", position: "relative" }}>
+            <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", pointerEvents: "none" }}>📍</span>
+            <input
+              className="search-input"
+              style={{ ...S.input, paddingLeft: "38px", transition: "border-color 0.15s, box-shadow 0.15s" }}
+              placeholder="Location..."
+              value={locationQuery}
+              onChange={e => handleLocationChange(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)}
+            />
+          </div>
           <button
-            style={{ ...S.btnPrimary, padding: "10px 20px", fontSize: "14px", whiteSpace: "nowrap" }}
-            onClick={() => onFetchJobs(filterQuery, locationSearch)}
+            style={{ ...S.btnPrimary, padding: "10px 20px", fontSize: "14px", whiteSpace: "nowrap", opacity: jobsLoading ? 0.7 : 1 }}
+            onClick={() => { clearTimeout(searchTimer.current); onFetchJobs(titleQuery, locationQuery); }}
             disabled={jobsLoading}
           >
-            {jobsLoading ? "Searching..." : "Search Indeed"}
+            {jobsLoading ? "Searching..." : "Search"}
           </button>
         </div>
-        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 0" }}>
-          Type to filter results instantly · Click <strong>Search Indeed</strong> for fresh results
+
+        {/* Hint */}
+        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 10px" }}>
+          💡 Results update automatically as you type · Press Enter or click Search for fresh results
         </p>
 
         {/* Quick search chips */}
-        <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
-          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager"].map(q => (
-            <button key={q} style={{ ...S.filterBtn(false), fontSize: "12px" }} onClick={() => { setFilterQuery(q); setLiveSearch(q); onFetchJobs(q, locationSearch); }}>{q}</button>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Teacher", "Chef", "Marketing Manager"].map(q => (
+            <button key={q} style={{ ...S.filterBtn(titleQuery === q), fontSize: "12px", padding: "4px 12px" }}
+              onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}>{q}</button>
           ))}
         </div>
-        {updatedAt && <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>Updated: {new Date(updatedAt).toLocaleTimeString()}</p>}
+
+        {updatedAt && (
+          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>
+            Last updated: {new Date(updatedAt).toLocaleTimeString()}
+          </p>
+        )}
       </div>
 
-      {/* Sector pills */}
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "0.75rem" }}>
+      {/* Sector filters */}
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.75rem" }}>
         {SECTORS.map(sec => (
-          <button key={sec} style={S.filterBtn(sector === sec)} onClick={() => setSector(sec)}>{sec}</button>
+          <button key={sec} style={{ ...S.filterBtn(sector === sec), fontSize: "12px", padding: "5px 12px" }} onClick={() => setSector(sec)}>{sec}</button>
         ))}
       </div>
 
       {/* Visa type filter */}
-      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap" }}>
         <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Filter:</span>
         {VISA_TYPES.map(v => (
-          <button key={v} style={{
-            ...S.filterBtn(visaType === v),
-            background: visaType === v ? (v === "Visa Sponsorship" ? "#1D9E75" : "#534AB7") : "var(--color-background-primary)",
-            fontSize: "13px"
-          }} onClick={() => setVisaType(v)}>{v}</button>
+          <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v ? (v === "Visa Sponsorship" ? "#1D9E75" : "#534AB7") : "var(--color-background-primary)", fontSize: "13px" }}
+            onClick={() => setVisaType(v)}>{v}</button>
         ))}
       </div>
 
       {/* Results count */}
       <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
-        Showing {paginated.length} of {filtered.length} jobs
-        {filterQuery && ` matching "${filterQuery}"`}
-        {locationSearch && ` in "${locationSearch}"`}
-        {sector !== "All" && ` · ${sector}`}
-        {visaType !== "All Jobs" && ` · ${visaType}`}
-        {jobsLoading && " — loading..."}
+        {jobsLoading ? "🔍 Searching Indeed for live jobs..." : `Showing ${paginated.length} of ${filtered.length} jobs`}
+        {!jobsLoading && titleQuery && ` matching "${titleQuery}"`}
+        {!jobsLoading && locationQuery && ` in "${locationQuery}"`}
+        {!jobsLoading && sector !== "All" && ` · ${sector}`}
+        {!jobsLoading && visaType !== "All Jobs" && ` · ${visaType}`}
       </p>
 
-      {/* Loading state */}
+      {/* Loading skeleton */}
       {jobsLoading && (
-        <div style={{ textAlign: "center", padding: "3rem", color: "var(--color-text-secondary)" }}>
-          <p>Searching for UK sponsorship jobs...</p>
+        <div style={S.grid2}>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ height: "16px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "70%", animation: "pulse 1.5s ease-in-out infinite" }} />
+              <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "40%" }} />
+              <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "55%" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
+                <div style={{ height: "14px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "30%" }} />
+                <div style={{ height: "32px", width: "70px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }} />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -247,22 +292,27 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
       {!jobsLoading && paginated.length > 0 && (
         <div style={S.grid2}>
           {paginated.map((j, i) => (
-            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div key={i} className="job-card" style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
                   <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{j.title}</p>
                   <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
                 </div>
-                <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "#E1F5EE", color: "#085041" }}>✓ Sponsorship</span>
+                <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "#E1F5EE", color: "#085041", whiteSpace: "nowrap" }}>✓ Sponsorship</span>
               </div>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
                 {j.sector && <span style={S.tag("purple")}>{j.sector}</span>}
                 <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
                 {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
+                {j.url && (
+                  <a href={j.url} target="_blank" rel="noopener noreferrer"
+                    style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>
+                    Apply ↗
+                  </a>
+                )}
               </div>
             </div>
           ))}
@@ -271,9 +321,15 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
 
       {/* No results */}
       {!jobsLoading && paginated.length === 0 && (
-        <div style={{ ...S.card, textAlign: "center", padding: "2.5rem" }}>
-          <p style={{ color: "var(--color-text-secondary)", marginBottom: "1rem" }}>No jobs found. Try a different search or clear filters.</p>
-          <button style={S.btnOutline} onClick={() => { setFilterQuery(""); setSector("All"); }}>Clear filters</button>
+        <div style={{ ...S.card, textAlign: "center", padding: "3rem" }}>
+          <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
+          <p style={{ color: "var(--color-text-primary)", fontWeight: 500, marginBottom: "0.5rem" }}>No jobs found</p>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>
+            Try searching for a job title above to find live results from Indeed
+          </p>
+          <button style={S.btnPrimary} onClick={() => { setTitleQuery(""); setLocationQuery(""); setSector("All"); setVisaType("All Jobs"); onFetchJobs("", ""); }}>
+            Show all jobs
+          </button>
         </div>
       )}
 
@@ -289,7 +345,9 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
             <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "13px", opacity: safePage === 1 ? 0.4 : 1 }} onClick={() => safePage > 1 && setPage(p => p - 1)} disabled={safePage === 1}>← Previous</button>
             <button style={{ ...S.btnPrimary, padding: "8px 20px", fontSize: "13px", opacity: safePage === totalPages ? 0.4 : 1 }} onClick={() => safePage < totalPages && setPage(p => p + 1)} disabled={safePage === totalPages}>Next →</button>
           </div>
-          <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "0.75rem" }}>Page {safePage} of {totalPages} · {filtered.length} total</p>
+          <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "0.75rem" }}>
+            Page {safePage} of {totalPages} · {filtered.length} total listings
+          </p>
         </>
       )}
     </div>
@@ -366,6 +424,7 @@ export default function Mentorgram() {
             @keyframes countUp { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
             @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
             @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+            @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
             @keyframes orb1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-40px) scale(1.1); } 66% { transform: translate(-30px,50px) scale(0.95); } }
             @keyframes orb2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-50px,60px) scale(1.05); } 66% { transform: translate(40px,-30px) scale(1.1); } }
             @keyframes orb3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,40px) scale(1.08); } }
