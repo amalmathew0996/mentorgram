@@ -66,6 +66,42 @@ const FALLBACK_JOBS = [
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business"];
 const JOBS_PER_PAGE = 6;
 
+const ST = {
+  wrap: { fontFamily: "var(--font-sans)", color: "var(--color-text-primary)", minHeight: "100vh", background: "var(--color-background-tertiary)" },
+  hero: { padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "720px", margin: "0 auto" },
+  heroTitle: { fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 500, lineHeight: 1.2, margin: "0 0 1rem" },
+  heroAccent: { background: "linear-gradient(135deg, #534AB7, #1D9E75)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
+  heroSub: { fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 2rem" },
+  btnPrimary: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
+  btnOutline: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
+  section: { maxWidth: "1100px", margin: "0 auto", padding: "3rem 1.5rem" },
+  sectionTitle: { fontSize: "1.6rem", fontWeight: 500, margin: "0 0 0.5rem" },
+  sectionSub: { color: "var(--color-text-secondary)", margin: "0 0 2rem", fontSize: "15px" },
+  grid3: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" },
+  grid2: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" },
+  card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" },
+  tag: (color) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", background: color === "purple" ? "#EEEDFE" : color === "teal" ? "#E1F5EE" : "#E6F1FB", color: color === "purple" ? "#3C3489" : color === "teal" ? "#085041" : "#0C447C", fontWeight: 500 }),
+  chatWrap: { maxWidth: "760px", margin: "0 auto", padding: "1.5rem" },
+  chatBox: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", display: "flex", flexDirection: "column", height: "520px" },
+  chatMessages: { flex: 1, overflowY: "auto", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" },
+  msgUser: { alignSelf: "flex-end", background: "#534AB7", color: "#fff", padding: "10px 14px", borderRadius: "16px 16px 4px 16px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 },
+  msgBot: { alignSelf: "flex-start", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", padding: "10px 14px", borderRadius: "16px 16px 16px 4px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 },
+  chatInputRow: { display: "flex", gap: "8px", padding: "1rem", borderTop: "0.5px solid var(--color-border-tertiary)" },
+  input: { flex: 1, padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit" },
+  sendBtn: { padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "14px", cursor: "pointer", fontWeight: 500, fontFamily: "inherit" },
+  filterRow: { display: "flex", gap: "8px", flexWrap: "wrap", margin: "0 0 1rem" },
+  filterBtn: (active) => ({ padding: "6px 16px", borderRadius: "20px", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }),
+  footer: { borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "2rem 1.5rem", textAlign: "center" },
+  statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", margin: "2rem 0" },
+  statCard: { background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem", textAlign: "center" },
+  searchWrap: { position: "relative", marginBottom: "1.25rem" },
+  searchBox: { width: "100%", padding: "11px 16px 11px 42px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", boxSizing: "border-box", fontFamily: "inherit" },
+  searchIcon: { position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-secondary)", fontSize: "16px", pointerEvents: "none" },
+  pageNav: { display: "flex", gap: "6px", justifyContent: "center", alignItems: "center", marginTop: "2rem", flexWrap: "wrap" },
+  pageBtn: (active) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: active ? "default" : "pointer", fontFamily: "inherit", fontWeight: active ? 500 : 400 }),
+  pageArrow: (disabled) => ({ width: "36px", height: "36px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", color: disabled ? "var(--color-border-secondary)" : "var(--color-text-primary)", fontSize: "18px", cursor: disabled ? "default" : "pointer", fontFamily: "inherit" }),
+};
+
 export default function Mentorgram() {
   const [activePage, setActivePage] = useState("Home");
   const [messages, setMessages] = useState([
@@ -183,47 +219,8 @@ export default function Mentorgram() {
     setLoading(false);
   }
 
-  const s = {
-    wrap: { fontFamily: "var(--font-sans)", color: "var(--color-text-primary)", minHeight: "100vh", background: "var(--color-background-tertiary)" },
-    nav: { background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px", position: "sticky", top: 0, zIndex: 100 },
-    logo: { display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" },
-    logoMark: { width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, #534AB7, #1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 500, fontSize: "18px" },
-    logoText: { fontSize: "18px", fontWeight: 500, color: "var(--color-text-primary)" },
-    navLinks: { display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap" },
-    navLink: (active) => ({ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: active ? "var(--color-background-secondary)" : "transparent", color: active ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }),
-    hero: { padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "720px", margin: "0 auto" },
-    heroTitle: { fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 500, lineHeight: 1.2, margin: "0 0 1rem" },
-    heroAccent: { background: "linear-gradient(135deg, #534AB7, #1D9E75)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
-    heroSub: { fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 2rem" },
-    btnPrimary: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
-    btnOutline: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
-    section: { maxWidth: "1100px", margin: "0 auto", padding: "3rem 1.5rem" },
-    sectionTitle: { fontSize: "1.6rem", fontWeight: 500, margin: "0 0 0.5rem" },
-    sectionSub: { color: "var(--color-text-secondary)", margin: "0 0 2rem", fontSize: "15px" },
-    grid3: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" },
-    grid2: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" },
-    card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" },
-    tag: (color) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", background: color === "purple" ? "#EEEDFE" : color === "teal" ? "#E1F5EE" : "#E6F1FB", color: color === "purple" ? "#3C3489" : color === "teal" ? "#085041" : "#0C447C", fontWeight: 500 }),
-    chatWrap: { maxWidth: "760px", margin: "0 auto", padding: "1.5rem" },
-    chatBox: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", display: "flex", flexDirection: "column", height: "520px" },
-    chatMessages: { flex: 1, overflowY: "auto", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" },
-    msgUser: { alignSelf: "flex-end", background: "#534AB7", color: "#fff", padding: "10px 14px", borderRadius: "16px 16px 4px 16px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 },
-    msgBot: { alignSelf: "flex-start", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", padding: "10px 14px", borderRadius: "16px 16px 16px 4px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 },
-    chatInputRow: { display: "flex", gap: "8px", padding: "1rem", borderTop: "0.5px solid var(--color-border-tertiary)" },
-    input: { flex: 1, padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit" },
-    sendBtn: { padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "14px", cursor: "pointer", fontWeight: 500, fontFamily: "inherit" },
-    filterRow: { display: "flex", gap: "8px", flexWrap: "wrap", margin: "0 0 1rem" },
-    filterBtn: (active) => ({ padding: "6px 16px", borderRadius: "20px", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }),
-    footer: { borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "2rem 1.5rem", textAlign: "center" },
-    statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", margin: "2rem 0" },
-    statCard: { background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem", textAlign: "center" },
-    searchWrap: { position: "relative", marginBottom: "1.25rem" },
-    searchBox: { width: "100%", padding: "11px 16px 11px 42px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", boxSizing: "border-box", fontFamily: "inherit" },
-    searchIcon: { position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-secondary)", fontSize: "16px", pointerEvents: "none" },
-    pageNav: { display: "flex", gap: "6px", justifyContent: "center", alignItems: "center", marginTop: "2rem", flexWrap: "wrap" },
-    pageBtn: (active) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: active ? "default" : "pointer", fontFamily: "inherit", fontWeight: active ? 500 : 400 }),
-    pageArrow: (disabled) => ({ width: "36px", height: "36px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", color: disabled ? "var(--color-border-secondary)" : "var(--color-text-primary)", fontSize: "18px", cursor: disabled ? "default" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center" }),
-  };
+  // styles reference — defined outside to avoid remounting inputs on re-render
+  const s = ST;
 
   function HomePage() {
     return (
@@ -540,29 +537,56 @@ export default function Mentorgram() {
     );
   }
 
-  const pages = {
-    "Home": <HomePage />,
-    "AI Mentor": <AIMentorPage />,
-    "Education Paths": <EducationPage />,
-    "UK Universities": <UniversitiesPage />,
-    "Sponsorship Jobs": <JobsPage />,
-    "Contact": <ContactPage />
+  // Render pages directly (not as inner components) to prevent remounting on re-render
+  const renderPage = () => {
+    if (activePage === "Home") return <HomePage />;
+    if (activePage === "AI Mentor") return <AIMentorPage />;
+    if (activePage === "Education Paths") return <EducationPage />;
+    if (activePage === "UK Universities") return <UniversitiesPage />;
+    if (activePage === "Sponsorship Jobs") return <JobsPage />;
+    if (activePage === "Contact") return <ContactPage />;
+    return null;
   };
 
   return (
     <div style={s.wrap}>
-      <nav style={s.nav}>
-        <div style={s.logo} onClick={() => setActivePage("Home")}>
-          <div style={s.logoMark}>M</div>
-          <span style={s.logoText}>Mentorgram</span>
+      <style>{`
+        @media (max-width: 768px) {
+          .desktop-nav { display: none !important; }
+          .hamburger-btn { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+          .mobile-menu { display: none !important; }
+          .hamburger-btn { display: none !important; }
+          .desktop-nav { display: flex !important; }
+        }
+      `}</style>
+
+      <nav style={{ background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px", position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }} onClick={() => { setActivePage("Home"); setMobileMenu(false); }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, #534AB7, #1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 500, fontSize: "18px" }}>M</div>
+          <span style={{ fontSize: "18px", fontWeight: 500, color: "var(--color-text-primary)" }}>Mentorgram</span>
         </div>
-        <div style={s.navLinks}>
+        <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
           {NAV_LINKS.map(l => (
-            <button key={l} style={s.navLink(activePage === l)} onClick={() => setActivePage(l)}>{l}</button>
+            <button key={l} style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }} onClick={() => setActivePage(l)}>{l}</button>
           ))}
         </div>
+        <button className="hamburger-btn" style={{ display: "none", flexDirection: "column", gap: "5px", cursor: "pointer", padding: "8px", border: "none", background: "transparent" }} onClick={() => setMobileMenu(m => !m)}>
+          <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(45deg) translate(5px, 5px)" : "none" }} />
+          <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", opacity: mobileMenu ? 0 : 1, transition: "opacity 0.2s" }} />
+          <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(-45deg) translate(5px, -5px)" : "none" }} />
+        </button>
       </nav>
-      <main>{pages[activePage]}</main>
+
+      <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
+        {NAV_LINKS.map(l => (
+          <button key={l} style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: activePage === l ? 500 : 400 }}
+            onClick={() => { setActivePage(l); setMobileMenu(false); }}>{l}</button>
+        ))}
+      </div>
+
+      <main onClick={() => mobileMenu && setMobileMenu(false)}>{renderPage()}</main>
       <footer style={s.footer}>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>© 2025 Mentorgram AI · info@mentorgramai.com · mentorgramai.com</p>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "6px 0 0" }}>Empowering students worldwide to study, work, and thrive in the UK 🇬🇧</p>
