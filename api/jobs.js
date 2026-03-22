@@ -1,14 +1,5 @@
 export const config = { runtime: "edge" };
 
-const SEARCHES = [
-  "visa sponsorship software engineer UK",
-  "visa sponsorship data scientist UK",
-  "visa sponsorship NHS healthcare UK",
-  "visa sponsorship finance analyst UK",
-  "visa sponsorship mechanical engineer UK",
-  "visa sponsorship marketing manager UK",
-];
-
 export default async function handler(req) {
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -17,10 +8,10 @@ export default async function handler(req) {
   };
 
   try {
+    const { searchParams } = new URL(req.url);
+    const query = searchParams.get("q") || "visa sponsorship UK";
+    const location = searchParams.get("location") || "United Kingdom";
     const apiKey = process.env.ANTHROPIC_API_KEY;
-
-    // Pick a random search to keep variety
-    const search = SEARCHES[Math.floor(Math.random() * SEARCHES.length)];
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -32,22 +23,18 @@ export default async function handler(req) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
+        max_tokens: 3000,
         mcp_servers: [
           { type: "url", url: "https://mcp.indeed.com/claude/mcp", name: "indeed-mcp" }
         ],
-        system: `You are a job search assistant. Use the Indeed search tool with country_code "GB" and location "United Kingdom".
-Run searches for these terms one at a time:
-1. "visa sponsorship software engineer UK"
-2. "visa sponsorship healthcare NHS UK"  
-3. "visa sponsorship finance analyst UK"
-4. "visa sponsorship engineer UK"
-
-Collect all results and return ONLY a valid JSON array, no markdown, no explanation.
-Format each job as: {"title":"...","company":"...","location":"...","salary":"...","sector":"...","posted":"...","url":"..."}
-For sector, categorise each job as one of: Technology, AI & Data, Healthcare, Finance, Engineering, Business
-If salary missing use "Competitive". Return up to 30 jobs total. No duplicates.`,
-        messages: [{ role: "user", content: "Search for UK visa sponsorship jobs across all sectors and return JSON array." }]
+        system: `You are a job search assistant for UK visa sponsorship roles.
+Use the Indeed search tool with country_code "GB" and location "${location}".
+Search for: "${query} visa sponsorship".
+Return ONLY a valid JSON array, no markdown, no explanation, nothing else.
+Format: [{"title":"...","company":"...","location":"...","salary":"...","sector":"...","posted":"...","url":"..."}]
+Categorise sector as one of: Technology, AI & Data, Healthcare, Finance, Engineering, Business, Other.
+If salary missing use "Competitive". Return up to 12 results.`,
+        messages: [{ role: "user", content: `Search Indeed UK for: ${query} visa sponsorship in ${location}` }]
       }),
     });
 
@@ -56,12 +43,10 @@ If salary missing use "Competitive". Return up to 30 jobs total. No duplicates.`
     const clean = text.replace(/```json|```/g, "").trim();
     const start = clean.indexOf("[");
     const end = clean.lastIndexOf("]");
-
-    if (start === -1 || end === -1) throw new Error("No jobs found in response");
-
+    if (start === -1 || end === -1) throw new Error("No results");
     const jobs = JSON.parse(clean.slice(start, end + 1));
 
-    return new Response(JSON.stringify({ jobs, updatedAt: new Date().toISOString() }), {
+    return new Response(JSON.stringify({ jobs, updatedAt: new Date().toISOString(), query }), {
       status: 200,
       headers: corsHeaders,
     });
