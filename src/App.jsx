@@ -29,24 +29,8 @@ const FEATURES = [
   { icon: "🌍", title: "Global Reach", desc: "Supporting students from 50+ countries on their journey to UK education." },
 ];
 
-// Real UK sponsorship jobs fetched from Indeed - March 2026
-const ALL_JOBS = [
-  { title: "Software Engineer (Backend)", company: "Duffel", location: "London", salary: "Competitive", sector: "Technology", posted: "Mar 10, 2026", url: "https://to.indeed.com/aa8lkh89tm2f" },
-  { title: "kdb+ Developer (Sponsorship available)", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", posted: "Mar 18, 2026", url: "https://to.indeed.com/aacy7qmtdngf" },
-  { title: "Data Scientist", company: "Ecotricity Group", location: "Stroud", salary: "£55,000–£65,000", sector: "AI & Data", posted: "Feb 17, 2026", url: "https://to.indeed.com/aanpm8v78c4q" },
-  { title: "Applied Research Scientist (Speech)", company: "Emotech LTD", location: "London", salary: "From £45,000", sector: "AI & Data", posted: "Mar 20, 2026", url: "https://to.indeed.com/aadkm9q8xclx" },
-  { title: "Senior Data Engineer", company: "AECOM", location: "Bristol", salary: "£58,500–£71,812", sector: "AI & Data", posted: "Mar 11, 2026", url: "https://to.indeed.com/aaz2vplvmxll" },
-  { title: "Epidemiology Scientist", company: "MSD", location: "London", salary: "Competitive", sector: "Healthcare", posted: "Mar 10, 2026", url: "https://to.indeed.com/aatbqs2gbt6m" },
-  { title: "Medical Secretary", company: "NHS", location: "North Hykeham", salary: "£27,485–£30,162", sector: "Healthcare", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa62hddsjc7x" },
-  { title: "School Nurse Assistant", company: "Rikkyo School", location: "Rudgwick", salary: "£27,000–£36,000", sector: "Healthcare", posted: "Mar 03, 2026", url: "https://to.indeed.com/aaqfn8qxl7vc" },
-  { title: "Financial Analyst", company: "Confidential", location: "Bromley", salary: "£45,800–£100,000", sector: "Finance", posted: "Mar 12, 2026", url: "https://to.indeed.com/aagp8bkm6tfb" },
-  { title: "Equipment Engineer", company: "Seagate Technology", location: "Derry", salary: "£27,827–£35,875", sector: "Engineering", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa96f2kjv2np" },
-  { title: "Civil Engineer Project Leader", company: "JN Bentley", location: "Reading", salary: "£36,000–£66,000", sector: "Engineering", posted: "Aug 12, 2025", url: "https://to.indeed.com/aa6tvqx8gsfd" },
-  { title: "Project Leader", company: "Mott MacDonald", location: "Newport", salary: "£36,500–£55,000", sector: "Engineering", posted: "Jul 25, 2025", url: "https://to.indeed.com/aadr7s9xb4fw" },
-  { title: "Lead Manufacturing Engineer", company: "GE Aerospace", location: "Gloucester", salary: "£23,795–£40,500", sector: "Engineering", posted: "Feb 25, 2026", url: "https://to.indeed.com/aagryjj7g7pb" },
-];
-
-const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering"];
+const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business"];
+const JOBS_PER_PAGE = 9;
 
 export default function Mentorgram() {
   const [activePage, setActivePage] = useState("Home");
@@ -55,7 +39,13 @@ export default function Mentorgram() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [allJobs, setAllJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [jobsError, setJobsError] = useState("");
+  const [updatedAt, setUpdatedAt] = useState(null);
   const [sector, setSector] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentJobPage, setCurrentJobPage] = useState(1);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const messagesEndRef = useRef(null);
@@ -64,7 +54,43 @@ export default function Mentorgram() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const filteredJobs = sector === "All" ? ALL_JOBS : ALL_JOBS.filter(j => j.sector === sector);
+  useEffect(() => { setCurrentJobPage(1); }, [sector, searchQuery]);
+
+  // Fetch live jobs from serverless function
+  async function fetchJobs() {
+    setJobsLoading(true);
+    setJobsError("");
+    try {
+      const res = await fetch("/api/jobs");
+      const data = await res.json();
+      if (data.jobs && data.jobs.length > 0) {
+        setAllJobs(data.jobs);
+        setUpdatedAt(data.updatedAt);
+      } else {
+        throw new Error("No jobs returned");
+      }
+    } catch {
+      setJobsError("Could not load jobs right now. Please try again.");
+    }
+    setJobsLoading(false);
+  }
+
+  // Auto-fetch when jobs page is opened
+  useEffect(() => {
+    if (activePage === "Sponsorship Jobs" && allJobs.length === 0 && !jobsLoading) {
+      fetchJobs();
+    }
+  }, [activePage]);
+
+  const filteredJobs = allJobs.filter(j => {
+    const matchesSector = sector === "All" || j.sector === sector;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q) || j.location.toLowerCase().includes(q) || j.sector.toLowerCase().includes(q);
+    return matchesSector && matchesSearch;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / JOBS_PER_PAGE));
+  const paginatedJobs = filteredJobs.slice((currentJobPage - 1) * JOBS_PER_PAGE, currentJobPage * JOBS_PER_PAGE);
 
   async function sendMessage() {
     if (!input.trim() || loading) return;
@@ -84,7 +110,7 @@ export default function Mentorgram() {
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
-          system: "You are the Mentorgram AI Mentor — a friendly, expert career and education advisor. You help students worldwide navigate education pathways, UK university applications, visa processes, and career planning. Specialise in UK education (GCSEs, A-Levels, UCAS), international student pathways, UK visa sponsorship jobs, and career guidance in AI, healthcare, engineering, finance, cybersecurity, and green energy. Be concise, warm, and actionable.",
+          system: "You are the Mentorgram AI Mentor — a friendly, expert career and education advisor. Help students worldwide with UK education pathways, university applications, visa processes, and career planning. Be concise, warm, and actionable.",
           messages: [...messages, { role: "user", content: userMsg }].map(m => ({ role: m.role, content: m.content }))
         })
       });
@@ -126,13 +152,17 @@ export default function Mentorgram() {
     chatInputRow: { display: "flex", gap: "8px", padding: "1rem", borderTop: "0.5px solid var(--color-border-tertiary)" },
     input: { flex: 1, padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none" },
     sendBtn: { padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "14px", cursor: "pointer", fontWeight: 500 },
-    filterRow: { display: "flex", gap: "8px", flexWrap: "wrap", margin: "0 0 1.5rem" },
-    filterBtn: (active) => ({ padding: "6px 16px", borderRadius: "20px", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer" }),
+    filterRow: { display: "flex", gap: "8px", flexWrap: "wrap", margin: "0 0 1rem" },
+    filterBtn: (active) => ({ padding: "6px 16px", borderRadius: "20px", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }),
     footer: { borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "2rem 1.5rem", textAlign: "center" },
     statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", margin: "2rem 0" },
     statCard: { background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem", textAlign: "center" },
-    liveTag: { display: "inline-flex", alignItems: "center", gap: "5px", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", background: "#E1F5EE", color: "#085041", fontWeight: 500, marginLeft: "10px" },
-    liveDot: { width: "6px", height: "6px", borderRadius: "50%", background: "#1D9E75", display: "inline-block" },
+    searchWrap: { position: "relative", marginBottom: "1.25rem" },
+    searchBox: { width: "100%", padding: "11px 16px 11px 42px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", boxSizing: "border-box", fontFamily: "inherit" },
+    searchIcon: { position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-secondary)", fontSize: "16px", pointerEvents: "none" },
+    pageBtn: (active) => ({ width: "36px", height: "36px", borderRadius: "var(--border-radius-md)", border: active ? "none" : "0.5px solid var(--color-border-secondary)", background: active ? "#534AB7" : "transparent", color: active ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit" }),
+    pageNav: { display: "flex", gap: "6px", justifyContent: "center", alignItems: "center", marginTop: "2rem" },
+    pageArrow: (disabled) => ({ width: "36px", height: "36px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", color: disabled ? "var(--color-border-secondary)" : "var(--color-text-primary)", fontSize: "16px", cursor: disabled ? "default" : "pointer", fontFamily: "inherit" }),
   };
 
   function HomePage() {
@@ -141,10 +171,10 @@ export default function Mentorgram() {
         <div style={s.hero}>
           <div style={{ ...s.tag("purple"), marginBottom: "1rem", fontSize: "13px" }}>🚀 AI-Powered Education & Career Platform</div>
           <h1 style={s.heroTitle}>Your AI Mentor for<br /><span style={s.heroAccent}>Education & UK Careers</span></h1>
-          <p style={s.heroSub}>Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and live visa-sponsored job opportunities.</p>
+          <p style={s.heroSub}>Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and visa-sponsored job opportunities.</p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <button style={s.btnPrimary} onClick={() => setActivePage("AI Mentor")}>Chat with AI Mentor</button>
-            <button style={s.btnOutline} onClick={() => setActivePage("Sponsorship Jobs")}>Browse Live Jobs</button>
+            <button style={s.btnOutline} onClick={() => setActivePage("Sponsorship Jobs")}>Browse Jobs</button>
           </div>
           <div style={s.statsRow}>
             {[["50+", "Countries Supported"], ["100K+", "Students Guided"], ["500+", "UK Employers"], ["Live", "Job Listings"]].map(([n, l]) => (
@@ -269,41 +299,96 @@ export default function Mentorgram() {
   function JobsPage() {
     return (
       <div style={s.section}>
-        <div style={{ display: "flex", alignItems: "center", marginBottom: "0.25rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "0.25rem" }}>
           <h2 style={{ ...s.sectionTitle, margin: 0 }}>Sponsorship jobs</h2>
-          <span style={s.liveTag}><span style={s.liveDot} />&nbsp;Live from Indeed</span>
+          <button style={{ ...s.btnOutline, padding: "7px 14px", fontSize: "13px" }} onClick={fetchJobs} disabled={jobsLoading}>
+            {jobsLoading ? "Loading..." : "↻ Refresh jobs"}
+          </button>
         </div>
-        <p style={s.sectionSub}>Real UK jobs with visa sponsorship — sourced from Indeed.</p>
+        <p style={{ ...s.sectionSub }}>
+          UK employers offering visa sponsorship across high-demand sectors.
+          {updatedAt && <span style={{ fontSize: "12px", marginLeft: "8px" }}>Updated {new Date(updatedAt).toLocaleTimeString()}</span>}
+        </p>
+
+        <div style={s.searchWrap}>
+          <span style={s.searchIcon}>🔍</span>
+          <input style={s.searchBox} placeholder="Search by job title, company or location..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+        </div>
+
         <div style={s.filterRow}>
           {SECTORS.map(sec => (
             <button key={sec} style={s.filterBtn(sector === sec)} onClick={() => setSector(sec)}>{sec}</button>
           ))}
         </div>
-        <div style={s.grid2}>
-          {filteredJobs.map((j, i) => (
-            <div key={i} style={{ ...s.card, display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1, marginRight: "10px" }}>
-                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{j.title}</p>
-                  <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
-                </div>
-                <span style={s.tag("teal")}>Visa Sponsor</span>
+
+        {jobsLoading && (
+          <div style={{ textAlign: "center", padding: "4rem", color: "var(--color-text-secondary)" }}>
+            <p style={{ fontSize: "15px", marginBottom: "8px" }}>Finding the latest UK sponsorship jobs...</p>
+            <p style={{ fontSize: "13px" }}>This may take up to 30 seconds</p>
+          </div>
+        )}
+
+        {jobsError && !jobsLoading && (
+          <div style={{ ...s.card, textAlign: "center", padding: "2rem" }}>
+            <p style={{ color: "var(--color-text-secondary)", marginBottom: "1rem" }}>{jobsError}</p>
+            <button style={s.btnPrimary} onClick={fetchJobs}>Try again</button>
+          </div>
+        )}
+
+        {!jobsLoading && !jobsError && allJobs.length > 0 && (
+          <>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1.25rem" }}>
+              {filteredJobs.length} {filteredJobs.length === 1 ? "job" : "jobs"} found
+              {searchQuery && ` for "${searchQuery}"`}
+              {sector !== "All" && ` in ${sector}`}
+            </p>
+
+            {paginatedJobs.length > 0 ? (
+              <div style={s.grid2}>
+                {paginatedJobs.map((j, i) => (
+                  <div key={i} style={{ ...s.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div style={{ flex: 1, marginRight: "10px" }}>
+                        <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{j.title}</p>
+                        <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
+                      </div>
+                      <span style={s.tag("teal")}>Visa Sponsor</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                      {j.sector && <span style={s.tag("purple")}>{j.sector}</span>}
+                      <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
+                      {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
+                      {j.url && (
+                        <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <span style={s.tag("purple")}>{j.sector}</span>
-                <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
-                <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>
+            ) : (
+              <div style={{ ...s.card, textAlign: "center", padding: "2rem" }}>
+                <p style={{ color: "var(--color-text-secondary)", marginBottom: "1rem" }}>No jobs found matching your search.</p>
+                <button style={s.btnOutline} onClick={() => { setSearchQuery(""); setSector("All"); }}>Clear filters</button>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>
+            )}
+
+            {totalPages > 1 && (
+              <div style={s.pageNav}>
+                <button style={s.pageArrow(currentJobPage === 1)} onClick={() => currentJobPage > 1 && setCurrentJobPage(p => p - 1)}>‹</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button key={p} style={s.pageBtn(p === currentJobPage)} onClick={() => setCurrentJobPage(p)}>{p}</button>
+                ))}
+                <button style={s.pageArrow(currentJobPage === totalPages)} onClick={() => currentJobPage < totalPages && setCurrentJobPage(p => p + 1)}>›</button>
               </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ textAlign: "center", marginTop: "2rem" }}>
-          <a href="https://uk.indeed.com/jobs?q=visa+sponsorship&l=United+Kingdom" target="_blank" rel="noopener noreferrer" style={{ ...s.btnOutline, textDecoration: "none", display: "inline-block" }}>View all jobs on Indeed ↗</a>
-        </div>
+            )}
+            <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "1rem" }}>
+              Page {currentJobPage} of {totalPages} · {filteredJobs.length} total listings
+            </p>
+          </>
+        )}
       </div>
     );
   }
