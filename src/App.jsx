@@ -224,6 +224,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
   const [titleQuery, setTitleQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [clickedJob, setClickedJob] = useState(null);
   const topRef = useRef(null);
   const searchTimer = useRef(null);
 
@@ -341,9 +342,14 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
       {!jobsLoading && paginated.length > 0 && (
         <div style={S.grid2}>
           {paginated.map((j, i) => (
-            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div key={i}
+              className={clickedJob === i ? "job-card-click" : ""}
+              style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px", cursor: "pointer", transition: "box-shadow 0.2s, border-color 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(83,74,183,0.12)"; e.currentTarget.style.borderColor = "rgba(83,74,183,0.3)"; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = "var(--color-border-tertiary)"; }}
+              onClick={() => { setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1, marginRight: "10px", cursor: "pointer" }} onClick={() => onSelectJob(j)}>
+                <div style={{ flex: 1, marginRight: "10px" }}>
                   <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px", color: "#534AB7" }}>{j.title}</p>
                   <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
                 </div>
@@ -356,9 +362,9 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                <div style={{ display: "flex", gap: "6px" }}>
+                <div style={{ display: "flex", gap: "6px" }} onClick={e => e.stopPropagation()}>
                   <ShareButton job={j} />
-                  <button onClick={() => onSelectJob(j)}
+                  <button onClick={e => { e.stopPropagation(); setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}
                     style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", fontWeight: 500, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                     View ↗
                   </button>
@@ -529,6 +535,7 @@ export default function Mentorgram() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [pageTransition, setPageTransition] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -586,7 +593,16 @@ export default function Mentorgram() {
     setChatLoading(false);
   }
 
-  function navTo(page) { setActivePage(page); setMobileMenu(false); setSelectedJob(null); }
+  function navTo(page) {
+    setPageTransition(true);
+    setTimeout(() => {
+      setActivePage(page);
+      setMobileMenu(false);
+      setSelectedJob(null);
+      setPageTransition(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 220);
+  }
 
   const heroAccent = { background: "linear-gradient(135deg, #534AB7, #1D9E75)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
 
@@ -810,7 +826,7 @@ export default function Mentorgram() {
           <span style={{ fontSize: "18px", fontWeight: 500, color: "var(--color-text-primary)" }}>Mentorgram</span>
         </div>
         <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-          {NAV_LINKS.map(l => <button key={l} style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }} onClick={() => navTo(l)}>{l}</button>)}
+          {NAV_LINKS.map(l => <button key={l} className="nav-btn" style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }} onClick={() => navTo(l)}>{l}</button>)}
         </div>
         <button className="hamburger-btn" style={{ display: "none", flexDirection: "column", gap: "5px", cursor: "pointer", padding: "8px", border: "none", background: "transparent" }} onClick={() => setMobileMenu(m => !m)}>
           <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(45deg) translate(5px,5px)" : "none" }} />
@@ -821,7 +837,21 @@ export default function Mentorgram() {
       <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
         {NAV_LINKS.map(l => <button key={l} style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: activePage === l ? 500 : 400 }} onClick={() => navTo(l)}>{l}</button>)}
       </div>
-      <main onClick={() => mobileMenu && setMobileMenu(false)}>{renderPage()}</main>
+      <main onClick={() => mobileMenu && setMobileMenu(false)}>
+        <style>{`
+          @keyframes pageIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+          @keyframes pageOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
+          @keyframes jobCardPop { 0% { transform: scale(1); } 40% { transform: scale(0.97); } 70% { transform: scale(1.02); } 100% { transform: scale(1); } }
+          .page-enter { animation: pageIn 0.3s ease forwards; }
+          .page-exit { animation: pageOut 0.2s ease forwards; }
+          .job-card-click { animation: jobCardPop 0.35s ease forwards; }
+          .nav-btn { transition: all 0.15s ease; }
+          .nav-btn:hover { transform: translateY(-1px); }
+        `}</style>
+        <div className={pageTransition ? "page-exit" : "page-enter"} key={activePage}>
+          {renderPage()}
+        </div>
+      </main>
       <footer style={S.footer}>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>© 2025 Mentorgram AI · info@mentorgramai.com · mentorgramai.com</p>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "6px 0 0" }}>Empowering students worldwide to study, work, and thrive in the UK 🇬🇧</p>
