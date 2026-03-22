@@ -412,32 +412,40 @@ function ContactPage() {
       return;
     }
     setStatus("sending");
-    try {
-      // EmailJS with Zoho SMTP
-      const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          service_id: "service_mentorgram",
-          template_id: "template_contact",
-          user_id: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-          template_params: {
-            name: name,
-            email: email,
-            subject: `Mentorgram: ${subject}`,
-            message: message,
-          }
-        })
-      });
-      if (res.status === 200) {
-        setStatus("success");
-        setName(""); setEmail(""); setSubject(""); setMessage("");
-      } else {
-        throw new Error("Failed");
-      }
-    } catch {
-      setStatus("error");
+
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    // Try EmailJS if key is available
+    if (publicKey) {
+      try {
+        const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: "service_mentorgram",
+            template_id: "template_contact",
+            user_id: publicKey,
+            template_params: { name, email, subject: `Mentorgram: ${subject}`, message }
+          })
+        });
+        if (res.status === 200) {
+          setStatus("success");
+          setName(""); setEmail(""); setSubject(""); setMessage("");
+          return;
+        }
+      } catch { /* fall through */ }
     }
+
+    // Always-working fallback: compose email in user browser
+    const emailBody = `Name: ${name}
+Email: ${email}
+
+${message}`;
+    const mailto = `mailto:info@mentorgramai.com?subject=${encodeURIComponent("Mentorgram: " + subject)}&body=${encodeURIComponent(emailBody)}`;
+    window.open(mailto, "_blank");
+    // Show success since user's email app opened
+    setStatus("success");
+    setName(""); setEmail(""); setSubject(""); setMessage("");
   }
 
   return (
@@ -449,8 +457,8 @@ function ContactPage() {
         {status === "success" ? (
           <div style={{ ...S.card, background: "#E1F5EE", border: "0.5px solid #5DCAA5", textAlign: "center", padding: "2rem" }}>
             <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>✅</p>
-            <p style={{ color: "#085041", fontWeight: 500, fontSize: "16px", margin: "0 0 0.5rem" }}>Message sent!</p>
-            <p style={{ color: "#085041", fontSize: "14px", margin: "0 0 1.25rem" }}>We'll reply to you at {email} shortly.</p>
+            <p style={{ color: "#085041", fontWeight: 500, fontSize: "16px", margin: "0 0 0.5rem" }}>Message ready!</p>
+            <p style={{ color: "#085041", fontSize: "14px", margin: "0 0 1.25rem" }}>Your email app has opened with the message pre-filled. Just hit Send and we'll reply to {email} shortly.</p>
             <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "14px" }} onClick={() => setStatus("idle")}>Send another</button>
           </div>
         ) : (
