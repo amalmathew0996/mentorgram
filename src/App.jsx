@@ -398,6 +398,96 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
   );
 }
 
+// ─── Contact Page ─────────────────────────────────────────────────────────
+function ContactPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("idle");
+
+  async function handleSubmit() {
+    if (!name || !email || !subject || !message) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    setStatus("sending");
+    try {
+      // EmailJS with Zoho SMTP
+      const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service_id: "service_mentorgram",
+          template_id: "template_contact",
+          user_id: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+          template_params: {
+            name: name,
+            email: email,
+            subject: `Mentorgram: ${subject}`,
+            message: message,
+          }
+        })
+      });
+      if (res.status === 200) {
+        setStatus("success");
+        setName(""); setEmail(""); setSubject(""); setMessage("");
+      } else {
+        throw new Error("Failed");
+      }
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  return (
+    <div style={S.section}>
+      <div style={{ maxWidth: "540px", margin: "0 auto" }}>
+        <h2 style={S.sectionTitle}>Get in touch</h2>
+        <p style={S.sectionSub}>Have questions about Mentorgram? We'd love to hear from you.</p>
+
+        {status === "success" ? (
+          <div style={{ ...S.card, background: "#E1F5EE", border: "0.5px solid #5DCAA5", textAlign: "center", padding: "2rem" }}>
+            <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>✅</p>
+            <p style={{ color: "#085041", fontWeight: 500, fontSize: "16px", margin: "0 0 0.5rem" }}>Message sent!</p>
+            <p style={{ color: "#085041", fontSize: "14px", margin: "0 0 1.25rem" }}>We'll reply to you at {email} shortly.</p>
+            <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "14px" }} onClick={() => setStatus("idle")}>Send another</button>
+          </div>
+        ) : (
+          <div style={S.card}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <input style={{ ...S.input, flex: 1, minWidth: "140px" }} placeholder="Your name" value={name} onChange={e => setName(e.target.value)} />
+                <input style={{ ...S.input, flex: 1, minWidth: "140px" }} type="email" placeholder="Your email" value={email} onChange={e => setEmail(e.target.value)} />
+              </div>
+              <input style={S.input} placeholder="Subject" value={subject} onChange={e => setSubject(e.target.value)} />
+              <textarea style={{ ...S.input, height: "120px", resize: "vertical" }} placeholder="Your message..." value={message} onChange={e => setMessage(e.target.value)} />
+              <button style={{ ...S.btnPrimary, opacity: status === "sending" ? 0.7 : 1 }} onClick={handleSubmit} disabled={status === "sending"}>
+                {status === "sending" ? "Sending..." : "Send message"}
+              </button>
+              {status === "error" && (
+                <p style={{ color: "#E24B4A", fontSize: "13px", margin: 0 }}>
+                  Something went wrong. Email us directly at{" "}
+                  <a href="mailto:info@mentorgramai.com" style={{ color: "#E24B4A" }}>info@mentorgramai.com</a>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div style={{ ...S.card, marginTop: "1rem" }}>
+          <p style={{ fontWeight: 500, margin: "0 0 10px" }}>Contact details</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px", color: "var(--color-text-secondary)" }}>
+            <a href="mailto:info@mentorgramai.com" style={{ color: "var(--color-text-secondary)", textDecoration: "none" }}>📧 info@mentorgramai.com</a>
+            <span>🌐 mentorgramai.com</span>
+            <span>📍 United Kingdom</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ────────────────────────────────────────────────────────
 export default function Mentorgram() {
   const [activePage, setActivePage] = useState("Home");
@@ -674,28 +764,7 @@ export default function Mentorgram() {
         <JobsPage allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt} onFetchJobs={fetchJobs} onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }} />
       );
 
-      case "Contact": return (
-        <div style={S.section}>
-          <div style={{ maxWidth: "540px", margin: "0 auto" }}>
-            <h2 style={S.sectionTitle}>Get in touch</h2>
-            <p style={S.sectionSub}>Have questions about Mentorgram? We'd love to hear from you.</p>
-            <div style={S.card}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                <div style={{ display: "flex", gap: "10px" }}><input style={S.input} placeholder="Your name" /><input style={S.input} placeholder="Your email" /></div>
-                <input style={S.input} placeholder="Subject" />
-                <textarea style={{ ...S.input, height: "120px", resize: "vertical" }} placeholder="Your message..." />
-                <button style={S.btnPrimary}>Send message</button>
-              </div>
-            </div>
-            <div style={{ ...S.card, marginTop: "1rem" }}>
-              <p style={{ fontWeight: 500, margin: "0 0 10px" }}>Contact details</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px", color: "var(--color-text-secondary)" }}>
-                <span>📧 info@mentorgramai.com</span><span>🌐 mentorgramai.com</span><span>📍 United Kingdom</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
+      case "Contact": return <ContactPage />;
 
       default: return null;
     }
