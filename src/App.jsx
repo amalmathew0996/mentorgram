@@ -312,10 +312,14 @@ export default function Mentorgram() {
             @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
             @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-            @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
             @keyframes countUp { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
             @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
             @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+            @keyframes orb1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-40px) scale(1.1); } 66% { transform: translate(-30px,50px) scale(0.95); } }
+            @keyframes orb2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-50px,60px) scale(1.05); } 66% { transform: translate(40px,-30px) scale(1.1); } }
+            @keyframes orb3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,40px) scale(1.08); } }
+            @keyframes particle { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-600px) rotate(720deg); opacity: 0; } }
+            @keyframes gridPulse { 0%,100% { opacity: 0.03; } 50% { opacity: 0.07; } }
             .hero-badge { animation: fadeIn 0.6s ease forwards; }
             .hero-title { animation: fadeUp 0.7s ease 0.1s both; }
             .hero-sub { animation: fadeUp 0.7s ease 0.2s both; }
@@ -350,10 +354,42 @@ export default function Mentorgram() {
               -webkit-text-fill-color: transparent;
               animation: shimmer 3s linear infinite;
             }
+            .orb1 { animation: orb1 12s ease-in-out infinite; }
+            .orb2 { animation: orb2 15s ease-in-out infinite; }
+            .orb3 { animation: orb3 10s ease-in-out infinite; }
+            .bg-grid { animation: gridPulse 4s ease-in-out infinite; }
+            .particle { animation: particle linear infinite; }
+            .particle:nth-child(1)  { left: 10%; animation-duration: 8s;  animation-delay: 0s;   width: 6px; height: 6px; }
+            .particle:nth-child(2)  { left: 20%; animation-duration: 10s; animation-delay: 1s;   width: 4px; height: 4px; }
+            .particle:nth-child(3)  { left: 35%; animation-duration: 7s;  animation-delay: 2s;   width: 5px; height: 5px; }
+            .particle:nth-child(4)  { left: 50%; animation-duration: 11s; animation-delay: 0.5s; width: 3px; height: 3px; }
+            .particle:nth-child(5)  { left: 65%; animation-duration: 9s;  animation-delay: 1.5s; width: 6px; height: 6px; }
+            .particle:nth-child(6)  { left: 75%; animation-duration: 12s; animation-delay: 3s;   width: 4px; height: 4px; }
+            .particle:nth-child(7)  { left: 85%; animation-duration: 8s;  animation-delay: 2.5s; width: 5px; height: 5px; }
+            .particle:nth-child(8)  { left: 90%; animation-duration: 10s; animation-delay: 4s;   width: 3px; height: 3px; }
+            .particle:nth-child(9)  { left: 45%; animation-duration: 13s; animation-delay: 1s;   width: 4px; height: 4px; }
+            .particle:nth-child(10) { left: 55%; animation-duration: 9s;  animation-delay: 3.5s; width: 6px; height: 6px; }
           `}</style>
 
-          {/* Hero */}
-          <div style={{ padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "760px", margin: "0 auto" }}>
+          {/* Animated background */}
+          <div style={{ position: "relative", overflow: "hidden" }}>
+            {/* Gradient orbs */}
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+              <div className="orb1" style={{ position: "absolute", top: "5%", left: "10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(83,74,183,0.18) 0%, transparent 70%)", filter: "blur(40px)" }} />
+              <div className="orb2" style={{ position: "absolute", top: "10%", right: "5%", width: "350px", height: "350px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%)", filter: "blur(40px)" }} />
+              <div className="orb3" style={{ position: "absolute", bottom: "5%", left: "40%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(83,74,183,0.1) 0%, transparent 70%)", filter: "blur(50px)" }} />
+              {/* Grid lines */}
+              <div className="bg-grid" style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(83,74,183,1) 1px, transparent 1px), linear-gradient(90deg, rgba(83,74,183,1) 1px, transparent 1px)", backgroundSize: "60px 60px", opacity: 0.04 }} />
+              {/* Floating particles */}
+              <div style={{ position: "absolute", inset: 0 }}>
+                {[...Array(10)].map((_, i) => (
+                  <div key={i} className="particle" style={{ position: "absolute", bottom: "-10px", borderRadius: "50%", background: i % 2 === 0 ? "rgba(83,74,183,0.5)" : "rgba(29,158,117,0.5)" }} />
+                ))}
+              </div>
+            </div>
+
+          {/* Hero content */}
+          <div style={{ padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "760px", margin: "0 auto", position: "relative", zIndex: 1 }}>
             <div className="hero-badge" style={{ ...S.tag("purple"), marginBottom: "1.25rem", fontSize: "13px", display: "inline-block" }}>
               🚀 AI-Powered Education & Career Platform
             </div>
@@ -380,6 +416,7 @@ export default function Mentorgram() {
               ))}
             </div>
           </div>
+          </div>{/* end background wrapper */}
 
           {/* How it works */}
           <div style={{ background: "var(--color-background-primary)", borderTop: "0.5px solid var(--color-border-tertiary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "3rem 1.5rem" }}>
