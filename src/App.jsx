@@ -95,7 +95,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
   const topRef = useRef(null);
 
   // Reset page when filters change
-  useEffect(() => { setPage(1); }, [sector, filterQuery]);
+  useEffect(() => { setPage(1); }, [sector, filterQuery, locationSearch]);
 
   // Scroll to top on page change
   useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [page]);
@@ -108,7 +108,9 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
       j.company.toLowerCase().includes(q) ||
       j.location.toLowerCase().includes(q) ||
       j.sector.toLowerCase().includes(q);
-    return matchSector && matchSearch;
+    const loc = locationSearch.toLowerCase().trim();
+    const matchLocation = !loc || j.location.toLowerCase().includes(loc);
+    return matchSector && matchSearch && matchLocation;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
@@ -143,7 +145,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
             style={{ ...S.input, flex: 1, minWidth: "120px" }}
             placeholder="📍 Location (UK)"
             value={locationSearch}
-            onChange={e => setLocationSearch(e.target.value)}
+            onChange={e => { setLocationSearch(e.target.value); setPage(1); }}
             onKeyDown={e => e.key === "Enter" && onFetchJobs(filterQuery, locationSearch)}
           />
           <button
@@ -178,7 +180,8 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onNavigate }) 
       <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
         Showing {paginated.length} of {filtered.length} jobs
         {filterQuery && ` matching "${filterQuery}"`}
-        {sector !== "All" && ` in ${sector}`}
+        {locationSearch && ` in "${locationSearch}"`}
+        {sector !== "All" && ` · ${sector}`}
         {jobsLoading && " — loading..."}
       </p>
 
