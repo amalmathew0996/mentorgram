@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 
 const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Contact"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
-const JOBS_PER_PAGE = 12;
 const VISA_TYPES = ["All Jobs", "Visa Sponsorship"];
+const JOBS_PER_PAGE = 12;
 
 const EDUCATION_SYSTEMS = [
   { country: "🇬🇧 United Kingdom", systems: ["GCSE", "A-Levels", "BTEC", "Scottish Highers"] },
@@ -33,7 +33,6 @@ const FEATURES = [
 ];
 
 const FALLBACK_JOBS = [
-  // Technology
   { title: "Software Engineer (Backend)", company: "Duffel", location: "London", salary: "Competitive", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 10, 2026", url: "https://to.indeed.com/aa8lkh89tm2f" },
   { title: "kdb+ Developer", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 18, 2026", url: "https://to.indeed.com/aacy7qmtdngf" },
   { title: "Junior Automation Developer", company: "Yu Group", location: "Nottingham", salary: "£30,000–£35,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aazw9p7dtkzw" },
@@ -42,65 +41,40 @@ const FALLBACK_JOBS = [
   { title: "C++ Software Engineer", company: "Insignis", location: "Lincoln", salary: "From £60,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Feb 12, 2026", url: "https://to.indeed.com/aa9ygglssp8f" },
   { title: "Web Developer & Programmer", company: "Vape Wholesale Store", location: "Manchester", salary: "£45,000–£46,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Jan 15, 2026", url: "https://to.indeed.com/aazmpnfjsqxl" },
   { title: "Mobile App Developer (Flutter)", company: "Blackstar Amplification", location: "Northampton", salary: "£26,000–£45,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Sep 25, 2025", url: "https://to.indeed.com/aaqqtxgvhf94" },
-  { title: "Test & Release Analyst", company: "ACI-UK", location: "Blackpool", salary: "From £40,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 04, 2026", url: "https://to.indeed.com/aam9j284xvzb" },
-  { title: "Senior Test & Validation Engineer", company: "Pearson Whiffin", location: "Sandwich", salary: "£45,000–£50,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa4vtj4y4b8j" },
-  { title: "Field Support Engineer", company: "Xperience", location: "Banbury", salary: "£25,000–£28,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 18, 2026", url: "https://to.indeed.com/aamzn8cybc4v" },
-  { title: "IT Support Engineer", company: "Centre for Ecology & Hydrology", location: "Wallingford", salary: "£31,942–£33,233", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 13, 2026", url: "https://to.indeed.com/aac8b6m6b8fq" },
   { title: "UI/UX Designer", company: "Eccentric IT Solutions", location: "Colchester", salary: "£32,000–£34,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Feb 24, 2026", url: "https://to.indeed.com/aa42v48xwqtw" },
   { title: "IT Associate", company: "Beatport", location: "London", salary: "£32,000–£42,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aa47wbxp7jq4" },
-  { title: "Laboratory IT Support Analyst", company: "NHS Scotland", location: "Clydebank", salary: "£41,608–£50,702", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 13, 2026", url: "https://to.indeed.com/aak8gnhkfylj" },
-  { title: "Graphic Designer", company: "British Museum", location: "London", salary: "£35,928", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aaxjdjrkjm2b" },
-  { title: "Senior Graphic Designer", company: "British Museum", location: "London", salary: "£43,317", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aagr4kvdzhqw" },
-  // AI & Data
   { title: "Data Engineer", company: "Cathedral Appointments", location: "Exeter", salary: "£50,000", sector: "AI & Data", visaType: "Visa Sponsorship", posted: "Mar 06, 2026", url: "https://to.indeed.com/aam2lxzb4qg6" },
   { title: "Data Scientist", company: "Ecotricity Group", location: "Stroud", salary: "£55,000–£65,000", sector: "AI & Data", visaType: "Visa Sponsorship", posted: "Feb 17, 2026", url: "https://to.indeed.com/aanpm8v78c4q" },
   { title: "Applied Research Scientist", company: "Emotech LTD", location: "London", salary: "From £45,000", sector: "AI & Data", visaType: "Visa Sponsorship", posted: "Mar 20, 2026", url: "https://to.indeed.com/aadkm9q8xclx" },
   { title: "Senior Data Engineer", company: "AECOM", location: "Bristol", salary: "£58,500–£71,812", sector: "AI & Data", visaType: "Visa Sponsorship", posted: "Mar 11, 2026", url: "https://to.indeed.com/aaz2vplvmxll" },
-  // Healthcare
-  { title: "Epidemiology Scientist", company: "MSD", location: "London", salary: "Competitive", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 10, 2026", url: "https://to.indeed.com/aatbqs2gbt6m" },
   { title: "Medical Secretary", company: "NHS", location: "North Hykeham", salary: "£27,485–£30,162", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa62hddsjc7x" },
-  { title: "School Nurse Assistant", company: "Rikkyo School", location: "Rudgwick", salary: "£27,000–£36,000", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 03, 2026", url: "https://to.indeed.com/aaqfn8qxl7vc" },
   { title: "Healthcare Support Worker", company: "NHS Scotland", location: "Perthshire", salary: "£25,694–£27,900", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aaydnzhp8z9m" },
-  { title: "Medical Device Support Worker", company: "NHS", location: "Sutton-In-Ashfield", salary: "£24,465", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 18, 2026", url: "https://to.indeed.com/aa2ycxxjgxyc" },
   { title: "Associate Dentist", company: "MedMatch Group", location: "Tunbridge Wells", salary: "£140,000–£160,000", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Jan 27, 2026", url: "https://to.indeed.com/aaxr9t2rbbjf" },
-  { title: "Skilled Worker - Healthcare Assistant", company: "Sunquest Homes", location: "Rickmansworth", salary: "£12.82–£13.00/hr", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Dec 02, 2025", url: "https://to.indeed.com/aak88fzjjfdn" },
-  // Finance
+  { title: "Epidemiology Scientist", company: "MSD", location: "London", salary: "Competitive", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 10, 2026", url: "https://to.indeed.com/aatbqs2gbt6m" },
   { title: "Financial Analyst", company: "Confidential", location: "Bromley", salary: "£45,800–£100,000", sector: "Finance", visaType: "Visa Sponsorship", posted: "Mar 12, 2026", url: "https://to.indeed.com/aagp8bkm6tfb" },
   { title: "Finance Analyst", company: "Wilkinson & Associates", location: "Edinburgh", salary: "£30,000–£36,700", sector: "Finance", visaType: "Visa Sponsorship", posted: "Feb 25, 2026", url: "https://to.indeed.com/aanz8glfby8r" },
   { title: "Audit Analytics", company: "Deloitte", location: "Birmingham", salary: "£31,900–£44,875", sector: "Finance", visaType: "Visa Sponsorship", posted: "Feb 23, 2026", url: "https://to.indeed.com/aa86n2h29nnw" },
   { title: "Investment Analyst", company: "UK Government DSIT", location: "London", salary: "£44,195–£65,000", sector: "Finance", visaType: "Visa Sponsorship", posted: "Mar 19, 2026", url: "https://to.indeed.com/aadpjcwphfxt" },
-  { title: "Customer Service Advisor", company: "HSBC", location: "Motherwell", salary: "From £25,000", sector: "Finance", visaType: "Visa Sponsorship", posted: "Mar 20, 2026", url: "https://to.indeed.com/aac4srrm9wx7" },
-  // Engineering
   { title: "Equipment Engineer", company: "Seagate Technology", location: "Derry", salary: "£27,827–£35,875", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa96f2kjv2np" },
   { title: "Civil Engineer Project Leader", company: "JN Bentley", location: "Reading", salary: "£36,000–£66,000", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Aug 12, 2025", url: "https://to.indeed.com/aa6tvqx8gsfd" },
   { title: "Project Leader", company: "Mott MacDonald", location: "Newport", salary: "£36,500–£55,000", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Jul 25, 2025", url: "https://to.indeed.com/aadr7s9xb4fw" },
   { title: "Lead Manufacturing Engineer", company: "GE Aerospace", location: "Gloucester", salary: "£23,795–£40,500", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Feb 25, 2026", url: "https://to.indeed.com/aagryjj7g7pb" },
-  { title: "Product R&D Co-ordinator", company: "Glasdon Group", location: "Blackpool", salary: "£45,450–£70,875", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 12, 2026", url: "https://to.indeed.com/aafvw7lcz8pb" },
   { title: "Systems Engineer", company: "SureView Systems", location: "Swansea", salary: "£34,000–£40,000", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 13, 2026", url: "https://to.indeed.com/aaz66nphdj9l" },
-  { title: "IT Service Desk Analyst", company: "Drax", location: "London", salary: "£33,500–£38,500", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aaqys699hbb7" },
-  { title: "Field Engineer", company: "Action for Children", location: "Bristol", salary: "£31,500", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 20, 2026", url: "https://to.indeed.com/aanc68x6nkbv" },
-  // Business
   { title: "Head of Marketing", company: "VeryConnect", location: "Glasgow", salary: "£85,000–£110,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Feb 25, 2026", url: "https://to.indeed.com/aad9y6rb22hy" },
   { title: "Communications Manager", company: "Calex UK Ltd", location: "Coventry", salary: "Up to £44,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Mar 19, 2026", url: "https://to.indeed.com/aa967gjhplpf" },
   { title: "Event Sales Manager", company: "IQPC", location: "London", salary: "£45,000–£55,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aa8crzb2lbc9" },
   { title: "Business Development Manager", company: "London Orthodontic Group", location: "Richmond", salary: "£38,000–£55,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Feb 03, 2026", url: "https://to.indeed.com/aaxjflx28vww" },
-  { title: "Client Relationship Manager", company: "The Lettings Hub", location: "Peterborough", salary: "£28,000–£35,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Jan 20, 2026", url: "https://to.indeed.com/aac2mqgsqg9d" },
-  { title: "International Sales Executive", company: "Glasdon Group", location: "Blackpool", salary: "Competitive", sector: "Business", visaType: "Visa Sponsorship", posted: "Mar 12, 2026", url: "https://to.indeed.com/aabtpz8lk26q" },
   { title: "Sales Development Representative", company: "Nurtur Group", location: "Derby", salary: "From £26,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aawpzfbslhm2" },
-  // Education
   { title: "Teacher - Religious Education", company: "Magdalen College School", location: "Oundle", salary: "£32,916–£51,048", sector: "Education", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aabpgjkcdxgr" },
   { title: "Assistant Principal", company: "Clyst Vale Community College", location: "Exeter", salary: "£64,688–£67,896", sector: "Education", visaType: "Visa Sponsorship", posted: "Mar 13, 2026", url: "https://to.indeed.com/aacw472l46th" },
   { title: "Course Administrator", company: "Anglia Ruskin University", location: "Chelmsford", salary: "£26,707–£30,378", sector: "Education", visaType: "Visa Sponsorship", posted: "Mar 10, 2026", url: "https://to.indeed.com/aayvqszdvt6l" },
-  { title: "Governance Administrator", company: "University of Oxford", location: "Oxford", salary: "£32,108–£37,338", sector: "Education", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aanwsrzx8jfm" },
-  // Hospitality
   { title: "Hotel Bar Manager", company: "Ancer Recruitment", location: "Cumbria", salary: "£32,000", sector: "Hospitality", visaType: "Visa Sponsorship", posted: "Mar 05, 2026", url: "https://to.indeed.com/aanjns62cwby" },
   { title: "Restaurant Manager", company: "e2e hrc", location: "Birmingham", salary: "£28,000–£29,500", sector: "Hospitality", visaType: "Visa Sponsorship", posted: "Nov 25, 2025", url: "https://to.indeed.com/aacgmfvwjzyx" },
-  // Public Sector
   { title: "Prison Officer", company: "Serco", location: "Uttoxeter", salary: "£28,187–£42,000", sector: "Public Sector", visaType: "Visa Sponsorship", posted: "Oct 16, 2025", url: "https://to.indeed.com/aa6ypyrhw9qg" },
-  { title: "Detention Custody Officer", company: "Serco", location: "Gatwick Airport", salary: "£29,563–£32,653", sector: "Public Sector", visaType: "Visa Sponsorship", posted: "Jul 11, 2025", url: "https://to.indeed.com/aa79r24hmcrh" },
+  { title: "IT Service Desk Analyst", company: "Drax", location: "London", salary: "£33,500–£38,500", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aaqys699hbb7" },
 ];
 
-// ─── Styles (outside component so they never cause remounts) ───────────────
+// ─── Global styles (outside component) ────────────────────────────────────
 const S = {
   wrap: { fontFamily: "var(--font-sans)", color: "var(--color-text-primary)", minHeight: "100vh", background: "var(--color-background-tertiary)" },
   btnPrimary: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
@@ -118,11 +92,10 @@ const S = {
   statCard: { background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem", textAlign: "center" },
   filterBtn: (a) => ({ padding: "6px 16px", borderRadius: "20px", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#534AB7" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }),
   pageBtn: (a) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#534AB7" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: a ? "default" : "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400 }),
-  pageArrow: (d) => ({ width: "36px", height: "36px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", color: d ? "var(--color-border-secondary)" : "var(--color-text-primary)", fontSize: "18px", cursor: d ? "default" : "pointer", fontFamily: "inherit" }),
 };
 
-// ─── Jobs Page (outside main component to prevent remounting) ──────────────
-function ShareButton({ job, onSelect }) {
+// ─── Share Button ──────────────────────────────────────────────────────────
+function ShareButton({ job }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -132,41 +105,20 @@ function ShareButton({ job, onSelect }) {
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
-  // Share our site with the job encoded in the URL hash
-  const jobParam = encodeURIComponent(btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url }))));
-  const siteJobUrl = `https://mentorgramai.com/#job=${jobParam}`;
-  const shareText = `🇬🇧 UK Job with Visa Sponsorship!\n\n💼 ${job.title}\n🏢 ${job.company}\n📍 ${job.location}\n💰 ${job.salary}\n\n👉 View details: ${siteJobUrl}\n\n🎓 Find more at mentorgramai.com`;
+  const jobData = btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url })));
+  const siteUrl = `https://mentorgramai.com/#job=${encodeURIComponent(jobData)}`;
+  const text = `🇬🇧 UK Job with Visa Sponsorship!\n\n💼 ${job.title}\n🏢 ${job.company}\n📍 ${job.location}\n💰 ${job.salary}\n\n👉 View details: ${siteUrl}\n\n🎓 Find more at mentorgramai.com`;
 
   const options = [
-    {
-      label: "WhatsApp",
-      color: "#25D366",
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
-      href: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
-    },
-    {
-      label: "Telegram",
-      color: "#229ED9",
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>,
-      href: `https://t.me/share/url?url=${encodeURIComponent(siteJobUrl)}&text=${encodeURIComponent(shareText)}`,
-    },
-    {
-      label: "Email",
-      color: "#EA4335",
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>,
-      href: `mailto:?subject=${encodeURIComponent(`Job: ${job.title} at ${job.company}`)}&body=${encodeURIComponent(shareText)}`,
-    },
-    {
-      label: "Copy link",
-      color: "#534AB7",
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>,
-      action: () => { navigator.clipboard.writeText(siteJobUrl); setOpen(false); alert("Link copied to clipboard!"); },
-    },
+    { label: "WhatsApp", color: "#25D366", href: `https://wa.me/?text=${encodeURIComponent(text)}`, icon: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" },
+    { label: "Telegram", color: "#229ED9", href: `https://t.me/share/url?url=${encodeURIComponent(siteUrl)}&text=${encodeURIComponent(text)}`, icon: "M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" },
+    { label: "Email", color: "#EA4335", href: `mailto:?subject=${encodeURIComponent(`Job: ${job.title} at ${job.company}`)}&body=${encodeURIComponent(text)}`, icon: "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" },
+    { label: "Copy link", color: "#534AB7", action: () => { navigator.clipboard.writeText(siteUrl); setOpen(false); } },
   ];
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <button onClick={() => setOpen(o => !o)} title="Share this job"
+      <button onClick={() => setOpen(o => !o)} title="Share"
         style={{ width: "34px", height: "34px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -176,22 +128,21 @@ function ShareButton({ job, onSelect }) {
       {open && (
         <div style={{ position: "absolute", bottom: "calc(100% + 6px)", right: 0, background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "6px", zIndex: 50, minWidth: "155px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
           <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", padding: "4px 10px 6px", margin: 0, borderBottom: "0.5px solid var(--color-border-tertiary)" }}>Share this job</p>
-          {options.map(opt => (
-            opt.href ? (
-              <a key={opt.label} href={opt.href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", textDecoration: "none", fontSize: "13px" }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                <span style={{ color: opt.color, display: "flex" }}>{opt.icon}</span>{opt.label}
-              </a>
-            ) : (
-              <button key={opt.label} onClick={opt.action}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", fontSize: "13px", cursor: "pointer", width: "100%", border: "none", background: "transparent", fontFamily: "inherit", textAlign: "left" }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                <span style={{ color: opt.color, display: "flex" }}>{opt.icon}</span>{opt.label}
-              </button>
-            )
+          {options.map(opt => opt.href ? (
+            <a key={opt.label} href={opt.href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", textDecoration: "none", fontSize: "13px" }}
+              onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill={opt.color}><path d={opt.icon}/></svg>{opt.label}
+            </a>
+          ) : (
+            <button key={opt.label} onClick={opt.action}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", fontSize: "13px", cursor: "pointer", width: "100%", border: "none", background: "transparent", fontFamily: "inherit", textAlign: "left" }}
+              onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill={opt.color}><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+              {opt.label}
+            </button>
           ))}
         </div>
       )}
@@ -199,31 +150,24 @@ function ShareButton({ job, onSelect }) {
   );
 }
 
-// ─── Job Detail Page ──────────────────────────────────────────────────────
+// ─── Job Detail Page ───────────────────────────────────────────────────────
 function JobDetailPage({ job, onBack, onAskMentor }) {
-  const siteJobUrl = `https://mentorgramai.com/#job=${encodeURIComponent(btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url }))))}`;
-
-  const card = { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "1rem" };
-  const btnPrimary = { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "inline-block" };
-  const btnOutline = { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" };
-  const tag = { display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "#EEEDFE", color: "#3C3489" };
-
+  const jobData = btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url })));
+  const siteUrl = `https://mentorgramai.com/#job=${encodeURIComponent(jobData)}`;
   return (
     <div style={{ maxWidth: "760px", margin: "0 auto", padding: "2rem 1.5rem" }}>
-      <button onClick={onBack}
-        style={{ display: "flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: "var(--color-text-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit", marginBottom: "1.5rem", padding: 0 }}>
+      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: "var(--color-text-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit", marginBottom: "1.5rem", padding: 0 }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Back to jobs
       </button>
-
-      <div style={{ ...card, padding: "1.75rem" }}>
+      <div style={{ ...S.card, padding: "1.75rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 6px", color: "var(--color-text-primary)" }}>{job.title}</h1>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 6px" }}>{job.title}</h1>
             <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>{job.company}</p>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-              {job.sector && <span style={tag}>{job.sector}</span>}
-              <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "#E1F5EE", color: "#085041" }}>✓ Visa Sponsorship</span>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {job.sector && <span style={S.tag("purple")}>{job.sector}</span>}
+              <span style={{ ...S.tag("teal") }}>✓ Visa Sponsorship</span>
             </div>
           </div>
           <ShareButton job={job} />
@@ -237,43 +181,214 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
           ))}
         </div>
       </div>
-
-      <div style={card}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>About this role</h2>
+      <div style={{ ...S.card, marginBottom: "1rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem" }}>About this role</h2>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: "0 0 0.75rem" }}>
           This is a UK-based role at <strong>{job.company}</strong> in <strong>{job.location}</strong> offering visa sponsorship for eligible candidates.
         </p>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: 0 }}>
-          The role falls under the <strong>{job.sector || "General"}</strong> sector and is eligible for a <strong>Skilled Worker</strong> or <strong>Health & Care visa</strong> depending on your background. Click Apply for full details.
+          The role is in the <strong>{job.sector || "General"}</strong> sector and eligible for a <strong>Skilled Worker visa</strong>. Click Apply for full details and requirements.
         </p>
       </div>
-
       <div style={{ background: "#EEEDFE", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#3C3489" }}>🛂 Visa sponsorship info</h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          {["This employer is registered as a UK visa sponsor","You may be eligible for a Skilled Worker or Health & Care visa","Minimum salary thresholds apply (usually £26,200+)","Your employer will assign a Certificate of Sponsorship (CoS)"].map((item, i) => (
-            <p key={i} style={{ fontSize: "14px", color: "#3C3489", margin: 0, display: "flex", gap: "8px" }}>
-              <span>✓</span><span>{item}</span>
-            </p>
-          ))}
-        </div>
+        {["This employer is registered as a UK visa sponsor","You may be eligible for a Skilled Worker or Health & Care visa","Minimum salary thresholds apply (usually £26,200+)","Your employer will assign a Certificate of Sponsorship (CoS)"].map((item, i) => (
+          <p key={i} style={{ fontSize: "14px", color: "#3C3489", margin: "0 0 4px", display: "flex", gap: "8px" }}><span>✓</span><span>{item}</span></p>
+        ))}
       </div>
-
-      <div style={card}>
+      <div style={{ ...S.card, marginBottom: "1.5rem" }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>💬 Need help applying?</h2>
-        <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>
-          Ask our AI Mentor how to apply for this role, what skills you need, and how the visa process works.
-        </p>
-        <button style={{ ...btnOutline, padding: "9px 20px", fontSize: "14px" }}
-          onClick={() => onAskMentor(`I want to apply for ${job.title} at ${job.company} in ${job.location}. What skills do I need and how does visa sponsorship work for this role?`)}>
-          Ask AI Mentor about this job ↗
+        <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>Ask our AI Mentor about this role, the skills needed, and how visa sponsorship works.</p>
+        <button style={{ ...S.btnOutline, padding: "9px 20px", fontSize: "14px" }}
+          onClick={() => onAskMentor(`I want to apply for ${job.title} at ${job.company} in ${job.location}. What skills do I need and how does visa sponsorship work?`)}>
+          Ask AI Mentor ↗
         </button>
       </div>
-
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        {job.url && <a href={job.url} target="_blank" rel="noopener noreferrer" style={btnPrimary}>Apply for this job ↗</a>}
-        <button style={btnOutline} onClick={onBack}>← Back to jobs</button>
+        {job.url && <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ ...S.btnPrimary, textDecoration: "none" }}>Apply for this job ↗</a>}
+        <button style={S.btnOutline} onClick={onBack}>← Back to jobs</button>
       </div>
+    </div>
+  );
+}
+
+// ─── Jobs Page ─────────────────────────────────────────────────────────────
+function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob }) {
+  const [sector, setSector] = useState("All");
+  const [visaType, setVisaType] = useState("All Jobs");
+  const [titleQuery, setTitleQuery] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const topRef = useRef(null);
+  const searchTimer = useRef(null);
+
+  useEffect(() => { setPage(1); }, [sector, visaType, titleQuery, locationQuery]);
+  useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [page]);
+
+  function handleTitleChange(val) {
+    setTitleQuery(val);
+    clearTimeout(searchTimer.current);
+    if (val.length >= 3) {
+      searchTimer.current = setTimeout(() => onFetchJobs(val, locationQuery), 600);
+    }
+  }
+
+  function handleLocationChange(val) {
+    setLocationQuery(val);
+    clearTimeout(searchTimer.current);
+    if (val.length >= 2) {
+      searchTimer.current = setTimeout(() => onFetchJobs(titleQuery, val), 600);
+    }
+  }
+
+  const filtered = allJobs.filter(j => {
+    const matchSector = sector === "All" || j.sector === sector;
+    const matchVisa = visaType === "All Jobs" || j.visaType === visaType;
+    const q = titleQuery.toLowerCase().trim();
+    const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
+    const loc = locationQuery.toLowerCase().trim();
+    const matchLoc = !loc || j.location.toLowerCase().includes(loc);
+    return matchSector && matchVisa && matchTitle && matchLoc;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * JOBS_PER_PAGE, safePage * JOBS_PER_PAGE);
+
+  function getPageNums() {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (safePage <= 3) return [1, 2, 3, 4, 5];
+    if (safePage >= totalPages - 2) return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    return [safePage - 2, safePage - 1, safePage, safePage + 1, safePage + 2];
+  }
+
+  return (
+    <div style={S.section}>
+      <div ref={topRef}>
+        <h2 style={S.sectionTitle}>Sponsorship jobs</h2>
+        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — results update as you type.</p>
+      </div>
+
+      {/* Search box */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <input style={{ ...S.input, flex: 2, minWidth: "160px" }} placeholder="🔍 Job title or keywords..."
+            value={titleQuery} onChange={e => handleTitleChange(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)} />
+          <input style={{ ...S.input, flex: 1, minWidth: "120px" }} placeholder="📍 Location..."
+            value={locationQuery} onChange={e => handleLocationChange(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)} />
+          <button style={{ ...S.btnPrimary, padding: "10px 20px", fontSize: "14px", whiteSpace: "nowrap", opacity: jobsLoading ? 0.7 : 1 }}
+            onClick={() => { clearTimeout(searchTimer.current); onFetchJobs(titleQuery, locationQuery); }} disabled={jobsLoading}>
+            {jobsLoading ? "Searching..." : "Search"}
+          </button>
+        </div>
+        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 10px" }}>
+          💡 Type to filter instantly · Click Search for live results from Indeed
+        </p>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Teacher", "Chef", "Marketing Manager"].map(q => (
+            <button key={q} style={{ ...S.filterBtn(titleQuery === q), fontSize: "12px", padding: "4px 12px" }}
+              onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}>{q}</button>
+          ))}
+        </div>
+        {updatedAt && <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>Updated: {new Date(updatedAt).toLocaleTimeString()}</p>}
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.75rem" }}>
+        {SECTORS.map(s => <button key={s} style={{ ...S.filterBtn(sector === s), fontSize: "12px", padding: "5px 12px" }} onClick={() => setSector(s)}>{s}</button>)}
+      </div>
+      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+        <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Filter:</span>
+        {VISA_TYPES.map(v => (
+          <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v ? (v === "Visa Sponsorship" ? "#1D9E75" : "#534AB7") : "var(--color-background-primary)" }}
+            onClick={() => setVisaType(v)}>{v}</button>
+        ))}
+      </div>
+
+      {/* Results count */}
+      <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
+        {jobsLoading ? "🔍 Searching for live jobs..." : `Showing ${paginated.length} of ${filtered.length} jobs`}
+        {!jobsLoading && titleQuery && ` matching "${titleQuery}"`}
+        {!jobsLoading && locationQuery && ` in "${locationQuery}"`}
+        {!jobsLoading && sector !== "All" && ` · ${sector}`}
+      </p>
+
+      {/* Loading skeletons */}
+      {jobsLoading && (
+        <div style={S.grid2}>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ height: "16px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "70%" }} />
+              <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "40%" }} />
+              <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "55%" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
+                <div style={{ height: "14px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "30%" }} />
+                <div style={{ height: "32px", width: "70px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Job cards */}
+      {!jobsLoading && paginated.length > 0 && (
+        <div style={S.grid2}>
+          {paginated.map((j, i) => (
+            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ flex: 1, marginRight: "10px", cursor: "pointer" }} onClick={() => onSelectJob(j)}>
+                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px", color: "#534AB7" }}>{j.title}</p>
+                  <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
+                </div>
+                <span style={{ ...S.tag("teal"), whiteSpace: "nowrap" }}>✓ Sponsorship</span>
+              </div>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                {j.sector && <span style={S.tag("purple")}>{j.sector}</span>}
+                <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
+                {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <ShareButton job={j} />
+                  <button onClick={() => onSelectJob(j)}
+                    style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", fontWeight: 500, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                    View ↗
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* No results */}
+      {!jobsLoading && paginated.length === 0 && (
+        <div style={{ ...S.card, textAlign: "center", padding: "3rem" }}>
+          <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
+          <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No jobs found</p>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>Try searching for a specific role above</p>
+          <button style={S.btnPrimary} onClick={() => { setTitleQuery(""); setLocationQuery(""); setSector("All"); setVisaType("All Jobs"); onFetchJobs("", ""); }}>Show all jobs</button>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && !jobsLoading && (
+        <>
+          <div style={{ display: "flex", gap: "6px", justifyContent: "center", alignItems: "center", marginTop: "2rem", flexWrap: "wrap" }}>
+            {safePage > 3 && totalPages > 5 && <><button style={S.pageBtn(false)} onClick={() => setPage(1)}>1</button><span style={{ color: "var(--color-text-secondary)" }}>…</span></>}
+            {getPageNums().map(p => <button key={p} style={S.pageBtn(p === safePage)} onClick={() => setPage(p)}>{p}</button>)}
+            {safePage < totalPages - 2 && totalPages > 5 && <><span style={{ color: "var(--color-text-secondary)" }}>…</span><button style={S.pageBtn(false)} onClick={() => setPage(totalPages)}>{totalPages}</button></>}
+          </div>
+          <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "10px" }}>
+            <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "13px", opacity: safePage === 1 ? 0.4 : 1 }} onClick={() => safePage > 1 && setPage(p => p - 1)} disabled={safePage === 1}>← Previous</button>
+            <button style={{ ...S.btnPrimary, padding: "8px 20px", fontSize: "13px", opacity: safePage === totalPages ? 0.4 : 1 }} onClick={() => safePage < totalPages && setPage(p => p + 1)} disabled={safePage === totalPages}>Next →</button>
+          </div>
+          <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "0.75rem" }}>Page {safePage} of {totalPages} · {filtered.length} total</p>
+        </>
+      )}
     </div>
   );
 }
@@ -281,34 +396,32 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
 // ─── Main component ────────────────────────────────────────────────────────
 export default function Mentorgram() {
   const [activePage, setActivePage] = useState("Home");
-  const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hi! I'm your Mentorgram AI Mentor 👋 I can help with education pathways, UK university applications, career guidance, and finding visa-sponsored jobs. What would you like to explore?" }
-  ]);
+  const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I'm your Mentorgram AI Mentor 👋 I can help with education pathways, UK university applications, career guidance, and visa-sponsored jobs. What would you like to explore?" }]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [allJobs, setAllJobs] = useState(FALLBACK_JOBS);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [updatedAt, setUpdatedAt] = useState(null);
+  const [selectedJob, setSelectedJob] = useState(null);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // Handle shared job links via URL hash
+  // Handle shared job URLs
   useEffect(() => {
     function checkHash() {
-      const hash = window.location.hash;
-      if (hash.startsWith("#job=")) {
-        try {
+      try {
+        const hash = window.location.hash;
+        if (hash.startsWith("#job=")) {
           const encoded = decodeURIComponent(hash.replace("#job=", ""));
           const job = JSON.parse(decodeURIComponent(atob(encoded)));
           setSelectedJob(job);
           setActivePage("Sponsorship Jobs");
-        } catch { /* invalid hash, ignore */ }
-      }
+        }
+      } catch { /* ignore invalid hash */ }
     }
     checkHash();
     window.addEventListener("hashchange", checkHash);
@@ -316,7 +429,7 @@ export default function Mentorgram() {
   }, []);
 
   useEffect(() => {
-    if (activePage === "Sponsorship Jobs") fetchJobs("", "");
+    if (activePage === "Sponsorship Jobs" && !selectedJob) fetchJobs("", "");
   }, [activePage]);
 
   async function fetchJobs(q, loc) {
@@ -346,13 +459,11 @@ export default function Mentorgram() {
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.content?.[0]?.text || "Could you rephrase that?" }]);
-    } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, trouble connecting. Try again." }]);
-    }
+    } catch { setMessages(prev => [...prev, { role: "assistant", content: "Sorry, trouble connecting. Try again." }]); }
     setChatLoading(false);
   }
 
-  function navTo(page) { setActivePage(page); setMobileMenu(false); }
+  function navTo(page) { setActivePage(page); setMobileMenu(false); setSelectedJob(null); }
 
   const heroAccent = { background: "linear-gradient(135deg, #534AB7, #1D9E75)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
 
@@ -361,130 +472,86 @@ export default function Mentorgram() {
       case "Home": return (
         <div>
           <style>{`
-            @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-            @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-            @keyframes countUp { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-            @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-            @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-            @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-            @keyframes orb1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-40px) scale(1.1); } 66% { transform: translate(-30px,50px) scale(0.95); } }
-            @keyframes orb2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-50px,60px) scale(1.05); } 66% { transform: translate(40px,-30px) scale(1.1); } }
-            @keyframes orb3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,40px) scale(1.08); } }
-            @keyframes particle { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-600px) rotate(720deg); opacity: 0; } }
-            @keyframes gridPulse { 0%,100% { opacity: 0.03; } 50% { opacity: 0.07; } }
-            .hero-badge { animation: fadeIn 0.6s ease forwards; }
-            .hero-title { animation: fadeUp 0.7s ease 0.1s both; }
-            .hero-sub { animation: fadeUp 0.7s ease 0.2s both; }
-            .hero-btns { animation: fadeUp 0.7s ease 0.3s both; }
-            .stat-card { animation: countUp 0.6s ease both; }
-            .stat-card:nth-child(1) { animation-delay: 0.4s; }
-            .stat-card:nth-child(2) { animation-delay: 0.5s; }
-            .stat-card:nth-child(3) { animation-delay: 0.6s; }
-            .stat-card:nth-child(4) { animation-delay: 0.7s; }
-            .feature-card { animation: fadeUp 0.6s ease both; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-            .feature-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(83,74,183,0.12); }
-            .feature-card:nth-child(1) { animation-delay: 0.1s; }
-            .feature-card:nth-child(2) { animation-delay: 0.2s; }
-            .feature-card:nth-child(3) { animation-delay: 0.3s; }
-            .feature-card:nth-child(4) { animation-delay: 0.4s; }
-            .feature-card:nth-child(5) { animation-delay: 0.5s; }
-            .feature-card:nth-child(6) { animation-delay: 0.6s; }
-            .float-icon { animation: float 3s ease-in-out infinite; display: inline-block; }
-            .hero-btn-primary { transition: transform 0.15s ease, background 0.15s ease; }
-            .hero-btn-primary:hover { transform: scale(1.03); background: #4840a0 !important; }
-            .hero-btn-outline { transition: transform 0.15s ease, background 0.15s ease; }
-            .hero-btn-outline:hover { transform: scale(1.03); background: var(--color-background-secondary) !important; }
-            .step-item { animation: slideIn 0.6s ease both; }
-            .step-item:nth-child(1) { animation-delay: 0.1s; }
-            .step-item:nth-child(2) { animation-delay: 0.25s; }
-            .step-item:nth-child(3) { animation-delay: 0.4s; }
-            .step-item:nth-child(4) { animation-delay: 0.55s; }
-            .shimmer-text {
-              background: linear-gradient(90deg, #534AB7, #1D9E75, #534AB7);
-              background-size: 200% auto;
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              animation: shimmer 3s linear infinite;
-            }
-            .orb1 { animation: orb1 12s ease-in-out infinite; }
-            .orb2 { animation: orb2 15s ease-in-out infinite; }
-            .orb3 { animation: orb3 10s ease-in-out infinite; }
-            .bg-grid { animation: gridPulse 4s ease-in-out infinite; }
-            .particle { animation: particle linear infinite; }
-            .particle:nth-child(1)  { left: 10%; animation-duration: 8s;  animation-delay: 0s;   width: 6px; height: 6px; }
-            .particle:nth-child(2)  { left: 20%; animation-duration: 10s; animation-delay: 1s;   width: 4px; height: 4px; }
-            .particle:nth-child(3)  { left: 35%; animation-duration: 7s;  animation-delay: 2s;   width: 5px; height: 5px; }
-            .particle:nth-child(4)  { left: 50%; animation-duration: 11s; animation-delay: 0.5s; width: 3px; height: 3px; }
-            .particle:nth-child(5)  { left: 65%; animation-duration: 9s;  animation-delay: 1.5s; width: 6px; height: 6px; }
-            .particle:nth-child(6)  { left: 75%; animation-duration: 12s; animation-delay: 3s;   width: 4px; height: 4px; }
-            .particle:nth-child(7)  { left: 85%; animation-duration: 8s;  animation-delay: 2.5s; width: 5px; height: 5px; }
-            .particle:nth-child(8)  { left: 90%; animation-duration: 10s; animation-delay: 4s;   width: 3px; height: 3px; }
-            .particle:nth-child(9)  { left: 45%; animation-duration: 13s; animation-delay: 1s;   width: 4px; height: 4px; }
-            .particle:nth-child(10) { left: 55%; animation-duration: 9s;  animation-delay: 3.5s; width: 6px; height: 6px; }
+            @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+            @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+            @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+            @keyframes countUp { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+            @keyframes slideIn { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } }
+            @keyframes shimmer { 0% { background-position:-200% center; } 100% { background-position:200% center; } }
+            @keyframes orb1 { 0%,100% { transform:translate(0,0); } 33% { transform:translate(60px,-40px); } 66% { transform:translate(-30px,50px); } }
+            @keyframes orb2 { 0%,100% { transform:translate(0,0); } 33% { transform:translate(-50px,60px); } 66% { transform:translate(40px,-30px); } }
+            @keyframes orb3 { 0%,100% { transform:translate(0,0); } 50% { transform:translate(30px,40px); } }
+            @keyframes particle { 0% { transform:translateY(0) rotate(0deg); opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { transform:translateY(-600px) rotate(720deg); opacity:0; } }
+            .hero-badge { animation:fadeIn 0.6s ease forwards; }
+            .hero-title { animation:fadeUp 0.7s ease 0.1s both; }
+            .hero-sub { animation:fadeUp 0.7s ease 0.2s both; }
+            .hero-btns { animation:fadeUp 0.7s ease 0.3s both; }
+            .stat-card { animation:countUp 0.6s ease both; }
+            .stat-card:nth-child(1){animation-delay:0.4s} .stat-card:nth-child(2){animation-delay:0.5s} .stat-card:nth-child(3){animation-delay:0.6s} .stat-card:nth-child(4){animation-delay:0.7s}
+            .feature-card { animation:fadeUp 0.6s ease both; transition:transform 0.2s,box-shadow 0.2s; }
+            .feature-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(83,74,183,0.12); }
+            .feature-card:nth-child(1){animation-delay:0.1s} .feature-card:nth-child(2){animation-delay:0.2s} .feature-card:nth-child(3){animation-delay:0.3s} .feature-card:nth-child(4){animation-delay:0.4s} .feature-card:nth-child(5){animation-delay:0.5s} .feature-card:nth-child(6){animation-delay:0.6s}
+            .float-icon { animation:float 3s ease-in-out infinite; display:inline-block; }
+            .hero-btn-primary { transition:transform 0.15s,background 0.15s; } .hero-btn-primary:hover { transform:scale(1.03); background:#4840a0 !important; }
+            .hero-btn-outline { transition:transform 0.15s,background 0.15s; } .hero-btn-outline:hover { transform:scale(1.03); background:var(--color-background-secondary) !important; }
+            .step-item { animation:slideIn 0.6s ease both; }
+            .step-item:nth-child(1){animation-delay:0.1s} .step-item:nth-child(2){animation-delay:0.25s} .step-item:nth-child(3){animation-delay:0.4s} .step-item:nth-child(4){animation-delay:0.55s}
+            .shimmer-text { background:linear-gradient(90deg,#534AB7,#1D9E75,#534AB7); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation:shimmer 3s linear infinite; }
+            .orb1 { animation:orb1 12s ease-in-out infinite; } .orb2 { animation:orb2 15s ease-in-out infinite; } .orb3 { animation:orb3 10s ease-in-out infinite; }
+            .particle { animation:particle linear infinite; position:absolute; bottom:-10px; border-radius:50%; }
+            .particle:nth-child(1){left:10%;animation-duration:8s;width:6px;height:6px}
+            .particle:nth-child(2){left:20%;animation-duration:10s;animation-delay:1s;width:4px;height:4px}
+            .particle:nth-child(3){left:35%;animation-duration:7s;animation-delay:2s;width:5px;height:5px}
+            .particle:nth-child(4){left:50%;animation-duration:11s;animation-delay:0.5s;width:3px;height:3px}
+            .particle:nth-child(5){left:65%;animation-duration:9s;animation-delay:1.5s;width:6px;height:6px}
+            .particle:nth-child(6){left:75%;animation-duration:12s;animation-delay:3s;width:4px;height:4px}
+            .particle:nth-child(7){left:85%;animation-duration:8s;animation-delay:2.5s;width:5px;height:5px}
+            .particle:nth-child(8){left:90%;animation-duration:10s;animation-delay:4s;width:3px;height:3px}
           `}</style>
 
-          {/* Animated background */}
           <div style={{ position: "relative", overflow: "hidden" }}>
-            {/* Gradient orbs */}
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
               <div className="orb1" style={{ position: "absolute", top: "5%", left: "10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(83,74,183,0.18) 0%, transparent 70%)", filter: "blur(40px)" }} />
               <div className="orb2" style={{ position: "absolute", top: "10%", right: "5%", width: "350px", height: "350px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%)", filter: "blur(40px)" }} />
               <div className="orb3" style={{ position: "absolute", bottom: "5%", left: "40%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(83,74,183,0.1) 0%, transparent 70%)", filter: "blur(50px)" }} />
-              {/* Grid lines */}
-              <div className="bg-grid" style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(83,74,183,1) 1px, transparent 1px), linear-gradient(90deg, rgba(83,74,183,1) 1px, transparent 1px)", backgroundSize: "60px 60px", opacity: 0.04 }} />
-              {/* Floating particles */}
+              <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(83,74,183,1) 1px,transparent 1px),linear-gradient(90deg,rgba(83,74,183,1) 1px,transparent 1px)", backgroundSize: "60px 60px", opacity: 0.04 }} />
               <div style={{ position: "absolute", inset: 0 }}>
-                {[...Array(10)].map((_, i) => (
-                  <div key={i} className="particle" style={{ position: "absolute", bottom: "-10px", borderRadius: "50%", background: i % 2 === 0 ? "rgba(83,74,183,0.5)" : "rgba(29,158,117,0.5)" }} />
-                ))}
+                {[...Array(8)].map((_, i) => <div key={i} className="particle" style={{ background: i % 2 === 0 ? "rgba(83,74,183,0.5)" : "rgba(29,158,117,0.5)" }} />)}
               </div>
             </div>
 
-          {/* Hero content */}
-          <div style={{ padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "760px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-            <div className="hero-badge" style={{ ...S.tag("purple"), marginBottom: "1.25rem", fontSize: "13px", display: "inline-block" }}>
-              🚀 AI-Powered Education & Career Platform
-            </div>
-            <h1 className="hero-title" style={{ fontSize: "clamp(2.2rem,5vw,3.4rem)", fontWeight: 500, lineHeight: 1.15, margin: "0 0 1.25rem" }}>
-              Your AI Mentor for<br />
-              <span className="shimmer-text">Education & UK Careers</span>
-            </h1>
-            <p className="hero-sub" style={{ fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.8, margin: "0 0 2.25rem", maxWidth: "560px", marginLeft: "auto", marginRight: "auto" }}>
-              Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and visa-sponsored job opportunities.
-            </p>
-            <div className="hero-btns" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-              <button className="hero-btn-primary" style={S.btnPrimary} onClick={() => navTo("AI Mentor")}>Chat with AI Mentor</button>
-              <button className="hero-btn-outline" style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
-            </div>
-
-            {/* Animated stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", margin: "3rem 0 0" }}>
-              {[["50+","Countries Supported","🌍"],["100K+","Students Guided","🎓"],["500+","UK Employers","🏢"],[FALLBACK_JOBS.length+"+","Job Listings","💼"]].map(([n,l,icon]) => (
-                <div key={l} className="stat-card" style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)" }}>
-                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>{icon}</div>
-                  <p style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px", color: "var(--color-text-primary)" }}>{n}</p>
-                  <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{l}</p>
-                </div>
-              ))}
+            <div style={{ padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "760px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+              <div className="hero-badge" style={{ ...S.tag("purple"), marginBottom: "1.25rem", fontSize: "13px" }}>🚀 AI-Powered Education & Career Platform</div>
+              <h1 className="hero-title" style={{ fontSize: "clamp(2.2rem,5vw,3.4rem)", fontWeight: 500, lineHeight: 1.15, margin: "0 0 1.25rem" }}>
+                Your AI Mentor for<br /><span className="shimmer-text">Education & UK Careers</span>
+              </h1>
+              <p className="hero-sub" style={{ fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.8, margin: "0 0 2.25rem", maxWidth: "560px", marginLeft: "auto", marginRight: "auto" }}>
+                Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and visa-sponsored job opportunities.
+              </p>
+              <div className="hero-btns" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+                <button className="hero-btn-primary" style={S.btnPrimary} onClick={() => navTo("AI Mentor")}>Chat with AI Mentor</button>
+                <button className="hero-btn-outline" style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1rem", margin: "3rem 0 0" }}>
+                {[["50+","Countries Supported","🌍"],["100K+","Students Guided","🎓"],["500+","UK Employers","🏢"],[FALLBACK_JOBS.length+"+","Job Listings","💼"]].map(([n,l,icon]) => (
+                  <div key={l} className="stat-card" style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)" }}>
+                    <div style={{ fontSize: "22px", marginBottom: "6px" }}>{icon}</div>
+                    <p style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px" }}>{n}</p>
+                    <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{l}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          </div>{/* end background wrapper */}
 
-          {/* How it works */}
           <div style={{ background: "var(--color-background-primary)", borderTop: "0.5px solid var(--color-border-tertiary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "3rem 1.5rem" }}>
             <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
               <h2 style={{ ...S.sectionTitle, textAlign: "center", marginBottom: "0.5rem" }}>How Mentorgram works</h2>
               <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "2.5rem" }}>Four simple steps from student to UK career</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-                {[
-                  { step: "01", icon: "🗺️", title: "Choose your pathway", desc: "Tell us your education background and career goals." },
-                  { step: "02", icon: "🤖", title: "Get AI guidance", desc: "Your personal AI mentor creates a tailored plan." },
-                  { step: "03", icon: "🎓", title: "Apply to UK universities", desc: "Navigate UCAS with expert step-by-step support." },
-                  { step: "04", icon: "💼", title: "Land a sponsored job", desc: "Find UK employers who will sponsor your visa." },
-                ].map(s => (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: "1rem" }}>
+                {[{ step:"01",icon:"🗺️",title:"Choose your pathway",desc:"Tell us your education background and career goals." },{ step:"02",icon:"🤖",title:"Get AI guidance",desc:"Your personal AI mentor creates a tailored plan." },{ step:"03",icon:"🎓",title:"Apply to UK universities",desc:"Navigate UCAS with expert step-by-step support." },{ step:"04",icon:"💼",title:"Land a sponsored job",desc:"Find UK employers who will sponsor your visa." }].map(s => (
                   <div key={s.step} className="step-item" style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "1.25rem", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", border: "0.5px solid var(--color-border-tertiary)" }}>
-                    <div style={{ minWidth: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #534AB7, #1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "13px", fontWeight: 500 }}>{s.step}</div>
+                    <div style={{ minWidth: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg,#534AB7,#1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "13px", fontWeight: 500 }}>{s.step}</div>
                     <div>
                       <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{s.title}</p>
                       <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
@@ -495,15 +562,14 @@ export default function Mentorgram() {
             </div>
           </div>
 
-          {/* Features */}
-          <div style={{ background: "var(--color-background-tertiary)", padding: "3rem 1.5rem" }}>
+          <div style={{ padding: "3rem 1.5rem" }}>
             <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
               <h2 style={{ ...S.sectionTitle, textAlign: "center", marginBottom: "0.5rem" }}>Everything you need to succeed</h2>
               <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "2.5rem" }}>From subject selection to landing your first UK job.</p>
               <div style={S.grid3}>
                 {FEATURES.map(f => (
-                  <div key={f.title} className="feature-card" style={{ ...S.card, cursor: "default" }}>
-                    <div className="float-icon" style={{ fontSize: "28px", marginBottom: "12px", animationDelay: Math.random() * 2 + "s" }}>{f.icon}</div>
+                  <div key={f.title} className="feature-card" style={S.card}>
+                    <div className="float-icon" style={{ fontSize: "28px", marginBottom: "12px" }}>{f.icon}</div>
                     <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "15px" }}>{f.title}</p>
                     <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0, lineHeight: 1.6 }}>{f.desc}</p>
                   </div>
@@ -512,15 +578,12 @@ export default function Mentorgram() {
             </div>
           </div>
 
-          {/* Waitlist */}
-          <div style={{ padding: "4rem 1.5rem" }}>
+          <div style={{ padding: "4rem 1.5rem", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
             <div style={{ maxWidth: "540px", margin: "0 auto", textAlign: "center" }}>
               <h2 style={S.sectionTitle}>Join the waitlist</h2>
               <p style={S.sectionSub}>Be among the first to access Mentorgram's full platform.</p>
               {waitlistDone ? (
-                <div style={{ ...S.card, background: "#E1F5EE", border: "0.5px solid #5DCAA5", animation: "fadeUp 0.5s ease" }}>
-                  <p style={{ color: "#085041", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p>
-                </div>
+                <div style={{ ...S.card, background: "#E1F5EE", border: "0.5px solid #5DCAA5" }}><p style={{ color: "#085041", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p></div>
               ) : (
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input style={{ ...S.input, flex: 1 }} type="email" placeholder="Enter your email address" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && waitlistEmail && setWaitlistDone(true)} />
@@ -601,19 +664,9 @@ export default function Mentorgram() {
       );
 
       case "Sponsorship Jobs": return selectedJob ? (
-        <JobDetailPage
-          job={selectedJob}
-          onBack={() => { setSelectedJob(null); window.location.hash = ""; }}
-          onAskMentor={(msg) => { setChatInput(msg); setSelectedJob(null); navTo("AI Mentor"); }}
-        />
+        <JobDetailPage job={selectedJob} onBack={() => { setSelectedJob(null); window.location.hash = ""; }} onAskMentor={(msg) => { setChatInput(msg); setSelectedJob(null); navTo("AI Mentor"); }} />
       ) : (
-        <JobsPage
-          allJobs={allJobs}
-          jobsLoading={jobsLoading}
-          updatedAt={updatedAt}
-          onFetchJobs={fetchJobs}
-          onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }}
-        />
+        <JobsPage allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt} onFetchJobs={fetchJobs} onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }} />
       );
 
       case "Contact": return (
@@ -623,10 +676,7 @@ export default function Mentorgram() {
             <p style={S.sectionSub}>Have questions about Mentorgram? We'd love to hear from you.</p>
             <div style={S.card}>
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <input style={S.input} placeholder="Your name" />
-                  <input style={S.input} placeholder="Your email" />
-                </div>
+                <div style={{ display: "flex", gap: "10px" }}><input style={S.input} placeholder="Your name" /><input style={S.input} placeholder="Your email" /></div>
                 <input style={S.input} placeholder="Subject" />
                 <textarea style={{ ...S.input, height: "120px", resize: "vertical" }} placeholder="Your message..." />
                 <button style={S.btnPrimary}>Send message</button>
@@ -635,9 +685,7 @@ export default function Mentorgram() {
             <div style={{ ...S.card, marginTop: "1rem" }}>
               <p style={{ fontWeight: 500, margin: "0 0 10px" }}>Contact details</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px", color: "var(--color-text-secondary)" }}>
-                <span>📧 info@mentorgramai.com</span>
-                <span>🌐 mentorgramai.com</span>
-                <span>📍 United Kingdom</span>
+                <span>📧 info@mentorgramai.com</span><span>🌐 mentorgramai.com</span><span>📍 United Kingdom</span>
               </div>
             </div>
           </div>
@@ -651,13 +699,12 @@ export default function Mentorgram() {
   return (
     <div style={S.wrap}>
       <style>{`
-        @media (max-width: 768px) { .desktop-nav { display: none !important; } .hamburger-btn { display: flex !important; } }
-        @media (min-width: 769px) { .mobile-menu { display: none !important; } .hamburger-btn { display: none !important; } .desktop-nav { display: flex !important; } }
+        @media (max-width: 768px) { .desktop-nav { display:none !important; } .hamburger-btn { display:flex !important; } }
+        @media (min-width: 769px) { .mobile-menu { display:none !important; } .hamburger-btn { display:none !important; } .desktop-nav { display:flex !important; } }
       `}</style>
-
       <nav style={{ background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }} onClick={() => navTo("Home")}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, #534AB7, #1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 500, fontSize: "18px" }}>M</div>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#534AB7,#1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 500, fontSize: "18px" }}>M</div>
           <span style={{ fontSize: "18px", fontWeight: 500, color: "var(--color-text-primary)" }}>Mentorgram</span>
         </div>
         <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
@@ -669,13 +716,10 @@ export default function Mentorgram() {
           <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
         </button>
       </nav>
-
       <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
         {NAV_LINKS.map(l => <button key={l} style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: activePage === l ? 500 : 400 }} onClick={() => navTo(l)}>{l}</button>)}
       </div>
-
       <main onClick={() => mobileMenu && setMobileMenu(false)}>{renderPage()}</main>
-
       <footer style={S.footer}>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>© 2025 Mentorgram AI · info@mentorgramai.com · mentorgramai.com</p>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "6px 0 0" }}>Empowering students worldwide to study, work, and thrive in the UK 🇬🇧</p>
