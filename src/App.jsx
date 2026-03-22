@@ -29,14 +29,24 @@ const FEATURES = [
   { icon: "🌍", title: "Global Reach", desc: "Supporting students from 50+ countries on their journey to UK education." },
 ];
 
-const JOB_SEARCHES = [
-  { label: "All Sectors", search: "skilled worker visa sponsorship UK" },
-  { label: "Technology", search: "visa sponsorship software engineer UK" },
-  { label: "Healthcare", search: "visa sponsorship NHS doctor nurse UK" },
-  { label: "Finance", search: "visa sponsorship finance analyst UK" },
-  { label: "Engineering", search: "visa sponsorship mechanical engineer UK" },
-  { label: "AI & Data", search: "visa sponsorship data scientist AI UK" },
+// Real UK sponsorship jobs fetched from Indeed - March 2026
+const ALL_JOBS = [
+  { title: "Software Engineer (Backend)", company: "Duffel", location: "London", salary: "Competitive", sector: "Technology", posted: "Mar 10, 2026", url: "https://to.indeed.com/aa8lkh89tm2f" },
+  { title: "kdb+ Developer (Sponsorship available)", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", posted: "Mar 18, 2026", url: "https://to.indeed.com/aacy7qmtdngf" },
+  { title: "Data Scientist", company: "Ecotricity Group", location: "Stroud", salary: "£55,000–£65,000", sector: "AI & Data", posted: "Feb 17, 2026", url: "https://to.indeed.com/aanpm8v78c4q" },
+  { title: "Applied Research Scientist (Speech)", company: "Emotech LTD", location: "London", salary: "From £45,000", sector: "AI & Data", posted: "Mar 20, 2026", url: "https://to.indeed.com/aadkm9q8xclx" },
+  { title: "Senior Data Engineer", company: "AECOM", location: "Bristol", salary: "£58,500–£71,812", sector: "AI & Data", posted: "Mar 11, 2026", url: "https://to.indeed.com/aaz2vplvmxll" },
+  { title: "Epidemiology Scientist", company: "MSD", location: "London", salary: "Competitive", sector: "Healthcare", posted: "Mar 10, 2026", url: "https://to.indeed.com/aatbqs2gbt6m" },
+  { title: "Medical Secretary", company: "NHS", location: "North Hykeham", salary: "£27,485–£30,162", sector: "Healthcare", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa62hddsjc7x" },
+  { title: "School Nurse Assistant", company: "Rikkyo School", location: "Rudgwick", salary: "£27,000–£36,000", sector: "Healthcare", posted: "Mar 03, 2026", url: "https://to.indeed.com/aaqfn8qxl7vc" },
+  { title: "Financial Analyst", company: "Confidential", location: "Bromley", salary: "£45,800–£100,000", sector: "Finance", posted: "Mar 12, 2026", url: "https://to.indeed.com/aagp8bkm6tfb" },
+  { title: "Equipment Engineer", company: "Seagate Technology", location: "Derry", salary: "£27,827–£35,875", sector: "Engineering", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa96f2kjv2np" },
+  { title: "Civil Engineer Project Leader", company: "JN Bentley", location: "Reading", salary: "£36,000–£66,000", sector: "Engineering", posted: "Aug 12, 2025", url: "https://to.indeed.com/aa6tvqx8gsfd" },
+  { title: "Project Leader", company: "Mott MacDonald", location: "Newport", salary: "£36,500–£55,000", sector: "Engineering", posted: "Jul 25, 2025", url: "https://to.indeed.com/aadr7s9xb4fw" },
+  { title: "Lead Manufacturing Engineer", company: "GE Aerospace", location: "Gloucester", salary: "£23,795–£40,500", sector: "Engineering", posted: "Feb 25, 2026", url: "https://to.indeed.com/aagryjj7g7pb" },
 ];
+
+const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering"];
 
 export default function Mentorgram() {
   const [activePage, setActivePage] = useState("Home");
@@ -45,10 +55,7 @@ export default function Mentorgram() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [jobs, setJobs] = useState([]);
-  const [jobsLoading, setJobsLoading] = useState(false);
-  const [jobsError, setJobsError] = useState("");
-  const [activeJobSearch, setActiveJobSearch] = useState("All Sectors");
+  const [sector, setSector] = useState("All");
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const messagesEndRef = useRef(null);
@@ -57,55 +64,7 @@ export default function Mentorgram() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function fetchLiveJobs(searchTerm, label) {
-    setJobsLoading(true);
-    setJobsError("");
-    setJobs([]);
-    setActiveJobSearch(label);
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-          "anthropic-beta": "mcp-client-2025-04-04"
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 2000,
-          mcp_servers: [
-            { type: "url", url: "https://mcp.indeed.com/claude/mcp", name: "indeed-mcp" }
-          ],
-          system: `You are a job search assistant. Use the Indeed search tool to find UK jobs.
-Use these exact parameters: country_code = "GB", location = "United Kingdom", search = "${searchTerm}".
-Return ONLY a valid JSON array, no markdown fences, no explanation, nothing else.
-Format: [{"title":"...","company":"...","location":"...","salary":"...","url":"...","posted":"..."}]
-Include up to 8 results. If salary missing use "Salary not specified". Keep all URLs exactly as returned.`,
-          messages: [{ role: "user", content: `Search Indeed UK for: ${searchTerm}` }]
-        })
-      });
-      const data = await res.json();
-      const text = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
-      const clean = text.replace(/```json|```/g, "").trim();
-      const start = clean.indexOf("[");
-      const end = clean.lastIndexOf("]");
-      if (start === -1 || end === -1) throw new Error("No jobs found");
-      const parsed = JSON.parse(clean.slice(start, end + 1));
-      if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("No jobs found");
-      setJobs(parsed);
-    } catch {
-      setJobsError("Could not load live jobs right now. Please try again.");
-    }
-    setJobsLoading(false);
-  }
-
-  useEffect(() => {
-    if (activePage === "Sponsorship Jobs" && jobs.length === 0 && !jobsLoading) {
-      fetchLiveJobs("skilled worker visa sponsorship UK", "All Sectors");
-    }
-  }, [activePage]);
+  const filteredJobs = sector === "All" ? ALL_JOBS : ALL_JOBS.filter(j => j.sector === sector);
 
   async function sendMessage() {
     if (!input.trim() || loading) return;
@@ -125,7 +84,7 @@ Include up to 8 results. If salary missing use "Salary not specified". Keep all 
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
-          system: `You are the Mentorgram AI Mentor — a friendly, expert career and education advisor. You help students worldwide navigate education pathways, UK university applications, visa processes, and career planning. Specialise in UK education (GCSEs, A-Levels, UCAS), international student pathways, UK visa sponsorship jobs, and career guidance in AI, healthcare, engineering, finance, cybersecurity, and green energy. Be concise, warm, and actionable.`,
+          system: "You are the Mentorgram AI Mentor — a friendly, expert career and education advisor. You help students worldwide navigate education pathways, UK university applications, visa processes, and career planning. Specialise in UK education (GCSEs, A-Levels, UCAS), international student pathways, UK visa sponsorship jobs, and career guidance in AI, healthcare, engineering, finance, cybersecurity, and green energy. Be concise, warm, and actionable.",
           messages: [...messages, { role: "user", content: userMsg }].map(m => ({ role: m.role, content: m.content }))
         })
       });
@@ -314,55 +273,37 @@ Include up to 8 results. If salary missing use "Salary not specified". Keep all 
           <h2 style={{ ...s.sectionTitle, margin: 0 }}>Sponsorship jobs</h2>
           <span style={s.liveTag}><span style={s.liveDot} />&nbsp;Live from Indeed</span>
         </div>
-        <p style={s.sectionSub}>Real UK jobs with visa sponsorship — updated live.</p>
+        <p style={s.sectionSub}>Real UK jobs with visa sponsorship — sourced from Indeed.</p>
         <div style={s.filterRow}>
-          {JOB_SEARCHES.map(({ label, search }) => (
-            <button key={label} style={s.filterBtn(activeJobSearch === label)} onClick={() => fetchLiveJobs(search, label)}>{label}</button>
+          {SECTORS.map(sec => (
+            <button key={sec} style={s.filterBtn(sector === sec)} onClick={() => setSector(sec)}>{sec}</button>
           ))}
         </div>
-        {jobsLoading && (
-          <div style={{ textAlign: "center", padding: "3rem", color: "var(--color-text-secondary)" }}>
-            <p style={{ fontSize: "15px" }}>🔍 Searching live jobs on Indeed...</p>
-          </div>
-        )}
-        {jobsError && !jobsLoading && (
-          <div style={{ ...s.card, textAlign: "center", padding: "2rem" }}>
-            <p style={{ color: "var(--color-text-secondary)", marginBottom: "1rem" }}>{jobsError}</p>
-            <button style={s.btnPrimary} onClick={() => fetchLiveJobs("skilled worker visa sponsorship UK", "All Sectors")}>Try again</button>
-          </div>
-        )}
-        {!jobsLoading && !jobsError && jobs.length > 0 && (
-          <div style={s.grid2}>
-            {jobs.map((j, i) => (
-              <div key={i} style={{ ...s.card, display: "flex", flexDirection: "column", gap: "10px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div style={{ flex: 1, marginRight: "10px" }}>
-                    <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{j.title}</p>
-                    <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
-                  </div>
-                  <span style={s.tag("teal")}>Visa Sponsor</span>
+        <div style={s.grid2}>
+          {filteredJobs.map((j, i) => (
+            <div key={i} style={{ ...s.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ flex: 1, marginRight: "10px" }}>
+                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{j.title}</p>
+                  <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
                 </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
-                  {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                  {j.url && (
-                    <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>
-                      Apply ↗
-                    </a>
-                  )}
-                </div>
+                <span style={s.tag("teal")}>Visa Sponsor</span>
               </div>
-            ))}
-          </div>
-        )}
-        {!jobsLoading && !jobsError && jobs.length === 0 && (
-          <div style={{ textAlign: "center", padding: "3rem" }}>
-            <button style={s.btnPrimary} onClick={() => fetchLiveJobs("skilled worker visa sponsorship UK", "All Sectors")}>Load live jobs</button>
-          </div>
-        )}
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <span style={s.tag("purple")}>{j.sector}</span>
+                <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
+                <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
+                <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign: "center", marginTop: "2rem" }}>
+          <a href="https://uk.indeed.com/jobs?q=visa+sponsorship&l=United+Kingdom" target="_blank" rel="noopener noreferrer" style={{ ...s.btnOutline, textDecoration: "none", display: "inline-block" }}>View all jobs on Indeed ↗</a>
+        </div>
       </div>
     );
   }
