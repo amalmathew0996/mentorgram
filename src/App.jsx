@@ -308,28 +308,112 @@ export default function Mentorgram() {
     switch (activePage) {
       case "Home": return (
         <div>
-          <div style={{ padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "720px", margin: "0 auto" }}>
-            <div style={{ ...S.tag("purple"), marginBottom: "1rem", fontSize: "13px" }}>🚀 AI-Powered Education & Career Platform</div>
-            <h1 style={{ fontSize: "clamp(2rem,5vw,3rem)", fontWeight: 500, lineHeight: 1.2, margin: "0 0 1rem" }}>Your AI Mentor for<br /><span style={heroAccent}>Education & UK Careers</span></h1>
-            <p style={{ fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 2rem" }}>Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and visa-sponsored job opportunities.</p>
-            <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-              <button style={S.btnPrimary} onClick={() => navTo("AI Mentor")}>Chat with AI Mentor</button>
-              <button style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
+          <style>{`
+            @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+            @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+            @keyframes countUp { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+            @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+            @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+            .hero-badge { animation: fadeIn 0.6s ease forwards; }
+            .hero-title { animation: fadeUp 0.7s ease 0.1s both; }
+            .hero-sub { animation: fadeUp 0.7s ease 0.2s both; }
+            .hero-btns { animation: fadeUp 0.7s ease 0.3s both; }
+            .stat-card { animation: countUp 0.6s ease both; }
+            .stat-card:nth-child(1) { animation-delay: 0.4s; }
+            .stat-card:nth-child(2) { animation-delay: 0.5s; }
+            .stat-card:nth-child(3) { animation-delay: 0.6s; }
+            .stat-card:nth-child(4) { animation-delay: 0.7s; }
+            .feature-card { animation: fadeUp 0.6s ease both; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+            .feature-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(83,74,183,0.12); }
+            .feature-card:nth-child(1) { animation-delay: 0.1s; }
+            .feature-card:nth-child(2) { animation-delay: 0.2s; }
+            .feature-card:nth-child(3) { animation-delay: 0.3s; }
+            .feature-card:nth-child(4) { animation-delay: 0.4s; }
+            .feature-card:nth-child(5) { animation-delay: 0.5s; }
+            .feature-card:nth-child(6) { animation-delay: 0.6s; }
+            .float-icon { animation: float 3s ease-in-out infinite; display: inline-block; }
+            .hero-btn-primary { transition: transform 0.15s ease, background 0.15s ease; }
+            .hero-btn-primary:hover { transform: scale(1.03); background: #4840a0 !important; }
+            .hero-btn-outline { transition: transform 0.15s ease, background 0.15s ease; }
+            .hero-btn-outline:hover { transform: scale(1.03); background: var(--color-background-secondary) !important; }
+            .step-item { animation: slideIn 0.6s ease both; }
+            .step-item:nth-child(1) { animation-delay: 0.1s; }
+            .step-item:nth-child(2) { animation-delay: 0.25s; }
+            .step-item:nth-child(3) { animation-delay: 0.4s; }
+            .step-item:nth-child(4) { animation-delay: 0.55s; }
+            .shimmer-text {
+              background: linear-gradient(90deg, #534AB7, #1D9E75, #534AB7);
+              background-size: 200% auto;
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              animation: shimmer 3s linear infinite;
+            }
+          `}</style>
+
+          {/* Hero */}
+          <div style={{ padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "760px", margin: "0 auto" }}>
+            <div className="hero-badge" style={{ ...S.tag("purple"), marginBottom: "1.25rem", fontSize: "13px", display: "inline-block" }}>
+              🚀 AI-Powered Education & Career Platform
             </div>
-            <div style={S.statsRow}>
-              {[["50+","Countries Supported"],["100K+","Students Guided"],["500+","UK Employers"],[FALLBACK_JOBS.length+"+","Job Listings"]].map(([n,l]) => (
-                <div key={l} style={S.statCard}><p style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px" }}>{n}</p><p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>{l}</p></div>
+            <h1 className="hero-title" style={{ fontSize: "clamp(2.2rem,5vw,3.4rem)", fontWeight: 500, lineHeight: 1.15, margin: "0 0 1.25rem" }}>
+              Your AI Mentor for<br />
+              <span className="shimmer-text">Education & UK Careers</span>
+            </h1>
+            <p className="hero-sub" style={{ fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.8, margin: "0 0 2.25rem", maxWidth: "560px", marginLeft: "auto", marginRight: "auto" }}>
+              Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and visa-sponsored job opportunities.
+            </p>
+            <div className="hero-btns" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+              <button className="hero-btn-primary" style={S.btnPrimary} onClick={() => navTo("AI Mentor")}>Chat with AI Mentor</button>
+              <button className="hero-btn-outline" style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
+            </div>
+
+            {/* Animated stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", margin: "3rem 0 0" }}>
+              {[["50+","Countries Supported","🌍"],["100K+","Students Guided","🎓"],["500+","UK Employers","🏢"],[FALLBACK_JOBS.length+"+","Job Listings","💼"]].map(([n,l,icon]) => (
+                <div key={l} className="stat-card" style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)" }}>
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>{icon}</div>
+                  <p style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px", color: "var(--color-text-primary)" }}>{n}</p>
+                  <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{l}</p>
+                </div>
               ))}
             </div>
           </div>
-          <div style={{ background: "var(--color-background-primary)", borderTop: "0.5px solid var(--color-border-tertiary)", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
-            <div style={S.section}>
-              <h2 style={S.sectionTitle}>Everything you need to succeed</h2>
-              <p style={S.sectionSub}>From subject selection to landing your first UK job.</p>
+
+          {/* How it works */}
+          <div style={{ background: "var(--color-background-primary)", borderTop: "0.5px solid var(--color-border-tertiary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "3rem 1.5rem" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+              <h2 style={{ ...S.sectionTitle, textAlign: "center", marginBottom: "0.5rem" }}>How Mentorgram works</h2>
+              <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "2.5rem" }}>Four simple steps from student to UK career</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
+                {[
+                  { step: "01", icon: "🗺️", title: "Choose your pathway", desc: "Tell us your education background and career goals." },
+                  { step: "02", icon: "🤖", title: "Get AI guidance", desc: "Your personal AI mentor creates a tailored plan." },
+                  { step: "03", icon: "🎓", title: "Apply to UK universities", desc: "Navigate UCAS with expert step-by-step support." },
+                  { step: "04", icon: "💼", title: "Land a sponsored job", desc: "Find UK employers who will sponsor your visa." },
+                ].map(s => (
+                  <div key={s.step} className="step-item" style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "1.25rem", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", border: "0.5px solid var(--color-border-tertiary)" }}>
+                    <div style={{ minWidth: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #534AB7, #1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "13px", fontWeight: 500 }}>{s.step}</div>
+                    <div>
+                      <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{s.title}</p>
+                      <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Features */}
+          <div style={{ background: "var(--color-background-tertiary)", padding: "3rem 1.5rem" }}>
+            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+              <h2 style={{ ...S.sectionTitle, textAlign: "center", marginBottom: "0.5rem" }}>Everything you need to succeed</h2>
+              <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "2.5rem" }}>From subject selection to landing your first UK job.</p>
               <div style={S.grid3}>
                 {FEATURES.map(f => (
-                  <div key={f.title} style={S.card}>
-                    <div style={{ fontSize: "24px", marginBottom: "10px" }}>{f.icon}</div>
+                  <div key={f.title} className="feature-card" style={{ ...S.card, cursor: "default" }}>
+                    <div className="float-icon" style={{ fontSize: "28px", marginBottom: "12px", animationDelay: Math.random() * 2 + "s" }}>{f.icon}</div>
                     <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "15px" }}>{f.title}</p>
                     <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0, lineHeight: 1.6 }}>{f.desc}</p>
                   </div>
@@ -337,15 +421,19 @@ export default function Mentorgram() {
               </div>
             </div>
           </div>
-          <div style={S.section}>
+
+          {/* Waitlist */}
+          <div style={{ padding: "4rem 1.5rem" }}>
             <div style={{ maxWidth: "540px", margin: "0 auto", textAlign: "center" }}>
               <h2 style={S.sectionTitle}>Join the waitlist</h2>
               <p style={S.sectionSub}>Be among the first to access Mentorgram's full platform.</p>
               {waitlistDone ? (
-                <div style={{ ...S.card, background: "#E1F5EE", border: "0.5px solid #5DCAA5" }}><p style={{ color: "#085041", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p></div>
+                <div style={{ ...S.card, background: "#E1F5EE", border: "0.5px solid #5DCAA5", animation: "fadeUp 0.5s ease" }}>
+                  <p style={{ color: "#085041", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p>
+                </div>
               ) : (
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <input style={{ ...S.input, flex: 1 }} type="email" placeholder="Enter your email address" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} />
+                  <input style={{ ...S.input, flex: 1 }} type="email" placeholder="Enter your email address" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && waitlistEmail && setWaitlistDone(true)} />
                   <button style={S.btnPrimary} onClick={() => waitlistEmail && setWaitlistDone(true)}>Join</button>
                 </div>
               )}
