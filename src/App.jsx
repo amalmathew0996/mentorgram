@@ -201,39 +201,35 @@ function ShareButton({ job, onSelect }) {
 
 // ─── Job Detail Page ──────────────────────────────────────────────────────
 function JobDetailPage({ job, onBack, onAskMentor }) {
-  const jobParam = encodeURIComponent(btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url }))));
-  const siteJobUrl = `https://mentorgramai.com/#job=${jobParam}`;
+  const siteJobUrl = `https://mentorgramai.com/#job=${encodeURIComponent(btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url }))))}`;
+
+  const card = { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "1rem" };
+  const btnPrimary = { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "inline-block" };
+  const btnOutline = { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" };
+  const tag = { display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "#EEEDFE", color: "#3C3489" };
 
   return (
     <div style={{ maxWidth: "760px", margin: "0 auto", padding: "2rem 1.5rem" }}>
-      {/* Back button */}
       <button onClick={onBack}
         style={{ display: "flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: "var(--color-text-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit", marginBottom: "1.5rem", padding: 0 }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Back to jobs
       </button>
 
-      {/* Header card */}
-      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.75rem", marginBottom: "1rem" }}>
+      <div style={{ ...card, padding: "1.75rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 6px", color: "var(--color-text-primary)" }}>{job.title}</h1>
             <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>{job.company}</p>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-              {job.sector && <span style={S.tag("purple")}>{job.sector}</span>}
+              {job.sector && <span style={tag}>{job.sector}</span>}
               <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "#E1F5EE", color: "#085041" }}>✓ Visa Sponsorship</span>
             </div>
           </div>
           <ShareButton job={job} />
         </div>
-
         <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "1.25rem", paddingTop: "1.25rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
-          {[
-            { icon: "📍", label: "Location", value: job.location },
-            { icon: "💰", label: "Salary", value: job.salary },
-            { icon: "🗂️", label: "Sector", value: job.sector || "General" },
-            { icon: "🗓️", label: "Posted", value: job.posted || "Recently" },
-          ].map(({ icon, label, value }) => (
+          {[["📍","Location",job.location],["💰","Salary",job.salary],["🗂️","Sector",job.sector||"General"],["🗓️","Posted",job.posted||"Recently"]].map(([icon,label,value]) => (
             <div key={label}>
               <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "0 0 3px" }}>{icon} {label}</p>
               <p style={{ fontSize: "14px", fontWeight: 500, margin: 0 }}>{value}</p>
@@ -242,30 +238,20 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
         </div>
       </div>
 
-      {/* About section */}
-      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "1rem" }}>
+      <div style={card}>
         <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>About this role</h2>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: "0 0 1rem" }}>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: "0 0 0.75rem" }}>
           This is a UK-based role at <strong>{job.company}</strong> in <strong>{job.location}</strong> offering visa sponsorship for eligible candidates.
         </p>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: "0 0 1rem" }}>
-          The role falls under the <strong>{job.sector || "General"}</strong> sector and is eligible for a <strong>Skilled Worker visa</strong> or <strong>Health & Care visa</strong> depending on your background.
-        </p>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: 0 }}>
-          For full job details, responsibilities, and requirements, click the Apply button below to view the complete listing.
+          The role falls under the <strong>{job.sector || "General"}</strong> sector and is eligible for a <strong>Skilled Worker</strong> or <strong>Health & Care visa</strong> depending on your background. Click Apply for full details.
         </p>
       </div>
 
-      {/* Visa info */}
       <div style={{ background: "#EEEDFE", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#3C3489" }}>🛂 Visa sponsorship info</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          {[
-            "This employer is registered as a UK visa sponsor",
-            "You may be eligible for a Skilled Worker or Health & Care visa",
-            "Minimum salary thresholds apply (usually £26,200+)",
-            "Your employer will assign a Certificate of Sponsorship (CoS)",
-          ].map((item, i) => (
+          {["This employer is registered as a UK visa sponsor","You may be eligible for a Skilled Worker or Health & Care visa","Minimum salary thresholds apply (usually £26,200+)","Your employer will assign a Certificate of Sponsorship (CoS)"].map((item, i) => (
             <p key={i} style={{ fontSize: "14px", color: "#3C3489", margin: 0, display: "flex", gap: "8px" }}>
               <span>✓</span><span>{item}</span>
             </p>
@@ -273,27 +259,20 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
         </div>
       </div>
 
-      {/* AI Mentor prompt */}
-      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem" }}>
+      <div style={card}>
         <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>💬 Need help applying?</h2>
         <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>
-          Ask our AI Mentor how to apply for this role, what skills to highlight, and how the visa process works.
+          Ask our AI Mentor how to apply for this role, what skills you need, and how the visa process works.
         </p>
-        <button style={{ ...S.btnOutline, padding: "9px 20px", fontSize: "14px" }}
-          onClick={() => onAskMentor(`I'm interested in applying for the ${job.title} role at ${job.company} in ${job.location}. Can you help me understand what skills I need, how to apply, and what the visa sponsorship process looks like?`)}>
+        <button style={{ ...btnOutline, padding: "9px 20px", fontSize: "14px" }}
+          onClick={() => onAskMentor(`I want to apply for ${job.title} at ${job.company} in ${job.location}. What skills do I need and how does visa sponsorship work for this role?`)}>
           Ask AI Mentor about this job ↗
         </button>
       </div>
 
-      {/* Apply CTA */}
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        {job.url && (
-          <a href={job.url} target="_blank" rel="noopener noreferrer"
-            style={{ ...S.btnPrimary, textDecoration: "none", display: "inline-block", padding: "12px 32px", fontSize: "15px" }}>
-            Apply for this job ↗
-          </a>
-        )}
-        <button style={S.btnOutline} onClick={onBack}>← Back to jobs</button>
+        {job.url && <a href={job.url} target="_blank" rel="noopener noreferrer" style={btnPrimary}>Apply for this job ↗</a>}
+        <button style={btnOutline} onClick={onBack}>← Back to jobs</button>
       </div>
     </div>
   );
