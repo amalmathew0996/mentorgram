@@ -437,11 +437,49 @@ function ContactPage() {
         <p style={S.sectionSub}>Have questions about Mentorgram? We'd love to hear from you.</p>
 
         {status === "success" ? (
-          <div style={{ ...S.card, background: "#E1F5EE", border: "0.5px solid #5DCAA5", textAlign: "center", padding: "2rem" }}>
-            <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>✅</p>
-            <p style={{ color: "#085041", fontWeight: 500, fontSize: "16px", margin: "0 0 0.5rem" }}>Message sent!</p>
-            <p style={{ color: "#085041", fontSize: "14px", margin: "0 0 1.25rem" }}>Thanks {name}! We'll reply to {email} shortly.</p>
-            <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "14px" }} onClick={() => setStatus("idle")}>Send another</button>
+          <div style={{ textAlign: "center", padding: "2rem 1rem", position: "relative", overflow: "hidden" }}>
+            <style>{`
+              @keyframes popIn { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.2) rotate(5deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+              @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+              @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(220px) rotate(720deg); opacity: 0; } }
+              @keyframes pulse2 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+              .success-icon { animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; display: inline-block; }
+              .success-title { animation: fadeSlideUp 0.5s ease 0.3s both; }
+              .success-sub { animation: fadeSlideUp 0.5s ease 0.45s both; }
+              .success-btn { animation: fadeSlideUp 0.5s ease 0.6s both; }
+              .confetti-piece { position: absolute; width: 8px; height: 8px; border-radius: 2px; animation: confettiFall linear forwards; }
+            `}</style>
+
+            {/* Confetti pieces */}
+            {[
+              { left: "10%", delay: "0s",   color: "#534AB7", size: "8px",  duration: "1.2s" },
+              { left: "20%", delay: "0.1s", color: "#1D9E75", size: "6px",  duration: "1.5s" },
+              { left: "30%", delay: "0.2s", color: "#F7C75B", size: "10px", duration: "1.1s" },
+              { left: "45%", delay: "0s",   color: "#E24B4A", size: "7px",  duration: "1.4s" },
+              { left: "55%", delay: "0.15s",color: "#534AB7", size: "9px",  duration: "1.3s" },
+              { left: "65%", delay: "0.05s",color: "#1D9E75", size: "6px",  duration: "1.6s" },
+              { left: "75%", delay: "0.2s", color: "#F7C75B", size: "8px",  duration: "1.2s" },
+              { left: "85%", delay: "0.1s", color: "#E24B4A", size: "7px",  duration: "1.5s" },
+              { left: "50%", delay: "0.3s", color: "#534AB7", size: "5px",  duration: "1.1s" },
+              { left: "35%", delay: "0.25s",color: "#1D9E75", size: "9px",  duration: "1.4s" },
+            ].map((c, i) => (
+              <div key={i} className="confetti-piece" style={{ left: c.left, top: "-10px", background: c.color, width: c.size, height: c.size, animationDuration: c.duration, animationDelay: c.delay }} />
+            ))}
+
+            {/* Animated envelope icon */}
+            <div className="success-icon" style={{ fontSize: "64px", marginBottom: "1rem", display: "block" }}>
+              📨
+            </div>
+
+            <h3 className="success-title" style={{ fontSize: "1.4rem", fontWeight: 500, margin: "0 0 0.5rem", color: "var(--color-text-primary)" }}>
+              Message sent! 🎉
+            </h3>
+            <p className="success-sub" style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
+              Thanks <strong>{name}</strong>! We'll get back to you at <strong>{email}</strong> shortly.
+            </p>
+            <button className="success-btn" style={{ ...S.btnOutline, padding: "9px 24px", fontSize: "14px" }} onClick={() => setStatus("idle")}>
+              Send another message
+            </button>
           </div>
         ) : (
           <div style={S.card}>
