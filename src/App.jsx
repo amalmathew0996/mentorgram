@@ -122,19 +122,20 @@ const S = {
 };
 
 // ─── Jobs Page (outside main component to prevent remounting) ──────────────
-function ShareButton({ job }) {
+function ShareButton({ job, onSelect }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
-  // Close on outside click
   useEffect(() => {
     function handle(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
-  const shareText = `🇬🇧 UK Job with Visa Sponsorship!\n\n💼 ${job.title}\n🏢 ${job.company}\n📍 ${job.location}\n💰 ${job.salary}\n\n👉 Apply: ${job.url}\n\n🎓 Find more sponsored jobs at mentorgramai.com`;
-  const siteUrl = "https://mentorgramai.com";
+  // Share our site with the job encoded in the URL hash
+  const jobParam = encodeURIComponent(btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url }))));
+  const siteJobUrl = `https://mentorgramai.com/#job=${jobParam}`;
+  const shareText = `🇬🇧 UK Job with Visa Sponsorship!\n\n💼 ${job.title}\n🏢 ${job.company}\n📍 ${job.location}\n💰 ${job.salary}\n\n👉 View details: ${siteJobUrl}\n\n🎓 Find more at mentorgramai.com`;
 
   const options = [
     {
@@ -147,7 +148,7 @@ function ShareButton({ job }) {
       label: "Telegram",
       color: "#229ED9",
       icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>,
-      href: `https://t.me/share/url?url=${encodeURIComponent(siteUrl)}&text=${encodeURIComponent(shareText)}`,
+      href: `https://t.me/share/url?url=${encodeURIComponent(siteJobUrl)}&text=${encodeURIComponent(shareText)}`,
     },
     {
       label: "Email",
@@ -159,46 +160,36 @@ function ShareButton({ job }) {
       label: "Copy link",
       color: "#534AB7",
       icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>,
-      action: () => { navigator.clipboard.writeText(`${shareText}`); setOpen(false); },
+      action: () => { navigator.clipboard.writeText(siteJobUrl); setOpen(false); alert("Link copied to clipboard!"); },
     },
   ];
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        title="Share this job"
-        style={{ width: "34px", height: "34px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-      >
+      <button onClick={() => setOpen(o => !o)} title="Share this job"
+        style={{ width: "34px", height: "34px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
         </svg>
       </button>
-
       {open && (
-        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", right: 0, background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "6px", zIndex: 50, minWidth: "150px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", right: 0, background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "6px", zIndex: 50, minWidth: "155px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
           <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", padding: "4px 10px 6px", margin: 0, borderBottom: "0.5px solid var(--color-border-tertiary)" }}>Share this job</p>
           {options.map(opt => (
             opt.href ? (
-              <a key={opt.label} href={opt.href} target="_blank" rel="noopener noreferrer"
-                onClick={() => setOpen(false)}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", textDecoration: "none", fontSize: "13px", cursor: "pointer" }}
+              <a key={opt.label} href={opt.href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", textDecoration: "none", fontSize: "13px" }}
                 onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >
-                <span style={{ color: opt.color, display: "flex" }}>{opt.icon}</span>
-                {opt.label}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                <span style={{ color: opt.color, display: "flex" }}>{opt.icon}</span>{opt.label}
               </a>
             ) : (
-              <button key={opt.label}
-                onClick={opt.action}
+              <button key={opt.label} onClick={opt.action}
                 style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", fontSize: "13px", cursor: "pointer", width: "100%", border: "none", background: "transparent", fontFamily: "inherit", textAlign: "left" }}
                 onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >
-                <span style={{ color: opt.color, display: "flex" }}>{opt.icon}</span>
-                {opt.label}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                <span style={{ color: opt.color, display: "flex" }}>{opt.icon}</span>{opt.label}
               </button>
             )
           ))}
@@ -208,237 +199,102 @@ function ShareButton({ job }) {
   );
 }
 
-function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs }) {
-  const [sector, setSector] = useState("All");
-  const [visaType, setVisaType] = useState("All Jobs");
-  const [titleQuery, setTitleQuery] = useState("");
-  const [locationQuery, setLocationQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const topRef = useRef(null);
-  const searchTimer = useRef(null);
-
-  useEffect(() => { setPage(1); }, [sector, visaType, titleQuery, locationQuery]);
-  useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [page]);
-
-  // Auto-search Indeed when user stops typing (500ms debounce)
-  function handleTitleChange(val) {
-    setTitleQuery(val);
-    clearTimeout(searchTimer.current);
-    if (val.length >= 3) {
-      searchTimer.current = setTimeout(() => {
-        onFetchJobs(val, locationQuery);
-      }, 500);
-    }
-  }
-
-  function handleLocationChange(val) {
-    setLocationQuery(val);
-    clearTimeout(searchTimer.current);
-    if (val.length >= 2) {
-      searchTimer.current = setTimeout(() => {
-        onFetchJobs(titleQuery, val);
-      }, 500);
-    }
-  }
-
-  // Filter loaded jobs
-  const filtered = allJobs.filter(j => {
-    const matchSector = sector === "All" || j.sector === sector;
-    const matchVisa = visaType === "All Jobs" || j.visaType === visaType;
-    const q = titleQuery.toLowerCase().trim();
-    const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
-    const loc = locationQuery.toLowerCase().trim();
-    const matchLoc = !loc || j.location.toLowerCase().includes(loc);
-    return matchSector && matchVisa && matchTitle && matchLoc;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice((safePage - 1) * JOBS_PER_PAGE, safePage * JOBS_PER_PAGE);
-
-  function getPageNums() {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    if (safePage <= 3) return [1, 2, 3, 4, 5];
-    if (safePage >= totalPages - 2) return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [safePage - 2, safePage - 1, safePage, safePage + 1, safePage + 2];
-  }
+// ─── Job Detail Page ──────────────────────────────────────────────────────
+function JobDetailPage({ job, onBack, onAskMentor }) {
+  const jobParam = encodeURIComponent(btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url }))));
+  const siteJobUrl = `https://mentorgramai.com/#job=${jobParam}`;
 
   return (
-    <div style={S.section}>
-      <style>{`
-        .search-input:focus { border-color: #534AB7 !important; box-shadow: 0 0 0 3px rgba(83,74,183,0.15); }
-        .job-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-        .job-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(83,74,183,0.1); }
-      `}</style>
+    <div style={{ maxWidth: "760px", margin: "0 auto", padding: "2rem 1.5rem" }}>
+      {/* Back button */}
+      <button onClick={onBack}
+        style={{ display: "flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: "var(--color-text-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit", marginBottom: "1.5rem", padding: 0 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Back to jobs
+      </button>
 
-      <div ref={topRef}>
-        <h2 style={S.sectionTitle}>Sponsorship jobs</h2>
-        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>
-          Search thousands of UK jobs with visa sponsorship — results update as you type.
+      {/* Header card */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.75rem", marginBottom: "1rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ flex: 1 }}>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 6px", color: "var(--color-text-primary)" }}>{job.title}</h1>
+            <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>{job.company}</p>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+              {job.sector && <span style={S.tag("purple")}>{job.sector}</span>}
+              <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "#E1F5EE", color: "#085041" }}>✓ Visa Sponsorship</span>
+            </div>
+          </div>
+          <ShareButton job={job} />
+        </div>
+
+        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "1.25rem", paddingTop: "1.25rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
+          {[
+            { icon: "📍", label: "Location", value: job.location },
+            { icon: "💰", label: "Salary", value: job.salary },
+            { icon: "🗂️", label: "Sector", value: job.sector || "General" },
+            { icon: "🗓️", label: "Posted", value: job.posted || "Recently" },
+          ].map(({ icon, label, value }) => (
+            <div key={label}>
+              <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "0 0 3px" }}>{icon} {label}</p>
+              <p style={{ fontSize: "14px", fontWeight: 500, margin: 0 }}>{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* About section */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "1rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>About this role</h2>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: "0 0 1rem" }}>
+          This is a UK-based role at <strong>{job.company}</strong> in <strong>{job.location}</strong> offering visa sponsorship for eligible candidates.
+        </p>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: "0 0 1rem" }}>
+          The role falls under the <strong>{job.sector || "General"}</strong> sector and is eligible for a <strong>Skilled Worker visa</strong> or <strong>Health & Care visa</strong> depending on your background.
+        </p>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: 0 }}>
+          For full job details, responsibilities, and requirements, click the Apply button below to view the complete listing.
         </p>
       </div>
 
-      {/* Search box */}
+      {/* Visa info */}
+      <div style={{ background: "#EEEDFE", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#3C3489" }}>🛂 Visa sponsorship info</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          {[
+            "This employer is registered as a UK visa sponsor",
+            "You may be eligible for a Skilled Worker or Health & Care visa",
+            "Minimum salary thresholds apply (usually £26,200+)",
+            "Your employer will assign a Certificate of Sponsorship (CoS)",
+          ].map((item, i) => (
+            <p key={i} style={{ fontSize: "14px", color: "#3C3489", margin: 0, display: "flex", gap: "8px" }}>
+              <span>✓</span><span>{item}</span>
+            </p>
+          ))}
+        </div>
+      </div>
+
+      {/* AI Mentor prompt */}
       <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem" }}>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <div style={{ flex: 2, minWidth: "180px", position: "relative" }}>
-            <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", pointerEvents: "none" }}>🔍</span>
-            <input
-              className="search-input"
-              style={{ ...S.input, paddingLeft: "38px", transition: "border-color 0.15s, box-shadow 0.15s" }}
-              placeholder="Job title or keywords..."
-              value={titleQuery}
-              onChange={e => handleTitleChange(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)}
-            />
-          </div>
-          <div style={{ flex: 1, minWidth: "130px", position: "relative" }}>
-            <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", pointerEvents: "none" }}>📍</span>
-            <input
-              className="search-input"
-              style={{ ...S.input, paddingLeft: "38px", transition: "border-color 0.15s, box-shadow 0.15s" }}
-              placeholder="Location..."
-              value={locationQuery}
-              onChange={e => handleLocationChange(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)}
-            />
-          </div>
-          <button
-            style={{ ...S.btnPrimary, padding: "10px 20px", fontSize: "14px", whiteSpace: "nowrap", opacity: jobsLoading ? 0.7 : 1 }}
-            onClick={() => { clearTimeout(searchTimer.current); onFetchJobs(titleQuery, locationQuery); }}
-            disabled={jobsLoading}
-          >
-            {jobsLoading ? "Searching..." : "Search"}
-          </button>
-        </div>
-
-        {/* Hint */}
-        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 10px" }}>
-          💡 Results update automatically as you type · Press Enter or click Search for fresh results
+        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>💬 Need help applying?</h2>
+        <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>
+          Ask our AI Mentor how to apply for this role, what skills to highlight, and how the visa process works.
         </p>
+        <button style={{ ...S.btnOutline, padding: "9px 20px", fontSize: "14px" }}
+          onClick={() => onAskMentor(`I'm interested in applying for the ${job.title} role at ${job.company} in ${job.location}. Can you help me understand what skills I need, how to apply, and what the visa sponsorship process looks like?`)}>
+          Ask AI Mentor about this job ↗
+        </button>
+      </div>
 
-        {/* Quick search chips */}
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Teacher", "Chef", "Marketing Manager"].map(q => (
-            <button key={q} style={{ ...S.filterBtn(titleQuery === q), fontSize: "12px", padding: "4px 12px" }}
-              onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}>{q}</button>
-          ))}
-        </div>
-
-        {updatedAt && (
-          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>
-            Last updated: {new Date(updatedAt).toLocaleTimeString()}
-          </p>
+      {/* Apply CTA */}
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        {job.url && (
+          <a href={job.url} target="_blank" rel="noopener noreferrer"
+            style={{ ...S.btnPrimary, textDecoration: "none", display: "inline-block", padding: "12px 32px", fontSize: "15px" }}>
+            Apply for this job ↗
+          </a>
         )}
+        <button style={S.btnOutline} onClick={onBack}>← Back to jobs</button>
       </div>
-
-      {/* Sector filters */}
-      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.75rem" }}>
-        {SECTORS.map(sec => (
-          <button key={sec} style={{ ...S.filterBtn(sector === sec), fontSize: "12px", padding: "5px 12px" }} onClick={() => setSector(sec)}>{sec}</button>
-        ))}
-      </div>
-
-      {/* Visa type filter */}
-      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-        <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Filter:</span>
-        {VISA_TYPES.map(v => (
-          <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v ? (v === "Visa Sponsorship" ? "#1D9E75" : "#534AB7") : "var(--color-background-primary)", fontSize: "13px" }}
-            onClick={() => setVisaType(v)}>{v}</button>
-        ))}
-      </div>
-
-      {/* Results count */}
-      <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
-        {jobsLoading ? "🔍 Searching Indeed for live jobs..." : `Showing ${paginated.length} of ${filtered.length} jobs`}
-        {!jobsLoading && titleQuery && ` matching "${titleQuery}"`}
-        {!jobsLoading && locationQuery && ` in "${locationQuery}"`}
-        {!jobsLoading && sector !== "All" && ` · ${sector}`}
-        {!jobsLoading && visaType !== "All Jobs" && ` · ${visaType}`}
-      </p>
-
-      {/* Loading skeleton */}
-      {jobsLoading && (
-        <div style={S.grid2}>
-          {[...Array(6)].map((_, i) => (
-            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ height: "16px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "70%", animation: "pulse 1.5s ease-in-out infinite" }} />
-              <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "40%" }} />
-              <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "55%" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
-                <div style={{ height: "14px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "30%" }} />
-                <div style={{ height: "32px", width: "70px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Job cards */}
-      {!jobsLoading && paginated.length > 0 && (
-        <div style={S.grid2}>
-          {paginated.map((j, i) => (
-            <div key={i} className="job-card" style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1, marginRight: "10px" }}>
-                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{j.title}</p>
-                  <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
-                </div>
-                <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "#E1F5EE", color: "#085041", whiteSpace: "nowrap" }}>✓ Sponsorship</span>
-              </div>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
-                {j.sector && <span style={S.tag("purple")}>{j.sector}</span>}
-                <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
-                {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                  <ShareButton job={j} />
-                  {j.url && (
-                    <a href={j.url} target="_blank" rel="noopener noreferrer"
-                      style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>
-                      Apply ↗
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* No results */}
-      {!jobsLoading && paginated.length === 0 && (
-        <div style={{ ...S.card, textAlign: "center", padding: "3rem" }}>
-          <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
-          <p style={{ color: "var(--color-text-primary)", fontWeight: 500, marginBottom: "0.5rem" }}>No jobs found</p>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>
-            Try searching for a job title above to find live results from Indeed
-          </p>
-          <button style={S.btnPrimary} onClick={() => { setTitleQuery(""); setLocationQuery(""); setSector("All"); setVisaType("All Jobs"); onFetchJobs("", ""); }}>
-            Show all jobs
-          </button>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && !jobsLoading && (
-        <>
-          <div style={{ display: "flex", gap: "6px", justifyContent: "center", alignItems: "center", marginTop: "2rem", flexWrap: "wrap" }}>
-            {safePage > 3 && totalPages > 5 && <><button style={S.pageBtn(false)} onClick={() => setPage(1)}>1</button><span style={{ color: "var(--color-text-secondary)" }}>…</span></>}
-            {getPageNums().map(p => <button key={p} style={S.pageBtn(p === safePage)} onClick={() => setPage(p)}>{p}</button>)}
-            {safePage < totalPages - 2 && totalPages > 5 && <><span style={{ color: "var(--color-text-secondary)" }}>…</span><button style={S.pageBtn(false)} onClick={() => setPage(totalPages)}>{totalPages}</button></>}
-          </div>
-          <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "10px" }}>
-            <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "13px", opacity: safePage === 1 ? 0.4 : 1 }} onClick={() => safePage > 1 && setPage(p => p - 1)} disabled={safePage === 1}>← Previous</button>
-            <button style={{ ...S.btnPrimary, padding: "8px 20px", fontSize: "13px", opacity: safePage === totalPages ? 0.4 : 1 }} onClick={() => safePage < totalPages && setPage(p => p + 1)} disabled={safePage === totalPages}>Next →</button>
-          </div>
-          <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "0.75rem" }}>
-            Page {safePage} of {totalPages} · {filtered.length} total listings
-          </p>
-        </>
-      )}
     </div>
   );
 }
@@ -457,9 +313,28 @@ export default function Mentorgram() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  // Handle shared job links via URL hash
+  useEffect(() => {
+    function checkHash() {
+      const hash = window.location.hash;
+      if (hash.startsWith("#job=")) {
+        try {
+          const encoded = decodeURIComponent(hash.replace("#job=", ""));
+          const job = JSON.parse(decodeURIComponent(atob(encoded)));
+          setSelectedJob(job);
+          setActivePage("Sponsorship Jobs");
+        } catch { /* invalid hash, ignore */ }
+      }
+    }
+    checkHash();
+    window.addEventListener("hashchange", checkHash);
+    return () => window.removeEventListener("hashchange", checkHash);
+  }, []);
 
   useEffect(() => {
     if (activePage === "Sponsorship Jobs") fetchJobs("", "");
@@ -746,13 +621,19 @@ export default function Mentorgram() {
         </div>
       );
 
-      case "Sponsorship Jobs": return (
+      case "Sponsorship Jobs": return selectedJob ? (
+        <JobDetailPage
+          job={selectedJob}
+          onBack={() => { setSelectedJob(null); window.location.hash = ""; }}
+          onAskMentor={(msg) => { setChatInput(msg); setSelectedJob(null); navTo("AI Mentor"); }}
+        />
+      ) : (
         <JobsPage
           allJobs={allJobs}
           jobsLoading={jobsLoading}
           updatedAt={updatedAt}
           onFetchJobs={fetchJobs}
-          onNavigate={navTo}
+          onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }}
         />
       );
 
