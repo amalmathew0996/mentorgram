@@ -389,9 +389,9 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
       {/* Results count */}
       <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
         {jobsLoading
-          ? "🔍 Fetching live jobs from Indeed across all sectors..."
+          ? "🔍 Fetching live jobs from Indeed, Reed & Adzuna..."
           : <>Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs · <strong>{allJobs.length}</strong> total loaded
-            {allJobs.length <= 75 && !jobsLoading && <span style={{ color: "#534AB7", cursor: "pointer", marginLeft: "6px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
+            {allJobs.length <= 87 && !jobsLoading && <span style={{ color: "#534AB7", cursor: "pointer", marginLeft: "6px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
           </>
         }
         {!jobsLoading && titleQuery && ` · matching "${titleQuery}"`}
@@ -438,6 +438,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
               </div>
               <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
                 {j.sector && <span style={S.tag("purple")}>{j.sector}</span>}
+                {j.source && <span style={{ display:"inline-block", padding:"2px 8px", borderRadius:"var(--border-radius-md)", fontSize:"11px", fontWeight:500, background: j.source==="Reed" ? "#FFF3E0" : j.source==="Adzuna" ? "#E3F2FD" : "#F3F2FF", color: j.source==="Reed" ? "#E65100" : j.source==="Adzuna" ? "#0D47A1" : "#534AB7" }}>{j.source}</span>}
                 <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
                 {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
               </div>
