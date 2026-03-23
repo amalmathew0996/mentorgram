@@ -1,44 +1,80 @@
 export const config = { runtime: "edge" };
 
+// Searches grouped — each one returns 10 jobs = ~100 total in 5 parallel batches
 const DEFAULT_SEARCHES = [
-  "visa sponsorship software engineer",
-  "visa sponsorship healthcare NHS",
-  "visa sponsorship finance analyst",
-  "visa sponsorship engineer",
-  "visa sponsorship data scientist",
-  "visa sponsorship marketing manager",
-  "visa sponsorship education teacher",
-  "visa sponsorship hospitality restaurant",
+  "software engineer developer IT support",
+  "nurse doctor healthcare NHS care worker",
+  "data scientist analyst machine learning",
+  "finance accountant banking investment",
+  "teacher lecturer education university",
+  "engineer manufacturing civil electrical",
+  "marketing sales manager business development",
+  "chef hotel restaurant hospitality",
+  "social worker council public sector officer",
+  "project manager operations HR logistics",
 ];
 
-const SECTOR_MAP = {
-  "software": "Technology", "developer": "Technology", "engineer": "Technology",
-  "IT": "Technology", "designer": "Technology", "tech": "Technology",
-  "data": "AI & Data", "scientist": "AI & Data", "analyst": "AI & Data",
-  "nurse": "Healthcare", "doctor": "Healthcare", "NHS": "Healthcare",
-  "healthcare": "Healthcare", "medical": "Healthcare", "care": "Healthcare",
-  "finance": "Finance", "accountant": "Finance", "banking": "Finance",
-  "financial": "Finance", "investment": "Finance",
-  "teacher": "Education", "teaching": "Education", "university": "Education",
-  "school": "Education", "education": "Education", "lecturer": "Education",
-  "hotel": "Hospitality", "restaurant": "Hospitality", "chef": "Hospitality",
-  "hospitality": "Hospitality",
-  "marketing": "Business", "sales": "Business", "manager": "Business",
-  "business": "Business", "operations": "Business",
-};
+const SPONSORSHIP_KEYWORDS = [
+  "visa sponsor", "sponsorship", "skilled worker", "tier 2",
+  "certificate of sponsorship", "right to work provided",
+  "will sponsor", "visa provided", "work permit", "cos"
+];
+
+function detectSponsorship(title, company) {
+  const text = `${title} ${company}`.toLowerCase();
+  return SPONSORSHIP_KEYWORDS.some(kw => text.includes(kw));
+}
 
 function guessSector(title) {
   const t = title.toLowerCase();
-  for (const [keyword, sector] of Object.entries(SECTOR_MAP)) {
-    if (t.includes(keyword.toLowerCase())) return sector;
-  }
+  if (t.match(/software|developer|programmer|web|mobile|it |tech|cyber|devops|cloud|designer|ux|ui/)) return "Technology";
+  if (t.match(/data|scientist|analyst|machine learning|ai |intelligence|mlops/)) return "AI & Data";
+  if (t.match(/nurse|doctor|nhs|healthcare|medical|dental|care|clinical|therapist|pharmacist/)) return "Healthcare";
+  if (t.match(/finance|financial|accountant|audit|banking|investment|payroll/)) return "Finance";
+  if (t.match(/engineer|engineering|mechanical|civil|electrical|manufacturing/)) return "Engineering";
+  if (t.match(/teacher|teaching|lecturer|education|school|university|academic/)) return "Education";
+  if (t.match(/chef|cook|hotel|restaurant|hospitality|catering/)) return "Hospitality";
+  if (t.match(/marketing|sales|business|manager|operations|hr|recruiter/)) return "Business";
+  if (t.match(/prison|police|council|government|public sector|civil service/)) return "Public Sector";
   return "Other";
+}
+
+async function searchIndeed(apiKey, query, location) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-beta": "mcp-client-2025-04-04",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 2000,
+      mcp_servers: [
+        { type: "url", url: "https://mcp.indeed.com/claude/mcp", name: "indeed-mcp" }
+      ],
+      system: `Search Indeed UK jobs. country_code "GB", location "${location}", search "${query}".
+Return ONLY a JSON array. No markdown. No explanation.
+Format: [{"title":"...","company":"...","location":"...","salary":"...","sector":"...","posted":"...","url":"...","sponsorship":false}]
+Set sponsorship:true ONLY if the listing explicitly mentions visa sponsorship or skilled worker visa.
+If salary missing use "Competitive". Sector: Technology/AI & Data/Healthcare/Finance/Engineering/Education/Hospitality/Business/Public Sector/Other.
+Return exactly 10 jobs.`,
+      messages: [{ role: "user", content: query }]
+    })
+  });
+  const data = await res.json();
+  const text = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
+  const clean = text.replace(/```json|```/g, "").trim();
+  const start = clean.indexOf("[");
+  const end = clean.lastIndexOf("]");
+  if (start === -1 || end === -1) return [];
+  return JSON.parse(clean.slice(start, end + 1));
 }
 
 export default async function handler(req) {
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET",
     "Content-Type": "application/json",
   };
 
@@ -48,68 +84,39 @@ export default async function handler(req) {
     const location = searchParams.get("location") || "United Kingdom";
     const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    // If user searched something specific, do a targeted fetch
-    const searches = customQuery
-      ? [`visa sponsorship ${customQuery}`]
-      : DEFAULT_SEARCHES.slice(0, 4); // fetch 4 searches in parallel for default load
+    let searches = customQuery ? [customQuery] : DEFAULT_SEARCHES;
 
+    // Run all searches in parallel with a 20s timeout per batch
     const results = await Promise.allSettled(
-      searches.map(search =>
-        fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-            "anthropic-beta": "mcp-client-2025-04-04",
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 2000,
-            mcp_servers: [
-              { type: "url", url: "https://mcp.indeed.com/claude/mcp", name: "indeed-mcp" }
-            ],
-            system: `You are a job search assistant. Use the Indeed search tool with country_code "GB" and location "${location}".
-Search for: "${search}".
-Return ONLY a valid JSON array, no markdown, no explanation.
-Format: [{"title":"...","company":"...","location":"...","salary":"...","sector":"...","visaType":"...","posted":"...","url":"..."}]
-For visaType use "Health & Care" for NHS/care jobs, otherwise "Skilled Worker".
-For sector use one of: Technology, AI & Data, Healthcare, Finance, Engineering, Business, Education, Hospitality, Public Sector, Other.
-If salary missing use "Competitive". Return up to 8 results.`,
-            messages: [{ role: "user", content: `Search Indeed UK for: ${search}` }]
-          })
-        }).then(r => r.json())
+      searches.map(q =>
+        Promise.race([
+          searchIndeed(apiKey, q, location),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 20000))
+        ])
       )
     );
 
-    // Collect all jobs from all searches
     const allJobs = [];
     const seen = new Set();
 
     for (const result of results) {
-      if (result.status !== "fulfilled") continue;
-      const data = result.value;
-      const text = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
-      const clean = text.replace(/```json|```/g, "").trim();
-      const start = clean.indexOf("[");
-      const end = clean.lastIndexOf("]");
-      if (start === -1 || end === -1) continue;
-      try {
-        const jobs = JSON.parse(clean.slice(start, end + 1));
-        for (const job of jobs) {
-          // Deduplicate by title+company
-          const key = `${job.title}|${job.company}`.toLowerCase();
-          if (seen.has(key)) continue;
-          seen.add(key);
-          // Ensure sector is set
-          if (!job.sector) job.sector = guessSector(job.title);
-          if (!job.visaType) job.visaType = job.sector === "Healthcare" ? "Health & Care" : "Skilled Worker";
-          allJobs.push(job);
-        }
-      } catch { continue; }
+      if (result.status !== "fulfilled" || !Array.isArray(result.value)) continue;
+      for (const job of result.value) {
+        if (!job.title || !job.company) continue;
+        const key = `${job.title}|${job.company}`.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        if (!job.sector || job.sector === "Other") job.sector = guessSector(job.title);
+        if (!job.sponsorship) job.sponsorship = detectSponsorship(job.title, job.company);
+        job.visaType = job.sponsorship ? "Visa Sponsorship" : "No Sponsorship Info";
+        allJobs.push(job);
+      }
     }
 
     if (allJobs.length === 0) throw new Error("No jobs found");
+
+    // Sort: sponsored first
+    allJobs.sort((a, b) => (b.sponsorship ? 1 : 0) - (a.sponsorship ? 1 : 0));
 
     return new Response(
       JSON.stringify({ jobs: allJobs, updatedAt: new Date().toISOString(), total: allJobs.length }),
