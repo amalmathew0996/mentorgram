@@ -2,35 +2,27 @@ import nodemailer from "nodemailer";
 
 export const config = { runtime: "nodejs" };
 
-// Simple in-memory OTP store (edge-compatible via KV or just use short-lived tokens)
-// For edge runtime we'll use a signed token approach instead
-
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-function signOTP(email, otp, secret) {
-  // MUST match verifyOTP format in verify-otp.js exactly
-  const w = Math.floor(Date.now() / 600000);
-  return Buffer.from(`${email}:${otp}:${w}:${secret.slice(0,8)}`).toString("base64");
-}
-
-export function verifyOTP(email, otp, token, secret) {
-  const expected = signOTP(email, otp, secret);
-  return token === expected;
+function makeToken(email, otp, secret) {
+  const window = Math.floor(Date.now() / 600000);
+  const raw = `${email}|${otp}|${window}|${secret}`;
+  return Buffer.from(raw).toString("base64url");
 }
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+  const { email, type = "signup" } = req.body || {};
+  if (!email) return res.status(400).json({ error: "Email required" });
+
+  const otp = generateOTP();
+  const secret = process.env.OTP_SECRET || "mentorgram_2026";
+  const token = makeToken(email, otp, secret);
+
   try {
-    const { email, type = "signup" } = req.body;
-    if (!email) return res.status(400).json({ error: "Email required" });
-
-    const otp = generateOTP();
-    const secret = process.env.OTP_SECRET || "mentorgram_secret_2026";
-    const token = signOTP(email, otp, secret);
-
     const transporter = nodemailer.createTransport({
       host: "smtp.zoho.eu",
       port: 465,
@@ -41,50 +33,39 @@ export default async function handler(req, res) {
       },
     });
 
-    const subjects = {
-      signup: "Verify your Mentorgram account",
-      reset: "Reset your Mentorgram password",
-    };
-
-    const titles = {
-      signup: "Verify your email address",
-      reset: "Reset your password",
-    };
-
-    const descriptions = {
-      signup: "Enter this code to verify your email and activate your Mentorgram account.",
-      reset: "Enter this code to reset your password.",
-    };
+    const isReset = type === "reset";
 
     await transporter.sendMail({
       from: `"Mentorgram AI" <${process.env.ZOHO_EMAIL}>`,
       to: email,
-      subject: subjects[type] || subjects.signup,
+      subject: isReset ? "Reset your Mentorgram password" : "Verify your Mentorgram account",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-          <div style="background: linear-gradient(135deg, #534AB7, #1D9E75); padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">Mentorgram AI</h1>
-            <p style="color: rgba(255,255,255,0.85); margin: 6px 0 0; font-size: 14px;">AI-Powered Education & Career Platform</p>
-          </div>
-          <div style="background: #f9f9f9; padding: 32px 24px; border-radius: 0 0 12px 12px; border: 1px solid #e0e0e0; border-top: none; text-align: center;">
-            <h2 style="color: #1a1a1a; font-size: 20px; margin: 0 0 8px;">${titles[type]}</h2>
-            <p style="color: #666; font-size: 14px; margin: 0 0 28px; line-height: 1.6;">${descriptions[type]}</p>
-            <div style="background: white; border: 2px solid #534AB7; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 24px;">
-              <p style="font-size: 11px; color: #666; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Your verification code</p>
-              <p style="font-size: 42px; font-weight: 700; letter-spacing: 10px; color: #534AB7; margin: 0; font-family: monospace;">${otp}</p>
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+          <div style="background:linear-gradient(135deg,#534AB7,#1D9E75);padding:28px 24px;border-radius:14px 14px 0 0;text-align:center;">
+            <div style="width:54px;height:54px;background:rgba(255,255,255,0.15);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+              <span style="font-size:26px;">✉</span>
             </div>
-            <p style="color: #999; font-size: 12px; margin: 0;">This code expires in <strong>10 minutes</strong>.</p>
-            <p style="color: #999; font-size: 12px; margin: 8px 0 0;">If you didn't request this, please ignore this email.</p>
+            <h1 style="color:white;margin:0;font-size:22px;font-weight:700;">Mentorgram AI</h1>
           </div>
-          <p style="text-align: center; color: #ccc; font-size: 11px; margin-top: 16px;">© 2026 Mentorgram AI · mentorgramai.com</p>
+          <div style="background:#f9f9f9;padding:32px 24px;border-radius:0 0 14px 14px;border:1px solid #e8e8e8;border-top:none;text-align:center;">
+            <h2 style="color:#1a1a1a;font-size:20px;margin:0 0 8px;">${isReset ? "Reset your password" : "Verify your email"}</h2>
+            <p style="color:#666;font-size:14px;margin:0 0 28px;line-height:1.6;">
+              ${isReset ? "Enter this code to reset your password." : "Enter this code to activate your Mentorgram account."}
+            </p>
+            <div style="background:white;border:2px solid #534AB7;border-radius:14px;padding:24px 20px;display:inline-block;margin-bottom:24px;min-width:200px;">
+              <p style="font-size:11px;color:#888;margin:0 0 10px;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Your code</p>
+              <p style="font-size:46px;font-weight:800;letter-spacing:12px;color:#534AB7;margin:0;font-family:monospace;">${otp}</p>
+            </div>
+            <p style="color:#aaa;font-size:12px;margin:0;">Expires in <strong>10 minutes</strong>. If you didn't request this, ignore this email.</p>
+          </div>
+          <p style="text-align:center;color:#ccc;font-size:11px;margin-top:16px;">© 2026 Mentorgram AI · mentorgramai.com</p>
         </div>
       `,
     });
 
-    // Return token so frontend can verify without storing server-side
     return res.status(200).json({ success: true, token });
   } catch (err) {
-    console.error("OTP send error:", err);
+    console.error("send-otp error:", err.message);
     return res.status(500).json({ error: "Failed to send email: " + err.message });
   }
 }
