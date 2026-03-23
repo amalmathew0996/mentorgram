@@ -1,17 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { AuthPage, ProfilePage, getUser, clearSession } from "./Profile.jsx";
+import AuthPage from "./Auth.jsx";
+import Dashboard from "./Dashboard.jsx";
 import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
-
-// ─── Supabase client (lazy init) ──────────────────────────────────────────
-let _supabase = null;
-function getSupabase() {
-  if (_supabase) return _supabase;
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  // Dynamic import of supabase-js
-  return null; // will be replaced once installed
-}
 
 const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
@@ -668,7 +658,9 @@ export default function Mentorgram() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [user, setUser] = useState(() => getUser());
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("mg_user") || "null"); } catch { return null; }
+  });
   const [cookieConsent, setCookieConsent] = useState(() => localStorage.getItem("mg_cookies") || null);
   const [profileFilter, setProfileFilter] = useState(null);
   const [pageTransition, setPageTransition] = useState(false);
@@ -956,7 +948,7 @@ export default function Mentorgram() {
       case "Terms & Conditions": return <TermsPage />;
 
       case "My Profile": return user ? (
-        <ProfilePage
+        <Dashboard
           user={user}
           allJobs={allJobs}
           onLogout={() => { setUser(null); navTo("Home"); }}
@@ -964,7 +956,7 @@ export default function Mentorgram() {
           onNavigate={navTo}
         />
       ) : (
-        <AuthPage onLogin={(u) => { setUser(u); }} />
+        <AuthPage onLogin={(u) => { setUser(u); }} onNavToHome={() => navTo("Home")} />
       );
 
       default: return null;
@@ -985,7 +977,7 @@ export default function Mentorgram() {
         <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
           {NAV_LINKS.filter(l => l !== "My Profile").map(l => <button key={l} className="nav-btn" style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }} onClick={() => navTo(l)}>{l}</button>)}
           {user ? (
-            <button onClick={() => navTo("My Profile")} style={{ width: "34px", height: "34px", borderRadius: "50%", background: activePage === "My Profile" ? "#534AB7" : "linear-gradient(135deg,#534AB7,#1D9E75)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
+            <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "34px", height: "34px", borderRadius: "50%", background: activePage === "My Profile" ? "#534AB7" : "linear-gradient(135deg,#534AB7,#1D9E75)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
               {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
             </button>
           ) : (
