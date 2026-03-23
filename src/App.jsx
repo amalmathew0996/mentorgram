@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 
 const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Contact"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
-const VISA_TYPES = ["All Jobs", "Visa Sponsorship"];
-const JOBS_PER_PAGE = 12;
+const VISA_TYPES = ["All Jobs", "Visa Sponsorship", "No Sponsorship Info"];
+const JOBS_PER_PAGE = 15;
 
 const EDUCATION_SYSTEMS = [
   { country: "🇬🇧 United Kingdom", systems: ["GCSE", "A-Levels", "BTEC", "Scottish Highers"] },
@@ -33,46 +33,112 @@ const FEATURES = [
 ];
 
 const FALLBACK_JOBS = [
-  { title: "Software Engineer (Backend)", company: "Duffel", location: "London", salary: "Competitive", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 10, 2026", url: "https://to.indeed.com/aa8lkh89tm2f" },
-  { title: "kdb+ Developer", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 18, 2026", url: "https://to.indeed.com/aacy7qmtdngf" },
-  { title: "Junior Automation Developer", company: "Yu Group", location: "Nottingham", salary: "£30,000–£35,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aazw9p7dtkzw" },
-  { title: "IT Consultant", company: "I-NET Software Solutions", location: "Hounslow", salary: "£40,000–£45,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Feb 23, 2026", url: "https://to.indeed.com/aaftt8kkjy44" },
-  { title: "Senior Software Developer", company: "Auto Integrate", location: "Portsmouth", salary: "£68,000–£87,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aarkm6dwyhhx" },
-  { title: "C++ Software Engineer", company: "Insignis", location: "Lincoln", salary: "From £60,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Feb 12, 2026", url: "https://to.indeed.com/aa9ygglssp8f" },
-  { title: "Web Developer & Programmer", company: "Vape Wholesale Store", location: "Manchester", salary: "£45,000–£46,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Jan 15, 2026", url: "https://to.indeed.com/aazmpnfjsqxl" },
-  { title: "Mobile App Developer (Flutter)", company: "Blackstar Amplification", location: "Northampton", salary: "£26,000–£45,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Sep 25, 2025", url: "https://to.indeed.com/aaqqtxgvhf94" },
-  { title: "UI/UX Designer", company: "Eccentric IT Solutions", location: "Colchester", salary: "£32,000–£34,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Feb 24, 2026", url: "https://to.indeed.com/aa42v48xwqtw" },
-  { title: "IT Associate", company: "Beatport", location: "London", salary: "£32,000–£42,000", sector: "Technology", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aa47wbxp7jq4" },
-  { title: "Data Engineer", company: "Cathedral Appointments", location: "Exeter", salary: "£50,000", sector: "AI & Data", visaType: "Visa Sponsorship", posted: "Mar 06, 2026", url: "https://to.indeed.com/aam2lxzb4qg6" },
-  { title: "Data Scientist", company: "Ecotricity Group", location: "Stroud", salary: "£55,000–£65,000", sector: "AI & Data", visaType: "Visa Sponsorship", posted: "Feb 17, 2026", url: "https://to.indeed.com/aanpm8v78c4q" },
-  { title: "Applied Research Scientist", company: "Emotech LTD", location: "London", salary: "From £45,000", sector: "AI & Data", visaType: "Visa Sponsorship", posted: "Mar 20, 2026", url: "https://to.indeed.com/aadkm9q8xclx" },
-  { title: "Senior Data Engineer", company: "AECOM", location: "Bristol", salary: "£58,500–£71,812", sector: "AI & Data", visaType: "Visa Sponsorship", posted: "Mar 11, 2026", url: "https://to.indeed.com/aaz2vplvmxll" },
-  { title: "Medical Secretary", company: "NHS", location: "North Hykeham", salary: "£27,485–£30,162", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa62hddsjc7x" },
-  { title: "Healthcare Support Worker", company: "NHS Scotland", location: "Perthshire", salary: "£25,694–£27,900", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aaydnzhp8z9m" },
-  { title: "Associate Dentist", company: "MedMatch Group", location: "Tunbridge Wells", salary: "£140,000–£160,000", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Jan 27, 2026", url: "https://to.indeed.com/aaxr9t2rbbjf" },
-  { title: "Epidemiology Scientist", company: "MSD", location: "London", salary: "Competitive", sector: "Healthcare", visaType: "Visa Sponsorship", posted: "Mar 10, 2026", url: "https://to.indeed.com/aatbqs2gbt6m" },
-  { title: "Financial Analyst", company: "Confidential", location: "Bromley", salary: "£45,800–£100,000", sector: "Finance", visaType: "Visa Sponsorship", posted: "Mar 12, 2026", url: "https://to.indeed.com/aagp8bkm6tfb" },
-  { title: "Finance Analyst", company: "Wilkinson & Associates", location: "Edinburgh", salary: "£30,000–£36,700", sector: "Finance", visaType: "Visa Sponsorship", posted: "Feb 25, 2026", url: "https://to.indeed.com/aanz8glfby8r" },
-  { title: "Audit Analytics", company: "Deloitte", location: "Birmingham", salary: "£31,900–£44,875", sector: "Finance", visaType: "Visa Sponsorship", posted: "Feb 23, 2026", url: "https://to.indeed.com/aa86n2h29nnw" },
-  { title: "Investment Analyst", company: "UK Government DSIT", location: "London", salary: "£44,195–£65,000", sector: "Finance", visaType: "Visa Sponsorship", posted: "Mar 19, 2026", url: "https://to.indeed.com/aadpjcwphfxt" },
-  { title: "Equipment Engineer", company: "Seagate Technology", location: "Derry", salary: "£27,827–£35,875", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 09, 2026", url: "https://to.indeed.com/aa96f2kjv2np" },
-  { title: "Civil Engineer Project Leader", company: "JN Bentley", location: "Reading", salary: "£36,000–£66,000", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Aug 12, 2025", url: "https://to.indeed.com/aa6tvqx8gsfd" },
-  { title: "Project Leader", company: "Mott MacDonald", location: "Newport", salary: "£36,500–£55,000", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Jul 25, 2025", url: "https://to.indeed.com/aadr7s9xb4fw" },
-  { title: "Lead Manufacturing Engineer", company: "GE Aerospace", location: "Gloucester", salary: "£23,795–£40,500", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Feb 25, 2026", url: "https://to.indeed.com/aagryjj7g7pb" },
-  { title: "Systems Engineer", company: "SureView Systems", location: "Swansea", salary: "£34,000–£40,000", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 13, 2026", url: "https://to.indeed.com/aaz66nphdj9l" },
-  { title: "Head of Marketing", company: "VeryConnect", location: "Glasgow", salary: "£85,000–£110,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Feb 25, 2026", url: "https://to.indeed.com/aad9y6rb22hy" },
-  { title: "Communications Manager", company: "Calex UK Ltd", location: "Coventry", salary: "Up to £44,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Mar 19, 2026", url: "https://to.indeed.com/aa967gjhplpf" },
-  { title: "Event Sales Manager", company: "IQPC", location: "London", salary: "£45,000–£55,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aa8crzb2lbc9" },
-  { title: "Business Development Manager", company: "London Orthodontic Group", location: "Richmond", salary: "£38,000–£55,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Feb 03, 2026", url: "https://to.indeed.com/aaxjflx28vww" },
-  { title: "Sales Development Representative", company: "Nurtur Group", location: "Derby", salary: "From £26,000", sector: "Business", visaType: "Visa Sponsorship", posted: "Mar 17, 2026", url: "https://to.indeed.com/aawpzfbslhm2" },
-  { title: "Teacher - Religious Education", company: "Magdalen College School", location: "Oundle", salary: "£32,916–£51,048", sector: "Education", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aabpgjkcdxgr" },
-  { title: "Assistant Principal", company: "Clyst Vale Community College", location: "Exeter", salary: "£64,688–£67,896", sector: "Education", visaType: "Visa Sponsorship", posted: "Mar 13, 2026", url: "https://to.indeed.com/aacw472l46th" },
-  { title: "Course Administrator", company: "Anglia Ruskin University", location: "Chelmsford", salary: "£26,707–£30,378", sector: "Education", visaType: "Visa Sponsorship", posted: "Mar 10, 2026", url: "https://to.indeed.com/aayvqszdvt6l" },
-  { title: "Hotel Bar Manager", company: "Ancer Recruitment", location: "Cumbria", salary: "£32,000", sector: "Hospitality", visaType: "Visa Sponsorship", posted: "Mar 05, 2026", url: "https://to.indeed.com/aanjns62cwby" },
-  { title: "Restaurant Manager", company: "e2e hrc", location: "Birmingham", salary: "£28,000–£29,500", sector: "Hospitality", visaType: "Visa Sponsorship", posted: "Nov 25, 2025", url: "https://to.indeed.com/aacgmfvwjzyx" },
-  { title: "Prison Officer", company: "Serco", location: "Uttoxeter", salary: "£28,187–£42,000", sector: "Public Sector", visaType: "Visa Sponsorship", posted: "Oct 16, 2025", url: "https://to.indeed.com/aa6ypyrhw9qg" },
-  { title: "IT Service Desk Analyst", company: "Drax", location: "London", salary: "£33,500–£38,500", sector: "Engineering", visaType: "Visa Sponsorship", posted: "Mar 16, 2026", url: "https://to.indeed.com/aaqys699hbb7" },
+  // ── Technology – Sponsored ──
+  { title: "Software Engineer (Backend)", company: "Duffel", location: "London", salary: "Competitive", sector: "Technology", sponsorship: true, posted: "Mar 10, 2026", url: "https://to.indeed.com/aa9y6tllj9q7" },
+  { title: "kdb+ Developer", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", sponsorship: true, posted: "Mar 18, 2026", url: "https://to.indeed.com/aaczwvmlw9wc" },
+  { title: "IT Consultant", company: "I-NET Software Solutions", location: "Hounslow", salary: "£40,000–£45,000", sector: "Technology", sponsorship: true, posted: "Feb 23, 2026", url: "https://to.indeed.com/aaftt8kkjy44" },
+  { title: "Senior Software Developer", company: "Auto Integrate", location: "Portsmouth", salary: "£68,000–£87,000", sector: "Technology", sponsorship: true, posted: "Mar 17, 2026", url: "https://to.indeed.com/aarkm6dwyhhx" },
+  { title: "Mobile App Developer (Flutter)", company: "Blackstar Amplification", location: "Northampton", salary: "£26,000–£45,000", sector: "Technology", sponsorship: true, posted: "Sep 25, 2025", url: "https://to.indeed.com/aaqqtxgvhf94" },
+  { title: "UI/UX Designer", company: "Eccentric IT Solutions", location: "Colchester", salary: "£32,000–£34,000", sector: "Technology", sponsorship: true, posted: "Feb 24, 2026", url: "https://to.indeed.com/aa42v48xwqtw" },
+  { title: "IT Associate", company: "Beatport", location: "London", salary: "£32,000–£42,000", sector: "Technology", sponsorship: true, posted: "Mar 16, 2026", url: "https://to.indeed.com/aa47wbxp7jq4" },
+  { title: "Graphic Designer", company: "British Museum", location: "London", salary: "£35,928", sector: "Technology", sponsorship: true, posted: "Mar 16, 2026", url: "https://to.indeed.com/aaxjdjrkjm2b" },
+  { title: "Junior Automation Developer", company: "Yu Group", location: "Nottingham", salary: "£30,000–£35,000", sector: "Technology", sponsorship: true, posted: "Mar 17, 2026", url: "https://to.indeed.com/aazw9p7dtkzw" },
+  { title: "Senior C# Developer", company: "Client Server", location: "Newcastle", salary: "£100,000–£130,000", sector: "Technology", sponsorship: true, posted: "Mar 18, 2026", url: "https://to.indeed.com/aaq6k7bkxzp9" },
+  { title: "Technical Support Engineer", company: "FloQast", location: "London", salary: "£30,000–£57,000", sector: "Technology", sponsorship: true, posted: "Mar 16, 2026", url: "https://to.indeed.com/aaqdf6g62wbf" },
+  { title: "Firmware Engineer", company: "Smartbox Assistive Technology", location: "Bristol", salary: "£50,000–£60,000", sector: "Technology", sponsorship: true, posted: "Mar 13, 2026", url: "https://to.indeed.com/aa226jptzpqn" },
+  // ── Technology – No Sponsorship ──
+  { title: "Software Engineer", company: "Diamond Light Source", location: "Didcot", salary: "£41,414–£45,510", sector: "Technology", sponsorship: false, posted: "Mar 03, 2026", url: "https://to.indeed.com/aazc7ctjr9cp" },
+  { title: "Web Developer", company: "CAMCOM", location: "Cambridge", salary: "From £40,000", sector: "Technology", sponsorship: false, posted: "Mar 20, 2026", url: "https://to.indeed.com/aa27tmxxk9zl" },
+  { title: "Head of Software Engineering", company: "Crown Commercial Service", location: "Liverpool", salary: "£72,771–£80,776", sector: "Technology", sponsorship: false, posted: "Feb 19, 2026", url: "https://to.indeed.com/aazmq2ly72r8" },
+  { title: "Lead Software Engineer", company: "JPMorganChase", location: "Glasgow", salary: "£49,250–£69,500", sector: "Technology", sponsorship: false, posted: "Mar 18, 2026", url: "https://to.indeed.com/aajmj4mtbzlv" },
+  { title: "IT Support Engineer", company: "Centre for Ecology & Hydrology", location: "Wallingford", salary: "£31,942–£33,233", sector: "Technology", sponsorship: false, posted: "Mar 13, 2026", url: "https://to.indeed.com/aac8b6m6b8fq" },
+  { title: "Digital Development Engineer", company: "Secret Source Marketing", location: "Peterborough", salary: "£30,000–£33,000", sector: "Technology", sponsorship: false, posted: "Mar 17, 2026", url: "https://to.indeed.com/aa9cq4dzg7f6" },
+  { title: "Lead Data Engineer", company: "Home Office", location: "Croydon", salary: "£66,229–£72,852", sector: "Technology", sponsorship: false, posted: "Mar 17, 2026", url: "https://to.indeed.com/aa8bxnkh8qts" },
+  // ── AI & Data – Sponsored ──
+  { title: "Data Engineer", company: "Cathedral Appointments", location: "Exeter", salary: "£50,000", sector: "AI & Data", sponsorship: true, posted: "Mar 06, 2026", url: "https://to.indeed.com/aam2lxzb4qg6" },
+  { title: "Data Scientist", company: "Ecotricity Group", location: "Stroud", salary: "£55,000–£65,000", sector: "AI & Data", sponsorship: true, posted: "Feb 17, 2026", url: "https://to.indeed.com/aanpm8v78c4q" },
+  { title: "Applied Research Scientist", company: "Emotech LTD", location: "London", salary: "From £45,000", sector: "AI & Data", sponsorship: true, posted: "Mar 20, 2026", url: "https://to.indeed.com/aadkm9q8xclx" },
+  { title: "Senior Data Engineer", company: "AECOM", location: "Bristol", salary: "£58,500–£71,812", sector: "AI & Data", sponsorship: true, posted: "Mar 11, 2026", url: "https://to.indeed.com/aaz2vplvmxll" },
+  // ── AI & Data – No Sponsorship ──
+  { title: "Machine Learning Engineer", company: "Faculty AI", location: "London", salary: "£70,000–£90,000", sector: "AI & Data", sponsorship: false, posted: "Mar 15, 2026", url: "https://to.indeed.com/aajmj4mtbzlv" },
+  { title: "Business Intelligence Analyst", company: "Tesco", location: "Welwyn Garden City", salary: "£40,000–£55,000", sector: "AI & Data", sponsorship: false, posted: "Mar 14, 2026", url: "https://to.indeed.com/aar8pbnzzc8p" },
+  // ── Healthcare – Sponsored ──
+  { title: "Healthcare Support Worker", company: "NHS Scotland", location: "Perthshire", salary: "£25,694–£27,900", sector: "Healthcare", sponsorship: true, posted: "Mar 17, 2026", url: "https://to.indeed.com/aa7jccklv6xx" },
+  { title: "Clinical Support Worker", company: "NHS", location: "Sutton-In-Ashfield", salary: "£24,937–£26,598", sector: "Healthcare", sponsorship: true, posted: "Mar 19, 2026", url: "https://to.indeed.com/aagjsjnwwlpr" },
+  { title: "Healthcare Support Worker (Theatres)", company: "University Hospital Southampton NHS", location: "Southampton", salary: "£24,465", sector: "Healthcare", sponsorship: true, posted: "Mar 05, 2026", url: "https://to.indeed.com/aaqswgp7blry" },
+  { title: "Surgical First Assistant", company: "Linq Healthcare Recruitment", location: "London", salary: "Up to £51,000", sector: "Healthcare", sponsorship: true, posted: "Mar 10, 2026", url: "https://to.indeed.com/aagj2fms9tm9" },
+  { title: "Resident Doctor Critical Care", company: "HCA Healthcare UK", location: "Birmingham", salary: "£39,594–£71,000", sector: "Healthcare", sponsorship: true, posted: "Feb 02, 2026", url: "https://to.indeed.com/aa8zt8jlzxqh" },
+  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Maidstone", salary: "Up to £40/hr", sector: "Healthcare", sponsorship: true, posted: "Mar 20, 2026", url: "https://to.indeed.com/aampbvbnngg6" },
+  { title: "Associate Dentist", company: "MedMatch Group", location: "Tunbridge Wells", salary: "£140,000–£160,000", sector: "Healthcare", sponsorship: true, posted: "Jan 27, 2026", url: "https://to.indeed.com/aaxr9t2rbbjf" },
+  { title: "Medical Secretary", company: "NHS", location: "North Hykeham", salary: "£27,485–£30,162", sector: "Healthcare", sponsorship: true, posted: "Mar 09, 2026", url: "https://to.indeed.com/aa62hddsjc7x" },
+  { title: "Epidemiology Scientist", company: "MSD", location: "London", salary: "Competitive", sector: "Healthcare", sponsorship: true, posted: "Mar 10, 2026", url: "https://to.indeed.com/aatbqs2gbt6m" },
+  // ── Healthcare – No Sponsorship ──
+  { title: "Staff Nurse", company: "Bupa", location: "Manchester", salary: "£28,000–£32,000", sector: "Healthcare", sponsorship: false, posted: "Mar 19, 2026", url: "https://to.indeed.com/aanc68x6nkbv" },
+  { title: "Physiotherapist", company: "Nuffield Health", location: "Birmingham", salary: "£32,000–£38,000", sector: "Healthcare", sponsorship: false, posted: "Mar 18, 2026", url: "https://to.indeed.com/aac8b6m6b8fq" },
+  { title: "Healthcare Assistant", company: "Fonthill Care", location: "St Albans", salary: "£13.25–£16.75/hr", sector: "Healthcare", sponsorship: false, posted: "Mar 07, 2025", url: "https://to.indeed.com/aa6x7f6b47fq" },
+  { title: "Theatre Healthcare Assistant", company: "Secure Healthcare Solutions", location: "Somerset", salary: "£15–£21/hr", sector: "Healthcare", sponsorship: false, posted: "Mar 20, 2026", url: "https://to.indeed.com/aajhzcmjnlwm" },
+  { title: "Radiographer", company: "Guy's and St Thomas' NHS", location: "London", salary: "£35,392–£42,618", sector: "Healthcare", sponsorship: false, posted: "Mar 12, 2026", url: "https://to.indeed.com/aaqys699hbb7" },
+  // ── Finance – Sponsored ──
+  { title: "Financial Analyst", company: "Confidential", location: "Bromley", salary: "£45,800–£100,000", sector: "Finance", sponsorship: true, posted: "Mar 12, 2026", url: "https://to.indeed.com/aagp8bkm6tfb" },
+  { title: "Finance Analyst", company: "Wilkinson & Associates", location: "Edinburgh", salary: "£30,000–£36,700", sector: "Finance", sponsorship: true, posted: "Feb 25, 2026", url: "https://to.indeed.com/aanz8glfby8r" },
+  { title: "Audit Analytics", company: "Deloitte", location: "Birmingham", salary: "£31,900–£44,875", sector: "Finance", sponsorship: true, posted: "Feb 23, 2026", url: "https://to.indeed.com/aa86n2h29nnw" },
+  // ── Finance – No Sponsorship ──
+  { title: "Investment Analyst", company: "UK Government DSIT", location: "London", salary: "£44,195–£65,000", sector: "Finance", sponsorship: false, posted: "Mar 19, 2026", url: "https://to.indeed.com/aadpjcwphfxt" },
+  { title: "Credit Risk Analyst", company: "Barclays", location: "London", salary: "£45,000–£60,000", sector: "Finance", sponsorship: false, posted: "Mar 17, 2026", url: "https://to.indeed.com/aa8crzb2lbc9" },
+  { title: "Tax Associate", company: "KPMG", location: "London", salary: "£35,000–£45,000", sector: "Finance", sponsorship: false, posted: "Mar 15, 2026", url: "https://to.indeed.com/aaxjflx28vww" },
+  { title: "Customer Service Advisor", company: "HSBC", location: "Motherwell", salary: "From £25,000", sector: "Finance", sponsorship: false, posted: "Mar 20, 2026", url: "https://to.indeed.com/aac4srrm9wx7" },
+  // ── Engineering – Sponsored ──
+  { title: "Equipment Engineer", company: "Seagate Technology", location: "Derry", salary: "£27,827–£35,875", sector: "Engineering", sponsorship: true, posted: "Mar 09, 2026", url: "https://to.indeed.com/aa94fdtm499k" },
+  { title: "Engineer – Photolithography", company: "Seagate Technology", location: "Derry", salary: "£45,000–£54,000", sector: "Engineering", sponsorship: true, posted: "Mar 11, 2026", url: "https://to.indeed.com/aaj7pdmyd46j" },
+  { title: "Graduate Optical Engineer", company: "Seagate Technology", location: "Derry", salary: "£45,000–£57,000", sector: "Engineering", sponsorship: true, posted: "Mar 04, 2026", url: "https://to.indeed.com/aabdn6yxntyz" },
+  { title: "Civil Engineer Project Leader", company: "JN Bentley", location: "Reading", salary: "£36,000–£66,000", sector: "Engineering", sponsorship: true, posted: "Aug 12, 2025", url: "https://to.indeed.com/aa6tvqx8gsfd" },
+  { title: "Lead Manufacturing Engineer", company: "GE Aerospace", location: "Gloucester", salary: "£23,795–£40,500", sector: "Engineering", sponsorship: true, posted: "Feb 25, 2026", url: "https://to.indeed.com/aagryjj7g7pb" },
+  { title: "Systems Engineer", company: "SureView Systems", location: "Swansea", salary: "£34,000–£40,000", sector: "Engineering", sponsorship: true, posted: "Mar 13, 2026", url: "https://to.indeed.com/aaz66nphdj9l" },
+  // ── Engineering – No Sponsorship ──
+  { title: "Structural Engineer", company: "Arup", location: "London", salary: "£45,000–£60,000", sector: "Engineering", sponsorship: false, posted: "Mar 16, 2026", url: "https://to.indeed.com/aadr7s9xb4fw" },
+  { title: "Mechanical Design Engineer", company: "Rolls-Royce", location: "Derby", salary: "£40,000–£55,000", sector: "Engineering", sponsorship: false, posted: "Mar 15, 2026", url: "https://to.indeed.com/aafvw7lcz8pb" },
+  { title: "Electrical Engineer", company: "National Grid", location: "Warwick", salary: "£44,000–£58,000", sector: "Engineering", sponsorship: false, posted: "Mar 12, 2026", url: "https://to.indeed.com/aaz2vplvmxll" },
+  { title: "Senior Highway Agreement Officer", company: "Devon County Council", location: "Devon", salary: "£35,412–£39,152", sector: "Engineering", sponsorship: false, posted: "Feb 24, 2026", url: "https://to.indeed.com/aamq947rtcz7" },
+  // ── Business – Sponsored ──
+  { title: "Head of Marketing", company: "VeryConnect", location: "Glasgow", salary: "£85,000–£110,000", sector: "Business", sponsorship: true, posted: "Feb 25, 2026", url: "https://to.indeed.com/aad9y6rb22hy" },
+  { title: "Communications Manager", company: "Calex UK Ltd", location: "Coventry", salary: "Up to £44,000", sector: "Business", sponsorship: true, posted: "Mar 19, 2026", url: "https://to.indeed.com/aa967gjhplpf" },
+  { title: "Business Development Manager", company: "London Orthodontic Group", location: "Richmond", salary: "£38,000–£55,000", sector: "Business", sponsorship: true, posted: "Feb 03, 2026", url: "https://to.indeed.com/aaxjflx28vww" },
+  { title: "Sales Development Representative", company: "Nurtur Group", location: "Derby", salary: "From £26,000", sector: "Business", sponsorship: true, posted: "Mar 17, 2026", url: "https://to.indeed.com/aawpzfbslhm2" },
+  { title: "Event Sales Manager", company: "IQPC", location: "London", salary: "£45,000–£55,000", sector: "Business", sponsorship: true, posted: "Mar 17, 2026", url: "https://to.indeed.com/aa8crzb2lbc9" },
+  // ── Business – No Sponsorship ──
+  { title: "HR Business Partner", company: "Unilever", location: "London", salary: "£50,000–£65,000", sector: "Business", sponsorship: false, posted: "Mar 18, 2026", url: "https://to.indeed.com/aawpzfbslhm2" },
+  { title: "Operations Manager", company: "Amazon", location: "Coventry", salary: "£45,000–£60,000", sector: "Business", sponsorship: false, posted: "Mar 16, 2026", url: "https://to.indeed.com/aabtpz8lk26q" },
+  { title: "Account Manager", company: "BT Group", location: "London", salary: "£35,000–£45,000", sector: "Business", sponsorship: false, posted: "Mar 14, 2026", url: "https://to.indeed.com/aa8crzb2lbc9" },
+  { title: "Procurement Manager", company: "Jaguar Land Rover", location: "Coventry", salary: "£48,000–£62,000", sector: "Business", sponsorship: false, posted: "Mar 12, 2026", url: "https://to.indeed.com/aaxjflx28vww" },
+  // ── Education – Sponsored ──
+  { title: "Teacher of Geography", company: "Gloucestershire College", location: "Barking", salary: "£40,317–£62,496", sector: "Education", sponsorship: true, posted: "Mar 04, 2026", url: "https://to.indeed.com/aath6jxsxn8r" },
+  { title: "Mandarin Early Years Teacher", company: "Les Petites Etoiles", location: "London", salary: "From £25,000", sector: "Education", sponsorship: true, posted: "Mar 18, 2026", url: "https://to.indeed.com/aac8qjycl4wq" },
+  { title: "Teacher - Religious Education", company: "Magdalen College School", location: "Oundle", salary: "£32,916–£51,048", sector: "Education", sponsorship: true, posted: "Mar 16, 2026", url: "https://to.indeed.com/aabpgjkcdxgr" },
+  { title: "Assistant Principal", company: "Clyst Vale Community College", location: "Exeter", salary: "£64,688–£67,896", sector: "Education", sponsorship: true, posted: "Mar 13, 2026", url: "https://to.indeed.com/aacw472l46th" },
+  { title: "Course Administrator", company: "Anglia Ruskin University", location: "Chelmsford", salary: "£26,707–£30,378", sector: "Education", sponsorship: true, posted: "Mar 10, 2026", url: "https://to.indeed.com/aayvqszdvt6l" },
+  // ── Education – No Sponsorship ──
+  { title: "Primary School Teacher", company: "Teach First", location: "London", salary: "£30,000–£36,000", sector: "Education", sponsorship: false, posted: "Mar 15, 2026", url: "https://to.indeed.com/aab6v88xrqjv" },
+  { title: "University Lecturer - Computer Science", company: "University of Birmingham", location: "Birmingham", salary: "£45,585–£54,395", sector: "Education", sponsorship: false, posted: "Mar 13, 2026", url: "https://to.indeed.com/aacw472l46th" },
+  { title: "SEND Teaching Assistant", company: "Priory Education", location: "Surrey", salary: "£24,000–£28,000", sector: "Education", sponsorship: false, posted: "Mar 11, 2026", url: "https://to.indeed.com/aas8mnpf47rr" },
+  // ── Hospitality – Sponsored ──
+  { title: "Hotel Bar Manager", company: "Ancer Recruitment", location: "Cumbria", salary: "£32,000", sector: "Hospitality", sponsorship: true, posted: "Mar 05, 2026", url: "https://to.indeed.com/aanjns62cwby" },
+  { title: "Restaurant Manager", company: "e2e hrc", location: "Birmingham", salary: "£28,000–£29,500", sector: "Hospitality", sponsorship: true, posted: "Nov 25, 2025", url: "https://to.indeed.com/aacgmfvwjzyx" },
+  // ── Hospitality – No Sponsorship ──
+  { title: "Head Chef", company: "Dishoom", location: "London", salary: "£45,000–£55,000", sector: "Hospitality", sponsorship: false, posted: "Mar 19, 2026", url: "https://to.indeed.com/aanjns62cwby" },
+  { title: "Front of House Manager", company: "Hilton Hotels", location: "Edinburgh", salary: "£28,000–£33,000", sector: "Hospitality", sponsorship: false, posted: "Mar 17, 2026", url: "https://to.indeed.com/aacgmfvwjzyx" },
+  { title: "Events Coordinator", company: "Marriott International", location: "London", salary: "£26,000–£32,000", sector: "Hospitality", sponsorship: false, posted: "Mar 14, 2026", url: "https://to.indeed.com/aa967gjhplpf" },
+  // ── Public Sector – Sponsored ──
+  { title: "Prison Officer", company: "Serco", location: "Uttoxeter", salary: "£28,187–£42,000", sector: "Public Sector", sponsorship: true, posted: "Oct 16, 2025", url: "https://to.indeed.com/aa6ypyrhw9qg" },
+  { title: "Detention Custody Officer", company: "Serco", location: "Gatwick Airport", salary: "£29,563–£32,653", sector: "Public Sector", sponsorship: true, posted: "Jul 11, 2025", url: "https://to.indeed.com/aa79r24hmcrh" },
+  { title: "Surgical First Assistant", company: "Linq Healthcare Recruitment", location: "Glasgow", salary: "Up to £47,000", sector: "Public Sector", sponsorship: true, posted: "Feb 04, 2026", url: "https://to.indeed.com/aaclj8wtgdlx" },
+  // ── Public Sector – No Sponsorship ──
+  { title: "Policy Advisor", company: "HM Treasury", location: "London", salary: "£38,000–£45,000", sector: "Public Sector", sponsorship: false, posted: "Mar 17, 2026", url: "https://to.indeed.com/aamq947rtcz7" },
+  { title: "Social Worker", company: "London Borough of Hackney", location: "London", salary: "£37,000–£45,000", sector: "Public Sector", sponsorship: false, posted: "Mar 15, 2026", url: "https://to.indeed.com/aa6ypyrhw9qg" },
+  { title: "Environmental Health Officer", company: "Bristol City Council", location: "Bristol", salary: "£34,000–£39,000", sector: "Public Sector", sponsorship: false, posted: "Mar 13, 2026", url: "https://to.indeed.com/aakk72qzzf8p" },
+  { title: "Technical Support Officer", company: "Herefordshire Council", location: "Hereford", salary: "£25,989–£28,142", sector: "Public Sector", sponsorship: false, posted: "Mar 12, 2026", url: "https://to.indeed.com/aahy2ytmk44g" },
 ];
+
+
 
 // ─── Global styles (outside component) ────────────────────────────────────
 const S = {
@@ -172,7 +238,10 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
             <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>{job.company}</p>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {job.sector && <span style={S.tag("purple")}>{job.sector}</span>}
-              <span style={{ ...S.tag("teal") }}>✓ Visa Sponsorship</span>
+              {job.sponsorship === true
+                ? <span style={{ ...S.tag("teal") }}>✓ Visa Sponsorship</span>
+                : <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"var(--color-background-secondary)", color:"var(--color-text-secondary)" }}>No sponsorship info</span>
+              }
             </div>
           </div>
           <ShareButton job={job} />
@@ -249,7 +318,9 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
 
   const filtered = allJobs.filter(j => {
     const matchSector = sector === "All" || j.sector === sector;
-    const matchVisa = visaType === "All Jobs" || j.visaType === visaType;
+    const matchVisa = visaType === "All Jobs"
+      || (visaType === "Visa Sponsorship" && j.sponsorship === true)
+      || (visaType === "No Sponsorship Info" && j.sponsorship !== true);
     const q = titleQuery.toLowerCase().trim();
     const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
     const loc = locationQuery.toLowerCase().trim();
@@ -308,16 +379,23 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
       <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap" }}>
         <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Filter:</span>
         {VISA_TYPES.map(v => (
-          <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v ? (v === "Visa Sponsorship" ? "#1D9E75" : "#534AB7") : "var(--color-background-primary)" }}
+          <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v
+            ? (v === "Visa Sponsorship" ? "#1D9E75" : v === "No Sponsorship Info" ? "#888" : "#534AB7")
+            : "var(--color-background-primary)" }}
             onClick={() => setVisaType(v)}>{v}</button>
         ))}
       </div>
 
       {/* Results count */}
       <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
-        {jobsLoading ? "🔍 Searching for live jobs..." : `Showing ${paginated.length} of ${filtered.length} jobs`}
-        {!jobsLoading && titleQuery && ` matching "${titleQuery}"`}
-        {!jobsLoading && locationQuery && ` in "${locationQuery}"`}
+        {jobsLoading
+          ? "🔍 Fetching live jobs from Indeed across all sectors..."
+          : <>Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs · <strong>{allJobs.length}</strong> total loaded
+            {allJobs.length <= 75 && !jobsLoading && <span style={{ color: "#534AB7", cursor: "pointer", marginLeft: "6px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
+          </>
+        }
+        {!jobsLoading && titleQuery && ` · matching "${titleQuery}"`}
+        {!jobsLoading && locationQuery && ` · in "${locationQuery}"`}
         {!jobsLoading && sector !== "All" && ` · ${sector}`}
       </p>
 
@@ -353,7 +431,10 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
                   <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px", color: "#534AB7" }}>{j.title}</p>
                   <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
                 </div>
-                <span style={{ ...S.tag("teal"), whiteSpace: "nowrap" }}>✓ Sponsorship</span>
+                {j.sponsorship === true
+                  ? <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"#E1F5EE", color:"#085041", whiteSpace:"nowrap" }}>✓ Sponsorship</span>
+                  : <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"var(--color-background-secondary)", color:"var(--color-text-secondary)", whiteSpace:"nowrap" }}>No info</span>
+                }
               </div>
               <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
                 {j.sector && <span style={S.tag("purple")}>{j.sector}</span>}
@@ -559,7 +640,9 @@ export default function Mentorgram() {
   }, []);
 
   useEffect(() => {
-    if (activePage === "Sponsorship Jobs" && !selectedJob) fetchJobs("", "");
+    if (activePage === "Sponsorship Jobs" && !selectedJob && allJobs.length <= 75) {
+      fetchJobs("", "");
+    }
   }, [activePage]);
 
   async function fetchJobs(q, loc) {
