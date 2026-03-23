@@ -579,17 +579,20 @@ export default function Mentorgram() {
     if (!chatInput.trim() || chatLoading) return;
     const msg = chatInput.trim();
     setChatInput("");
-    setMessages(prev => [...prev, { role: "user", content: msg }]);
+    const updatedMessages = [...messages, { role: "user", content: msg }];
+    setMessages(updatedMessages);
     setChatLoading(true);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: "You are the Mentorgram AI Mentor — friendly expert career and education advisor for UK pathways. Be concise, warm, actionable.", messages: [...messages, { role: "user", content: msg }].map(m => ({ role: m.role, content: m.content })) })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: updatedMessages })
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.content?.[0]?.text || "Could you rephrase that?" }]);
-    } catch { setMessages(prev => [...prev, { role: "assistant", content: "Sorry, trouble connecting. Try again." }]); }
+      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "Could you rephrase that?" }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, trouble connecting. Please try again." }]);
+    }
     setChatLoading(false);
   }
 
