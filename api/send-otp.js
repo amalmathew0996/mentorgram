@@ -10,8 +10,9 @@ function generateOTP() {
 }
 
 function signOTP(email, otp, secret) {
-  const payload = `${email}:${otp}:${Math.floor(Date.now() / 600000)}`;
-  return Buffer.from(payload + ":" + secret.slice(0, 8)).toString("base64");
+  // MUST match verifyOTP format in verify-otp.js exactly
+  const w = Math.floor(Date.now() / 600000);
+  return Buffer.from(`${email}:${otp}:${w}:${secret.slice(0,8)}`).toString("base64");
 }
 
 export function verifyOTP(email, otp, token, secret) {
