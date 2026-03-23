@@ -10,9 +10,8 @@ function generateOTP() {
 }
 
 function signOTP(email, otp, secret) {
-  // Simple HMAC-like signature using btoa
-  const payload = `${email}:${otp}:${Math.floor(Date.now() / 600000)}`; // 10min window
-  return btoa(payload + ":" + secret.slice(0, 8));
+  const payload = `${email}:${otp}:${Math.floor(Date.now() / 600000)}`;
+  return Buffer.from(payload + ":" + secret.slice(0, 8)).toString("base64");
 }
 
 export function verifyOTP(email, otp, token, secret) {
