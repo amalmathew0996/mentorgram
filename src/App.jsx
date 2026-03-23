@@ -1,6 +1,19 @@
 import { useState, useRef, useEffect } from "react";
+import { AuthPage, ProfilePage, getUser, clearSession } from "./Profile.jsx";
+import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Contact"];
+// ─── Supabase client (lazy init) ──────────────────────────────────────────
+let _supabase = null;
+function getSupabase() {
+  if (_supabase) return _supabase;
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  // Dynamic import of supabase-js
+  return null; // will be replaced once installed
+}
+
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "Visa Sponsorship", "No Sponsorship Info"];
 const JOBS_PER_PAGE = 15;
@@ -287,7 +300,7 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
 }
 
 // ─── Jobs Page ─────────────────────────────────────────────────────────────
-function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob }) {
+function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, profileFilter, onClearProfileFilter }) {
   const [sector, setSector] = useState("All");
   const [visaType, setVisaType] = useState("All Jobs");
   const [titleQuery, setTitleQuery] = useState("");
@@ -295,6 +308,15 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
   const [page, setPage] = useState(1);
   const [clickedJob, setClickedJob] = useState(null);
   const topRef = useRef(null);
+
+  // Auto-apply profile filter when passed in
+  useEffect(() => {
+    if (profileFilter) {
+      if (profileFilter.sectors?.length > 0) setSector(profileFilter.sectors[0]);
+      if (profileFilter.location) setLocationQuery(profileFilter.location);
+      if (profileFilter.visaStatus === "I need visa sponsorship") setVisaType("Visa Sponsorship");
+    }
+  }, [profileFilter]);
   const searchTimer = useRef(null);
 
   useEffect(() => { setPage(1); }, [sector, visaType, titleQuery, locationQuery]);
@@ -371,6 +393,23 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob })
         </div>
         {updatedAt && <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>Updated: {new Date(updatedAt).toLocaleTimeString()}</p>}
       </div>
+
+      {/* Profile filter banner */}
+      {profileFilter && (
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "linear-gradient(135deg, rgba(83,74,183,0.08), rgba(29,158,117,0.05))", border: "0.5px solid rgba(83,74,183,0.2)", borderRadius: "var(--border-radius-md)", marginBottom: "1rem", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "14px" }}>🎯</span>
+          <p style={{ fontSize: "13px", margin: 0, flex: 1 }}>
+            <strong>Filtered by your profile</strong>
+            {profileFilter.sectors?.length > 0 && ` · ${profileFilter.sectors.join(", ")}`}
+            {profileFilter.location && ` · ${profileFilter.location}`}
+            {profileFilter.visaStatus === "I need visa sponsorship" && " · Visa Sponsorship only"}
+          </p>
+          <button onClick={() => { onClearProfileFilter(); setSector("All"); setLocationQuery(""); setVisaType("All Jobs"); }}
+            style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)" }}>
+            Clear ✕
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.75rem" }}>
@@ -629,6 +668,9 @@ export default function Mentorgram() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [user, setUser] = useState(() => getUser());
+  const [cookieConsent, setCookieConsent] = useState(() => localStorage.getItem("mg_cookies") || null);
+  const [profileFilter, setProfileFilter] = useState(null);
   const [pageTransition, setPageTransition] = useState(false);
   const messagesEndRef = useRef(null);
 
@@ -904,10 +946,26 @@ export default function Mentorgram() {
       case "Sponsorship Jobs": return selectedJob ? (
         <JobDetailPage job={selectedJob} onBack={() => { setSelectedJob(null); window.location.hash = ""; }} onAskMentor={(msg) => { setChatInput(msg); setSelectedJob(null); navTo("AI Mentor"); }} />
       ) : (
-        <JobsPage allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt} onFetchJobs={fetchJobs} onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }} />
+        <JobsPage allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt} onFetchJobs={fetchJobs}
+          onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }}
+          profileFilter={profileFilter} onClearProfileFilter={() => setProfileFilter(null)} />
       );
 
       case "Contact": return <ContactPage />;
+      case "Privacy Policy": return <PrivacyPage />;
+      case "Terms & Conditions": return <TermsPage />;
+
+      case "My Profile": return user ? (
+        <ProfilePage
+          user={user}
+          allJobs={allJobs}
+          onLogout={() => { setUser(null); navTo("Home"); }}
+          onFilterByProfile={(filter) => setProfileFilter(filter)}
+          onNavigate={navTo}
+        />
+      ) : (
+        <AuthPage onLogin={(u) => { setUser(u); }} />
+      );
 
       default: return null;
     }
@@ -925,7 +983,14 @@ export default function Mentorgram() {
           <span style={{ fontSize: "18px", fontWeight: 500, color: "var(--color-text-primary)" }}>Mentorgram</span>
         </div>
         <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-          {NAV_LINKS.map(l => <button key={l} className="nav-btn" style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }} onClick={() => navTo(l)}>{l}</button>)}
+          {NAV_LINKS.filter(l => l !== "My Profile").map(l => <button key={l} className="nav-btn" style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }} onClick={() => navTo(l)}>{l}</button>)}
+          {user ? (
+            <button onClick={() => navTo("My Profile")} style={{ width: "34px", height: "34px", borderRadius: "50%", background: activePage === "My Profile" ? "#534AB7" : "linear-gradient(135deg,#534AB7,#1D9E75)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
+              {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
+            </button>
+          ) : (
+            <button onClick={() => navTo("My Profile")} style={{ padding: "6px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Sign in</button>
+          )}
         </div>
         <button className="hamburger-btn" style={{ display: "none", flexDirection: "column", gap: "5px", cursor: "pointer", padding: "8px", border: "none", background: "transparent" }} onClick={() => setMobileMenu(m => !m)}>
           <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(45deg) translate(5px,5px)" : "none" }} />
@@ -936,7 +1001,7 @@ export default function Mentorgram() {
       <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
         {NAV_LINKS.map(l => <button key={l} style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: activePage === l ? 500 : 400 }} onClick={() => navTo(l)}>{l}</button>)}
       </div>
-      <main onClick={() => mobileMenu && setMobileMenu(false)}>
+      <main onClick={() => mobileMenu && setMobileMenu(false)} style={{ paddingBottom: cookieConsent ? 0 : "80px" }}>
         <style>{`
           @keyframes pageIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
           @keyframes pageOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
@@ -954,7 +1019,20 @@ export default function Mentorgram() {
       <footer style={S.footer}>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>© 2025 Mentorgram AI · info@mentorgramai.com · mentorgramai.com</p>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "6px 0 0" }}>Empowering students worldwide to study, work, and thrive in the UK 🇬🇧</p>
+        <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "1rem", flexWrap: "wrap" }}>
+          {["Privacy Policy", "Terms & Conditions", "Contact"].map(l => (
+            <button key={l} onClick={() => navTo(l)} style={{ background: "none", border: "none", color: "var(--color-text-secondary)", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>{l}</button>
+          ))}
+        </div>
       </footer>
+
+      {/* Cookie Banner */}
+      {!cookieConsent && (
+        <CookieBanner
+          onAccept={() => { localStorage.setItem("mg_cookies", "all"); setCookieConsent("all"); }}
+          onReject={() => { localStorage.setItem("mg_cookies", "essential"); setCookieConsent("essential"); }}
+        />
+      )}
     </div>
   );
 }
