@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { AuthPage, ProfilePage, getUser, clearSession } from "./Profile.jsx";
 import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
+import { Analytics } from "@vercel/analytics/react";
 
 // ─── Supabase client (lazy init) ──────────────────────────────────────────
 let _supabase = null;
@@ -1033,6 +1034,7 @@ export default function Mentorgram() {
           onReject={() => { localStorage.setItem("mg_cookies", "essential"); setCookieConsent("essential"); }}
         />
       )}
+      <Analytics />
     </div>
   );
 }
