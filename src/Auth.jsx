@@ -1,12 +1,9 @@
-Here’s the full updated Auth.jsx with show/hide password added for both password fields.
-
 import { useState } from "react";
 import { ConsentCheckbox } from "./Legal.jsx";
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Create user via Supabase Admin API (through our own backend)
 async function createUser(email, password, name) {
   const res = await fetch("/api/create-user", {
     method: "POST",
@@ -37,7 +34,7 @@ async function sendOTP(email, type = "signup") {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to send code");
-  return data.token; // signed token returned from server
+  return data.token;
 }
 
 async function verifyAndLogin(email, otp, token, password, name) {
@@ -62,17 +59,130 @@ async function resetPassword(email, otp, token, newPassword) {
   return data;
 }
 
+const EyeIcon = ({ visible }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {visible ? (
+      <>
+        <path d="M1 12s4-6.5 11-6.5S23 12 23 12s-4 6.5-11 6.5S1 12 1 12z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ) : (
+      <>
+        <path d="M3 3l18 18" />
+        <path d="M10.6 10.6A2 2 0 0013.4 13.4" />
+        <path d="M9.2 5.4A11.3 11.3 0 0112 5c7 0 11 7 11 7a21.1 21.1 0 01-4.2 4.8" />
+        <path d="M6.3 6.3A21.3 21.3 0 001 12s4 7 11 7a11.6 11.6 0 005.7-1.5" />
+      </>
+    )}
+  </svg>
+);
+
 const S = {
-  wrap: { minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1.5rem" },
-  box: { width: "100%", maxWidth: "420px" },
-  logo: { width: "52px", height: "52px", borderRadius: "14px", background: "linear-gradient(135deg,#534AB7,#1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "22px", margin: "0 auto 1.25rem" },
-  card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "2rem" },
-  inp: { padding: "11px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "15px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
-  btn: (primary) => ({ padding: "12px", borderRadius: "var(--border-radius-md)", background: primary ? "#534AB7" : "transparent", color: primary ? "#fff" : "var(--color-text-secondary)", border: primary ? "none" : "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", width: "100%", transition: "opacity 0.15s" }),
-  label: { fontSize: "13px", fontWeight: 500, color: "var(--color-text-secondary)", display: "block", marginBottom: "6px" },
-  err: { background: "#FEE8E8", border: "0.5px solid #F5A0A0", borderRadius: "var(--border-radius-md)", padding: "10px 14px", fontSize: "13px", color: "#9B1C1C" },
-  ok: { background: "#E1F5EE", border: "0.5px solid #5DCAA5", borderRadius: "var(--border-radius-md)", padding: "10px 14px", fontSize: "13px", color: "#085041" },
-  link: { background: "none", border: "none", color: "#534AB7", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500, padding: 0 },
+  wrap: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2rem 1.5rem",
+    background:
+      "radial-gradient(circle at top, rgba(83,74,183,0.14), transparent 30%), linear-gradient(180deg, #0b0b0f 0%, #111116 100%)"
+  },
+  box: {
+    width: "100%",
+    maxWidth: "460px"
+  },
+  logo: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg,#6C63FF,#21C7A8)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#fff",
+    fontWeight: 700,
+    fontSize: "28px",
+    margin: "0 auto 1.4rem",
+    boxShadow: "0 12px 30px rgba(83,74,183,0.28)"
+  },
+  card: {
+    background: "rgba(24,24,30,0.88)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "24px",
+    padding: "2rem",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+    backdropFilter: "blur(14px)"
+  },
+  inp: {
+    padding: "14px 16px",
+    borderRadius: "14px",
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.04)",
+    color: "#F5F7FB",
+    fontSize: "15px",
+    outline: "none",
+    fontFamily: "inherit",
+    width: "100%",
+    boxSizing: "border-box",
+    transition: "all 0.18s ease",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)"
+  },
+  btn: (primary) => ({
+    padding: "14px",
+    borderRadius: "14px",
+    background: primary ? "linear-gradient(135deg,#6257ff,#5546d7)" : "transparent",
+    color: primary ? "#fff" : "var(--color-text-secondary)",
+    border: primary ? "none" : "1px solid rgba(255,255,255,0.08)",
+    fontSize: "15px",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    width: "100%",
+    transition: "all 0.18s ease",
+    boxShadow: primary ? "0 10px 24px rgba(83,74,183,0.28)" : "none"
+  }),
+  label: {
+    fontSize: "13px",
+    fontWeight: 600,
+    color: "rgba(255,255,255,0.72)",
+    display: "block",
+    marginBottom: "8px"
+  },
+  err: {
+    background: "rgba(255, 84, 84, 0.10)",
+    border: "1px solid rgba(255, 84, 84, 0.24)",
+    borderRadius: "14px",
+    padding: "12px 14px",
+    fontSize: "13px",
+    color: "#ffb4b4"
+  },
+  ok: {
+    background: "rgba(33, 199, 168, 0.10)",
+    border: "1px solid rgba(33, 199, 168, 0.24)",
+    borderRadius: "14px",
+    padding: "12px 14px",
+    fontSize: "13px",
+    color: "#a7f3df"
+  },
+  link: {
+    background: "none",
+    border: "none",
+    color: "#8d82ff",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    fontSize: "13px",
+    fontWeight: 600,
+    padding: 0
+  }
 };
 
 function OTPInput({ value, onChange, disabled }) {
@@ -88,14 +198,15 @@ function OTPInput({ value, onChange, disabled }) {
             textAlign: "center",
             fontSize: "22px",
             fontWeight: 700,
-            borderRadius: "var(--border-radius-md)",
-            border: d.trim() ? "1.5px solid #534AB7" : "0.5px solid var(--color-border-secondary)",
-            background: "var(--color-background-secondary)",
-            color: "var(--color-text-primary)",
+            borderRadius: "14px",
+            border: d.trim() ? "1.5px solid #6257ff" : "1px solid rgba(255,255,255,0.10)",
+            background: "rgba(255,255,255,0.04)",
+            color: "#F5F7FB",
             outline: "none",
             fontFamily: "monospace",
             transition: "border-color 0.15s",
-            opacity: disabled ? 0.6 : 1
+            opacity: disabled ? 0.6 : 1,
+            boxSizing: "border-box"
           }}
           maxLength={1}
           value={d.trim()}
@@ -103,7 +214,7 @@ function OTPInput({ value, onChange, disabled }) {
           disabled={disabled}
           onChange={e => {
             const v = e.target.value.replace(/\D/g, "").slice(-1);
-            const newVal = digits.map((x, j) => j === i ? v : x).join("").replace(/ /g, "");
+            const newVal = digits.map((x, j) => (j === i ? v : x)).join("").replace(/ /g, "");
             onChange(newVal);
             if (v && i < 5) {
               const next = e.target.parentElement.children[i + 1];
@@ -115,7 +226,7 @@ function OTPInput({ value, onChange, disabled }) {
               const prev = e.target.parentElement.children[i - 1];
               if (prev) {
                 prev.focus();
-                onChange(digits.map((x, j) => j === i - 1 ? "" : x).join("").replace(/ /g, ""));
+                onChange(digits.map((x, j) => (j === i - 1 ? "" : x)).join("").replace(/ /g, ""));
               }
             }
           }}
@@ -131,7 +242,7 @@ function OTPInput({ value, onChange, disabled }) {
 }
 
 export default function AuthPage({ onLogin }) {
-  const [step, setStep] = useState("entry"); // entry | otp | reset-otp
+  const [step, setStep] = useState("entry");
   const [mode, setMode] = useState("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -146,16 +257,30 @@ export default function AuthPage({ onLogin }) {
   const [resendTimer, setResendTimer] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+
+  function focusInput(e) {
+    e.currentTarget.style.border = "1px solid rgba(109,99,255,0.85)";
+    e.currentTarget.style.boxShadow = "0 0 0 4px rgba(98,87,255,0.12)";
+  }
+
+  function blurInput(e) {
+    e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)";
+    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.03)";
+  }
 
   function startTimer() {
     setResendTimer(60);
-    const t = setInterval(() => setResendTimer(n => {
-      if (n <= 1) {
-        clearInterval(t);
-        return 0;
-      }
-      return n - 1;
-    }), 1000);
+    const t = setInterval(() => {
+      setResendTimer(n => {
+        if (n <= 1) {
+          clearInterval(t);
+          return 0;
+        }
+        return n - 1;
+      });
+    }, 1000);
   }
 
   async function handleSignup() {
@@ -304,11 +429,15 @@ export default function AuthPage({ onLogin }) {
     return (
       <div style={S.wrap}>
         <div style={S.box}>
-          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-            <div style={{ ...S.logo, fontSize: "26px" }}>✉</div>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 0.4rem" }}>Check your email</h1>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>Enter the 6-digit code sent to</p>
-            <p style={{ fontSize: "15px", fontWeight: 500, margin: "4px 0 0" }}>{email}</p>
+          <div style={{ textAlign: "center", marginBottom: "2.2rem" }}>
+            <div style={S.logo}>✉</div>
+            <h1 style={{ fontSize: "2.2rem", fontWeight: 700, margin: "0 0 0.65rem", letterSpacing: "-0.03em", color: "#fff" }}>
+              Check your email
+            </h1>
+            <p style={{ color: "rgba(255,255,255,0.62)", fontSize: "1rem", margin: 0, lineHeight: 1.6 }}>
+              Enter the 6-digit code sent to
+            </p>
+            <p style={{ fontSize: "15px", fontWeight: 600, margin: "6px 0 0", color: "#fff" }}>{email}</p>
           </div>
 
           <div style={S.card}>
@@ -328,11 +457,20 @@ export default function AuthPage({ onLogin }) {
                   <label style={S.label}>New password</label>
                   <div style={{ position: "relative" }}>
                     <input
-                      style={{ ...S.inp, paddingRight: "70px" }}
+                      style={{
+                        ...S.inp,
+                        paddingRight: "44px",
+                        border: newPasswordFocused ? "1px solid rgba(109,99,255,0.85)" : S.inp.border,
+                        boxShadow: newPasswordFocused
+                          ? "0 0 0 4px rgba(98,87,255,0.12)"
+                          : "inset 0 1px 0 rgba(255,255,255,0.03)"
+                      }}
                       type={showNewPassword ? "text" : "password"}
                       placeholder="At least 8 characters"
                       value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
+                      onFocus={() => setNewPasswordFocused(true)}
+                      onBlur={() => setNewPasswordFocused(false)}
                     />
                     <button
                       type="button"
@@ -344,28 +482,30 @@ export default function AuthPage({ onLogin }) {
                         transform: "translateY(-50%)",
                         background: "none",
                         border: "none",
-                        color: "#534AB7",
                         cursor: "pointer",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        padding: 0
+                        color: "rgba(255,255,255,0.56)",
+                        padding: 0,
+                        display: "flex",
+                        alignItems: "center"
                       }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.88)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.56)")}
                     >
-                      {showNewPassword ? "Hide" : "Show"}
+                      <EyeIcon visible={showNewPassword} />
                     </button>
                   </div>
                 </div>
               )}
 
               <button
-                style={{ ...S.btn(true), opacity: loading || otp.length < 6 ? 0.6 : 1 }}
+                style={{ ...S.btn(true), opacity: loading || otp.length < 6 ? 0.65 : 1 }}
                 onClick={isReset ? handleResetPassword : handleVerifyOTP}
                 disabled={loading || otp.length < 6}
               >
                 {loading ? "Verifying..." : isReset ? "Reset password" : "Verify & create account"}
               </button>
 
-              <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+              <p style={{ textAlign: "center", fontSize: "13px", color: "rgba(255,255,255,0.62)", margin: 0 }}>
                 Didn't get a code?{" "}
                 <button
                   onClick={handleResend}
@@ -383,7 +523,7 @@ export default function AuthPage({ onLogin }) {
                   setError("");
                   setInfo("");
                 }}
-                style={{ ...S.btn(false), fontSize: "13px", padding: "8px" }}
+                style={{ ...S.btn(false), fontSize: "13px", padding: "10px" }}
               >
                 ← Back
               </button>
@@ -397,12 +537,12 @@ export default function AuthPage({ onLogin }) {
   return (
     <div style={S.wrap}>
       <div style={S.box}>
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <div style={{ textAlign: "center", marginBottom: "2.2rem" }}>
           <div style={S.logo}>M</div>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 0.4rem" }}>
+          <h1 style={{ fontSize: "2.2rem", fontWeight: 700, margin: "0 0 0.65rem", letterSpacing: "-0.03em", color: "#fff" }}>
             {mode === "login" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset your password"}
           </h1>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>
+          <p style={{ color: "rgba(255,255,255,0.62)", fontSize: "1rem", margin: 0, lineHeight: 1.6 }}>
             {mode === "signup"
               ? "Get personalised UK job recommendations"
               : mode === "login"
@@ -424,6 +564,8 @@ export default function AuthPage({ onLogin }) {
                   placeholder="Your full name"
                   value={name}
                   onChange={e => setName(e.target.value)}
+                  onFocus={focusInput}
+                  onBlur={blurInput}
                 />
               </div>
             )}
@@ -436,6 +578,8 @@ export default function AuthPage({ onLogin }) {
                 placeholder="you@email.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                onFocus={focusInput}
+                onBlur={blurInput}
                 onKeyDown={e => e.key === "Enter" && (mode === "login" ? handleLogin() : mode === "signup" ? handleSignup() : handleForgot())}
               />
             </div>
@@ -445,13 +589,23 @@ export default function AuthPage({ onLogin }) {
                 <label style={S.label}>Password</label>
                 <div style={{ position: "relative" }}>
                   <input
-                    style={{ ...S.inp, paddingRight: "70px" }}
+                    style={{
+                      ...S.inp,
+                      paddingRight: "44px",
+                      border: passwordFocused ? "1px solid rgba(109,99,255,0.85)" : S.inp.border,
+                      boxShadow: passwordFocused
+                        ? "0 0 0 4px rgba(98,87,255,0.12)"
+                        : "inset 0 1px 0 rgba(255,255,255,0.03)"
+                    }}
                     type={showPassword ? "text" : "password"}
                     placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
                     onKeyDown={e => e.key === "Enter" && (mode === "login" ? handleLogin() : handleSignup())}
                   />
+
                   <button
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
@@ -462,14 +616,16 @@ export default function AuthPage({ onLogin }) {
                       transform: "translateY(-50%)",
                       background: "none",
                       border: "none",
-                      color: "#534AB7",
                       cursor: "pointer",
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      padding: 0
+                      color: "rgba(255,255,255,0.56)",
+                      padding: 0,
+                      display: "flex",
+                      alignItems: "center"
                     }}
+                    onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.88)")}
+                    onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.56)")}
                   >
-                    {showPassword ? "Hide" : "Show"}
+                    <EyeIcon visible={showPassword} />
                   </button>
                 </div>
               </div>
@@ -485,7 +641,7 @@ export default function AuthPage({ onLogin }) {
             )}
 
             <button
-              style={{ ...S.btn(true), opacity: loading ? 0.7 : 1, marginTop: "4px" }}
+              style={{ ...S.btn(true), opacity: loading ? 0.7 : 1, marginTop: "6px" }}
               onClick={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgot}
               disabled={loading}
             >
@@ -495,9 +651,9 @@ export default function AuthPage({ onLogin }) {
 
           <div
             style={{
-              borderTop: "0.5px solid var(--color-border-tertiary)",
-              marginTop: "1.25rem",
-              paddingTop: "1.25rem",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              marginTop: "1.4rem",
+              paddingTop: "1.2rem",
               display: "flex",
               flexDirection: "column",
               gap: "10px",
@@ -506,7 +662,7 @@ export default function AuthPage({ onLogin }) {
           >
             {mode === "login" && (
               <>
-                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+                <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.62)", margin: 0 }}>
                   Don't have an account?{" "}
                   <button
                     onClick={() => {
@@ -528,7 +684,7 @@ export default function AuthPage({ onLogin }) {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "var(--color-text-secondary)",
+                    color: "rgba(255,255,255,0.62)",
                     cursor: "pointer",
                     fontFamily: "inherit",
                     fontSize: "13px"
@@ -540,7 +696,7 @@ export default function AuthPage({ onLogin }) {
             )}
 
             {mode === "signup" && (
-              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.62)", margin: 0 }}>
                 Already have an account?{" "}
                 <button
                   onClick={() => {
@@ -573,5 +729,3 @@ export default function AuthPage({ onLogin }) {
     </div>
   );
 }
-
-One small note: createUser() is still in this file but not being used. You can leave it for now, but later it’s better to remove unused code.
