@@ -6,21 +6,21 @@ const PER_PAGE = 20;
 
 const S = {
   card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" },
-  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "#EEEDFE" : c === "teal" ? "#E1F5EE" : c === "blue" ? "#E3F2FD" : c === "green" ? "#E8F5E9" : "#F5F5F5", color: c === "purple" ? "#3C3489" : c === "teal" ? "#085041" : c === "blue" ? "#0D47A1" : c === "green" ? "#2E7D32" : "#444" }),
+  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "#E8EDFC" : c === "teal" ? "#FFF0E8" : c === "blue" ? "#E3F2FD" : c === "green" ? "#E8F5E9" : "#F5F5F5", color: c === "purple" ? "#0D2478" : c === "teal" ? "#AA2800" : c === "blue" ? "#0D47A1" : c === "green" ? "#2E7D32" : "#444" }),
   inp: { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
-  pill: (a, color) => ({ padding: "6px 16px", borderRadius: "20px", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? (color || "#534AB7") : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400, transition: "all 0.15s" }),
-  btn: (primary) => ({ padding: "10px 22px", borderRadius: "var(--border-radius-md)", background: primary ? "#534AB7" : "transparent", color: primary ? "#fff" : "var(--color-text-primary)", border: primary ? "none" : "0.5px solid var(--color-border-secondary)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }),
-  pageBtn: (a) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#534AB7" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: a ? "default" : "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400 }),
+  pill: (a, color) => ({ padding: "6px 16px", borderRadius: "20px", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? (color || "#1A3FA8") : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400, transition: "all 0.15s" }),
+  btn: (primary) => ({ padding: "10px 22px", borderRadius: "var(--border-radius-md)", background: primary ? "#1A3FA8" : "transparent", color: primary ? "#fff" : "var(--color-text-primary)", border: primary ? "none" : "0.5px solid var(--color-border-secondary)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }),
+  pageBtn: (a) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#1A3FA8" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: a ? "default" : "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400 }),
 };
 
 const SECTOR_COLORS = {
-  Technology: "#534AB7", Finance: "#0D47A1", Healthcare: "#1D9E75",
+  Technology: "#1A3FA8", Finance: "#0D47A1", Healthcare: "#FF4500",
   Engineering: "#E65100", Education: "#6A1B9A", Hospitality: "#F57C00",
   Retail: "#00695C", "Public Sector": "#37474F", Other: "#546E7A",
 };
 
 function SponsorCard({ sponsor, onClick }) {
-  const color = SECTOR_COLORS[sponsor.sector] || "#534AB7";
+  const color = SECTOR_COLORS[sponsor.sector] || "#1A3FA8";
   return (
     <div style={{ ...S.card, cursor: "pointer", transition: "transform 0.15s, box-shadow 0.15s, border-color 0.15s" }}
       onClick={onClick}
@@ -49,7 +49,7 @@ function SponsorCard({ sponsor, onClick }) {
 }
 
 function SponsorDetail({ sponsor, onBack }) {
-  const color = SECTOR_COLORS[sponsor.sector] || "#534AB7";
+  const color = SECTOR_COLORS[sponsor.sector] || "#1A3FA8";
   return (
     <div style={{ maxWidth: "760px", margin: "0 auto", padding: "2rem 1.5rem" }}>
       <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: "var(--color-text-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit", marginBottom: "1.5rem", padding: 0 }}>
@@ -89,16 +89,16 @@ function SponsorDetail({ sponsor, onBack }) {
           "Worker must meet skill level RQF3+ and English language B2 requirements",
         ].map((item, i) => (
           <p key={i} style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 8px", display: "flex", gap: "8px", lineHeight: 1.6 }}>
-            <span style={{ color: "#1D9E75", flexShrink: 0 }}>✓</span><span>{item}</span>
+            <span style={{ color: "#FF4500", flexShrink: 0 }}>✓</span><span>{item}</span>
           </p>
         ))}
       </div>
 
-      <div style={{ background: "#EEEDFE", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#3C3489" }}>📋 How to get sponsored here</h2>
+      <div style={{ background: "#E8EDFC", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#0D2478" }}>📋 How to get sponsored here</h2>
         {["Find and apply for a suitable role at this organisation", "State in your application that you require visa sponsorship", "If offered the job, they assign you a Certificate of Sponsorship (CoS)", "Apply for your Skilled Worker visa using the CoS reference number", "Home Office decision: typically 3–8 weeks from application"].map((step, i) => (
-          <p key={i} style={{ fontSize: "14px", color: "#3C3489", margin: "0 0 8px", display: "flex", gap: "10px", lineHeight: 1.6 }}>
-            <span style={{ background: "#534AB7", color: "#fff", borderRadius: "50%", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+          <p key={i} style={{ fontSize: "14px", color: "#0D2478", margin: "0 0 8px", display: "flex", gap: "10px", lineHeight: 1.6 }}>
+            <span style={{ background: "#1A3FA8", color: "#fff", borderRadius: "50%", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
             <span>{step}</span>
           </p>
         ))}
@@ -237,7 +237,7 @@ export default function SponsorsPage() {
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
             <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Visa route:</span>
-            {ROUTES.map(r => <button key={r} style={{ ...S.pill(route === r, r === "Health & Care Worker" ? "#1D9E75" : "#534AB7"), fontSize: "12px" }} onClick={() => handleRoute(r)}>{r}</button>)}
+            {ROUTES.map(r => <button key={r} style={{ ...S.pill(route === r, r === "Health & Care Worker" ? "#FF4500" : "#1A3FA8"), fontSize: "12px" }} onClick={() => handleRoute(r)}>{r}</button>)}
           </div>
         </div>
 
