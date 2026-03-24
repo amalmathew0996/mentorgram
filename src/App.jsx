@@ -1146,7 +1146,27 @@ function ContactPage() {
 
 // ─── Main component ────────────────────────────────────────────────────────
 export default function Mentorgram() {
-  const [activePage, setActivePage] = useState("Home");
+  // Hash-based routing — maps page names to URL hashes
+  const PAGE_SLUGS = {
+    "Home": "",
+    "AI Mentor": "ai-mentor",
+    "Education Paths": "education",
+    "UK Universities": "universities",
+    "Sponsorship Jobs": "jobs",
+    "Visa Sponsors": "visa-sponsors",
+    "Contact": "contact",
+    "My Profile": "profile",
+    "Privacy Policy": "privacy",
+    "Terms & Conditions": "terms",
+  };
+  const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([k,v]) => [v, k]));
+
+  function getInitialPage() {
+    const hash = window.location.hash.replace("#", "").split("=")[0];
+    return SLUG_TO_PAGE[hash] || "Home";
+  }
+
+  const [activePage, setActivePage] = useState(getInitialPage);
   const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I'm your Mentorgram AI Mentor 👋 I can help with education pathways, UK university applications, career guidance, and visa-sponsored jobs. What would you like to explore?" }]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
@@ -1233,6 +1253,9 @@ export default function Mentorgram() {
       setSelectedJob(null);
       setPageTransition(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
+      // Update URL hash so refresh works + back button works
+      const slug = PAGE_SLUGS[page] || "";
+      window.history.pushState(null, "", slug ? `#${slug}` : window.location.pathname);
     }, 220);
   }
 
