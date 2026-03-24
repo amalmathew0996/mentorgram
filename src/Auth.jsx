@@ -92,11 +92,11 @@ const S = {
   box: { width: "100%", maxWidth: "460px" },
   logo: {
     width: "54px", height: "54px", borderRadius: "var(--border-radius-md)",
-    background: "linear-gradient(135deg,#534AB7,#1D9E75)",
+    background: "linear-gradient(135deg,#1A3FA8,#FF4500)",
     display: "flex", alignItems: "center", justifyContent: "center",
     color: "var(--color-text-primary)", fontWeight: 700, fontSize: "24px",
     margin: "0 auto 1.25rem",
-    boxShadow: "0 8px 24px rgba(83,74,183,0.2)",
+    boxShadow: "0 8px 24px rgba(26,63,168,0.2)",
   },
   card: {
     background: "var(--color-background-primary)",
@@ -118,7 +118,7 @@ const S = {
   btn: (primary) => ({
     padding: "12px",
     borderRadius: "var(--border-radius-md)",
-    background: primary ? "#534AB7" : "transparent",
+    background: primary ? "#1A3FA8" : "transparent",
     color: primary ? "#fff" : "var(--color-text-secondary)",
     border: primary ? "none" : "0.5px solid var(--color-border-secondary)",
     fontSize: "15px", fontWeight: 500,
@@ -136,13 +136,13 @@ const S = {
     padding: "10px 14px", fontSize: "13px", color: "#9B1C1C",
   },
   ok: {
-    background: "#E1F5EE", border: "0.5px solid #5DCAA5",
+    background: "#FFF0E8", border: "0.5px solid #FF8C5A",
     borderRadius: "var(--border-radius-md)",
-    padding: "10px 14px", fontSize: "13px", color: "#085041",
+    padding: "10px 14px", fontSize: "13px", color: "#AA2800",
   },
   link: {
     background: "none", border: "none",
-    color: "#534AB7", cursor: "pointer",
+    color: "#1A3FA8", cursor: "pointer",
     fontFamily: "inherit", fontSize: "13px",
     fontWeight: 500, padding: 0,
   },
@@ -154,7 +154,7 @@ function OTPInput({ value, onChange, disabled }) {
     <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
       {digits.map((d, i) => (
         <input key={i}
-          style={{ width: "44px", height: "52px", textAlign: "center", fontSize: "22px", fontWeight: 700, borderRadius: "var(--border-radius-md)", border: d.trim() ? "1.5px solid #534AB7" : "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", outline: "none", fontFamily: "monospace", transition: "border-color 0.15s", opacity: disabled ? 0.6 : 1 }}
+          style={{ width: "44px", height: "52px", textAlign: "center", fontSize: "22px", fontWeight: 700, borderRadius: "var(--border-radius-md)", border: d.trim() ? "1.5px solid #1A3FA8" : "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", outline: "none", fontFamily: "monospace", transition: "border-color 0.15s", opacity: disabled ? 0.6 : 1 }}
           maxLength={1} value={d.trim()} inputMode="numeric" disabled={disabled}
           onChange={e => {
             const v = e.target.value.replace(/\D/g, "").slice(-1);
