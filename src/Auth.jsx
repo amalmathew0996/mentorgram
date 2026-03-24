@@ -1,6 +1,27 @@
 import { useState } from "react";
 import { ConsentCheckbox } from "./Legal.jsx";
 
+function EyeIcon({ visible }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {visible ? (
+        <>
+          <path d="M1 12s4-6.5 11-6.5S23 12 23 12s-4 6.5-11 6.5S1 12 1 12z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      ) : (
+        <>
+          <path d="M3 3l18 18" />
+          <path d="M10.6 10.6A2 2 0 0013.4 13.4" />
+          <path d="M9.2 5.4A11.3 11.3 0 0112 5c7 0 11 7 11 7a21.1 21.1 0 01-4.2 4.8" />
+          <path d="M6.3 6.3A21.3 21.3 0 001 12s4 7 11 7a11.6 11.6 0 005.7-1.5" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -168,6 +189,8 @@ export default function AuthPage({ onLogin }) {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   function startTimer() {
     setResendTimer(60);
@@ -279,7 +302,24 @@ export default function AuthPage({ onLogin }) {
               {isReset && (
                 <div>
                   <label style={S.label}>New password</label>
-                  <input style={S.inp} type="password" placeholder="At least 8 characters" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+                  <div style={{ position: "relative" }}>
+                    <input
+                      style={{ ...S.inp, paddingRight: "44px" }}
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="At least 8 characters"
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(v => !v)}
+                      style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", padding: 0, display: "flex", alignItems: "center" }}
+                      onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
+                      onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
+                    >
+                      <EyeIcon visible={showNewPassword} />
+                    </button>
+                  </div>
                 </div>
               )}
               <button style={{ ...S.btn(true), opacity: loading || otp.length < 6 ? 0.6 : 1 }}
@@ -335,9 +375,25 @@ export default function AuthPage({ onLogin }) {
             {mode !== "forgot" && (
               <div>
                 <label style={S.label}>Password</label>
-                <input style={S.inp} type="password" placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
-                  value={password} onChange={e => setPassword(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && (mode === "login" ? handleLogin() : handleSignup())} />
+                <div style={{ position: "relative" }}>
+                  <input
+                    style={{ ...S.inp, paddingRight: "44px" }}
+                    type={showPassword ? "text" : "password"}
+                    placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && (mode === "login" ? handleLogin() : handleSignup())}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", padding: 0, display: "flex", alignItems: "center" }}
+                    onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
+                    onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
+                  >
+                    <EyeIcon visible={showPassword} />
+                  </button>
+                </div>
               </div>
             )}
             {mode === "signup" && (
