@@ -91,12 +91,9 @@ const S = {
   },
   box: { width: "100%", maxWidth: "460px" },
   logo: {
-    width: "54px", height: "54px", borderRadius: "var(--border-radius-md)",
-    background: "linear-gradient(135deg,#1A3FA8,#FF4500)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    color: "var(--color-text-primary)", fontWeight: 700, fontSize: "24px",
-    margin: "0 auto 1.25rem",
-    boxShadow: "0 8px 24px rgba(26,63,168,0.2)",
+    width: "72px", height: "72px",
+    margin: "0 auto 1.4rem",
+    display: "block",
   },
   card: {
     background: "var(--color-background-primary)",
@@ -350,7 +347,7 @@ export default function AuthPage({ onLogin }) {
       <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
       <div style={S.box}>
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={S.logo}>M</div>
+          <img src="/logo.png" alt="Mentorgram" style={S.logo} />
           <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 0.4rem" }}>
             {mode === "login" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset your password"}
           </h1>
