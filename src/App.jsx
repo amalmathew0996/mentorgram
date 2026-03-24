@@ -85,7 +85,7 @@ const FALLBACK_JOBS = [
 // ─── Global styles (outside component) ────────────────────────────────────
 const S = {
   wrap: { fontFamily: "var(--font-sans)", color: "var(--color-text-primary)", minHeight: "100vh", background: "var(--color-background-tertiary)" },
-  btnPrimary: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
+  btnPrimary: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
   btnOutline: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
   section: { maxWidth: "1100px", margin: "0 auto", padding: "3rem 1.5rem" },
   sectionTitle: { fontSize: "1.6rem", fontWeight: 500, margin: "0 0 0.5rem" },
@@ -93,13 +93,13 @@ const S = {
   grid3: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" },
   grid2: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" },
   card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" },
-  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "#EEEDFE" : c === "teal" ? "#E1F5EE" : "#E6F1FB", color: c === "purple" ? "#3C3489" : c === "teal" ? "#085041" : "#0C447C" }),
+  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "#E8EDFC" : c === "teal" ? "#FFF0E8" : "#E6F1FB", color: c === "purple" ? "#0D2478" : c === "teal" ? "#AA2800" : "#0C447C" }),
   input: { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
   footer: { borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "2rem 1.5rem", textAlign: "center" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", margin: "2rem 0" },
   statCard: { background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem", textAlign: "center" },
-  filterBtn: (a) => ({ padding: "6px 16px", borderRadius: "20px", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#534AB7" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }),
-  pageBtn: (a) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#534AB7" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: a ? "default" : "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400 }),
+  filterBtn: (a) => ({ padding: "6px 16px", borderRadius: "20px", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#1A3FA8" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }),
+  pageBtn: (a) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#1A3FA8" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: a ? "default" : "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400 }),
 };
 
 // ─── Share Button ──────────────────────────────────────────────────────────
@@ -121,7 +121,7 @@ function ShareButton({ job }) {
     { label: "WhatsApp", color: "#25D366", href: `https://wa.me/?text=${encodeURIComponent(text)}`, icon: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" },
     { label: "Telegram", color: "#229ED9", href: `https://t.me/share/url?url=${encodeURIComponent(siteUrl)}&text=${encodeURIComponent(text)}`, icon: "M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" },
     { label: "Email", color: "#EA4335", href: `mailto:?subject=${encodeURIComponent(`Job: ${job.title} at ${job.company}`)}&body=${encodeURIComponent(text)}`, icon: "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" },
-    { label: "Copy link", color: "#534AB7", action: () => { navigator.clipboard.writeText(siteUrl); setOpen(false); } },
+    { label: "Copy link", color: "#1A3FA8", action: () => { navigator.clipboard.writeText(siteUrl); setOpen(false); } },
   ];
 
   return (
@@ -206,10 +206,10 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
           The role is in the <strong>{job.sector || "General"}</strong> sector and eligible for a <strong>Skilled Worker visa</strong>. Click Apply for full details and requirements.
         </p>
       </div>
-      <div style={{ background: "#EEEDFE", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#3C3489" }}>🛂 Visa sponsorship info</h2>
+      <div style={{ background: "#E8EDFC", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#0D2478" }}>🛂 Visa sponsorship info</h2>
         {["This employer is registered as a UK visa sponsor","You may be eligible for a Skilled Worker or Health & Care visa","Minimum salary thresholds apply (usually £26,200+)","Your employer will assign a Certificate of Sponsorship (CoS)"].map((item, i) => (
-          <p key={i} style={{ fontSize: "14px", color: "#3C3489", margin: "0 0 4px", display: "flex", gap: "8px" }}><span>✓</span><span>{item}</span></p>
+          <p key={i} style={{ fontSize: "14px", color: "#0D2478", margin: "0 0 4px", display: "flex", gap: "8px" }}><span>✓</span><span>{item}</span></p>
         ))}
       </div>
       <div style={{ ...S.card, marginBottom: "1.5rem" }}>
@@ -325,7 +325,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
 
       {/* Profile filter banner */}
       {profileFilter && (
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "linear-gradient(135deg, rgba(83,74,183,0.08), rgba(29,158,117,0.05))", border: "0.5px solid rgba(83,74,183,0.2)", borderRadius: "var(--border-radius-md)", marginBottom: "1rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "linear-gradient(135deg, rgba(26,63,168,0.08), rgba(29,158,117,0.05))", border: "0.5px solid rgba(26,63,168,0.2)", borderRadius: "var(--border-radius-md)", marginBottom: "1rem", flexWrap: "wrap" }}>
           <span style={{ fontSize: "14px" }}>🎯</span>
           <p style={{ fontSize: "13px", margin: 0, flex: 1 }}>
             <strong>Filtered by your profile</strong>
@@ -348,7 +348,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Filter:</span>
         {VISA_TYPES.map(v => (
           <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v
-            ? (v === "Visa Sponsorship" ? "#1D9E75" : v === "No Sponsorship Info" ? "#888" : "#534AB7")
+            ? (v === "Visa Sponsorship" ? "#FF4500" : v === "No Sponsorship Info" ? "#888" : "#1A3FA8")
             : "var(--color-background-primary)" }}
             onClick={() => setVisaType(v)}>{v}</button>
         ))}
@@ -366,12 +366,12 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
                   <span key={src} style={{ marginLeft: i > 0 ? "6px" : 0 }}>
                     <span style={{ display:"inline-block", padding:"1px 7px", borderRadius:"10px", fontSize:"11px", fontWeight:500,
                       background: src==="Reed" ? "#FFF3E0" : src==="Adzuna" ? "#E3F2FD" : "#F3F2FF",
-                      color: src==="Reed" ? "#E65100" : src==="Adzuna" ? "#0D47A1" : "#534AB7"
+                      color: src==="Reed" ? "#E65100" : src==="Adzuna" ? "#0D47A1" : "#1A3FA8"
                     }}>{src}</span>
                   </span>
                 ))}
               </span>
-              {allJobs.length <= 40 && <span style={{ color: "#534AB7", cursor: "pointer", marginLeft: "8px", fontSize: "12px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
+              {allJobs.length <= 40 && <span style={{ color: "#1A3FA8", cursor: "pointer", marginLeft: "8px", fontSize: "12px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
             </>
         }
         {!jobsLoading && titleQuery && ` · matching "${titleQuery}"`}
@@ -403,31 +403,31 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
             <div key={i}
               className={clickedJob === i ? "job-card-click" : ""}
               style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px", cursor: "pointer", transition: "box-shadow 0.2s, border-color 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(83,74,183,0.12)"; e.currentTarget.style.borderColor = "rgba(83,74,183,0.3)"; }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(26,63,168,0.12)"; e.currentTarget.style.borderColor = "rgba(26,63,168,0.3)"; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = "var(--color-border-tertiary)"; }}
               onClick={() => { setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
-                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px", color: "#534AB7" }}>{j.title}</p>
+                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px", color: "#1A3FA8" }}>{j.title}</p>
                   <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
                 </div>
                 {j.sponsorship === true
-                  ? <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"#E1F5EE", color:"#085041", whiteSpace:"nowrap" }}>✓ Sponsorship</span>
+                  ? <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"#FFF0E8", color:"#AA2800", whiteSpace:"nowrap" }}>✓ Sponsorship</span>
                   : <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"var(--color-background-secondary)", color:"var(--color-text-secondary)", whiteSpace:"nowrap" }}>No info</span>
                 }
               </div>
               <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
                 {j.sector && <span style={S.tag("purple")}>{j.sector}</span>}
-                {j.source && <span style={{ display:"inline-block", padding:"2px 8px", borderRadius:"var(--border-radius-md)", fontSize:"11px", fontWeight:500, background: j.source==="Reed" ? "#FFF3E0" : j.source==="Adzuna" ? "#E3F2FD" : "#F3F2FF", color: j.source==="Reed" ? "#E65100" : j.source==="Adzuna" ? "#0D47A1" : "#534AB7" }}>{j.source}</span>}
+                {j.source && <span style={{ display:"inline-block", padding:"2px 8px", borderRadius:"var(--border-radius-md)", fontSize:"11px", fontWeight:500, background: j.source==="Reed" ? "#FFF3E0" : j.source==="Adzuna" ? "#E3F2FD" : "#F3F2FF", color: j.source==="Reed" ? "#E65100" : j.source==="Adzuna" ? "#0D47A1" : "#1A3FA8" }}>{j.source}</span>}
                 <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
                 {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
+                <p style={{ fontWeight: 500, color: "#0D2478", margin: 0, fontSize: "14px" }}>{j.salary}</p>
                 <div style={{ display: "flex", gap: "6px" }} onClick={e => e.stopPropagation()}>
                   <ShareButton job={j} />
                   <button onClick={e => { e.stopPropagation(); setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}
-                    style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", fontWeight: 500, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                    style={{ padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "13px", fontWeight: 500, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                     View ↗
                   </button>
                 </div>
@@ -520,16 +520,16 @@ function ContactPage() {
 
             {/* Confetti pieces */}
             {[
-              { left: "10%", delay: "0s",   color: "#534AB7", size: "8px",  duration: "1.2s" },
-              { left: "20%", delay: "0.1s", color: "#1D9E75", size: "6px",  duration: "1.5s" },
+              { left: "10%", delay: "0s",   color: "#1A3FA8", size: "8px",  duration: "1.2s" },
+              { left: "20%", delay: "0.1s", color: "#FF4500", size: "6px",  duration: "1.5s" },
               { left: "30%", delay: "0.2s", color: "#F7C75B", size: "10px", duration: "1.1s" },
               { left: "45%", delay: "0s",   color: "#E24B4A", size: "7px",  duration: "1.4s" },
-              { left: "55%", delay: "0.15s",color: "#534AB7", size: "9px",  duration: "1.3s" },
-              { left: "65%", delay: "0.05s",color: "#1D9E75", size: "6px",  duration: "1.6s" },
+              { left: "55%", delay: "0.15s",color: "#1A3FA8", size: "9px",  duration: "1.3s" },
+              { left: "65%", delay: "0.05s",color: "#FF4500", size: "6px",  duration: "1.6s" },
               { left: "75%", delay: "0.2s", color: "#F7C75B", size: "8px",  duration: "1.2s" },
               { left: "85%", delay: "0.1s", color: "#E24B4A", size: "7px",  duration: "1.5s" },
-              { left: "50%", delay: "0.3s", color: "#534AB7", size: "5px",  duration: "1.1s" },
-              { left: "35%", delay: "0.25s",color: "#1D9E75", size: "9px",  duration: "1.4s" },
+              { left: "50%", delay: "0.3s", color: "#1A3FA8", size: "5px",  duration: "1.1s" },
+              { left: "35%", delay: "0.25s",color: "#FF4500", size: "9px",  duration: "1.4s" },
             ].map((c, i) => (
               <div key={i} className="confetti-piece" style={{ left: c.left, top: "-10px", background: c.color, width: c.size, height: c.size, animationDuration: c.duration, animationDelay: c.delay }} />
             ))}
@@ -699,7 +699,7 @@ export default function Mentorgram() {
     }, 220);
   }
 
-  const heroAccent = { background: "linear-gradient(135deg, #534AB7, #1D9E75)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
+  const heroAccent = { background: "linear-gradient(135deg, #1A3FA8, #FF4500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
 
   function renderPage() {
     switch (activePage) {
@@ -723,14 +723,14 @@ export default function Mentorgram() {
             .stat-card { animation:countUp 0.6s ease both; }
             .stat-card:nth-child(1){animation-delay:0.4s} .stat-card:nth-child(2){animation-delay:0.5s} .stat-card:nth-child(3){animation-delay:0.6s} .stat-card:nth-child(4){animation-delay:0.7s}
             .feature-card { animation:fadeUp 0.6s ease both; transition:transform 0.2s,box-shadow 0.2s; }
-            .feature-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(83,74,183,0.12); }
+            .feature-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(26,63,168,0.12); }
             .feature-card:nth-child(1){animation-delay:0.1s} .feature-card:nth-child(2){animation-delay:0.2s} .feature-card:nth-child(3){animation-delay:0.3s} .feature-card:nth-child(4){animation-delay:0.4s} .feature-card:nth-child(5){animation-delay:0.5s} .feature-card:nth-child(6){animation-delay:0.6s}
             .float-icon { animation:float 3s ease-in-out infinite; display:inline-block; }
             .hero-btn-primary { transition:transform 0.15s,background 0.15s; } .hero-btn-primary:hover { transform:scale(1.03); background:#4840a0 !important; }
             .hero-btn-outline { transition:transform 0.15s,background 0.15s; } .hero-btn-outline:hover { transform:scale(1.03); background:var(--color-background-secondary) !important; }
             .step-item { animation:slideIn 0.6s ease both; }
             .step-item:nth-child(1){animation-delay:0.1s} .step-item:nth-child(2){animation-delay:0.25s} .step-item:nth-child(3){animation-delay:0.4s} .step-item:nth-child(4){animation-delay:0.55s}
-            .shimmer-text { background:linear-gradient(90deg,#534AB7,#1D9E75,#534AB7); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation:shimmer 3s linear infinite; }
+            .shimmer-text { background:linear-gradient(90deg,#1A3FA8,#FF4500,#1A3FA8); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation:shimmer 3s linear infinite; }
             .orb1 { animation:orb1 12s ease-in-out infinite; } .orb2 { animation:orb2 15s ease-in-out infinite; } .orb3 { animation:orb3 10s ease-in-out infinite; }
             .particle { animation:particle linear infinite; position:absolute; bottom:-10px; border-radius:50%; }
             .particle:nth-child(1){left:10%;animation-duration:8s;width:6px;height:6px}
@@ -745,12 +745,12 @@ export default function Mentorgram() {
 
           <div style={{ position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-              <div className="orb1" style={{ position: "absolute", top: "5%", left: "10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(83,74,183,0.18) 0%, transparent 70%)", filter: "blur(40px)" }} />
+              <div className="orb1" style={{ position: "absolute", top: "5%", left: "10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,63,168,0.18) 0%, transparent 70%)", filter: "blur(40px)" }} />
               <div className="orb2" style={{ position: "absolute", top: "10%", right: "5%", width: "350px", height: "350px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%)", filter: "blur(40px)" }} />
-              <div className="orb3" style={{ position: "absolute", bottom: "5%", left: "40%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(83,74,183,0.1) 0%, transparent 70%)", filter: "blur(50px)" }} />
-              <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(83,74,183,1) 1px,transparent 1px),linear-gradient(90deg,rgba(83,74,183,1) 1px,transparent 1px)", backgroundSize: "60px 60px", opacity: 0.04 }} />
+              <div className="orb3" style={{ position: "absolute", bottom: "5%", left: "40%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,63,168,0.1) 0%, transparent 70%)", filter: "blur(50px)" }} />
+              <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(26,63,168,1) 1px,transparent 1px),linear-gradient(90deg,rgba(26,63,168,1) 1px,transparent 1px)", backgroundSize: "60px 60px", opacity: 0.04 }} />
               <div style={{ position: "absolute", inset: 0 }}>
-                {[...Array(8)].map((_, i) => <div key={i} className="particle" style={{ background: i % 2 === 0 ? "rgba(83,74,183,0.5)" : "rgba(29,158,117,0.5)" }} />)}
+                {[...Array(8)].map((_, i) => <div key={i} className="particle" style={{ background: i % 2 === 0 ? "rgba(26,63,168,0.5)" : "rgba(29,158,117,0.5)" }} />)}
               </div>
             </div>
 
@@ -785,7 +785,7 @@ export default function Mentorgram() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: "1rem" }}>
                 {[{ step:"01",icon:"🗺️",title:"Choose your pathway",desc:"Tell us your education background and career goals." },{ step:"02",icon:"🤖",title:"Get AI guidance",desc:"Your personal AI mentor creates a tailored plan." },{ step:"03",icon:"🎓",title:"Apply to UK universities",desc:"Navigate UCAS with expert step-by-step support." },{ step:"04",icon:"💼",title:"Land a sponsored job",desc:"Find UK employers who will sponsor your visa." }].map(s => (
                   <div key={s.step} className="step-item" style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "1.25rem", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", border: "0.5px solid var(--color-border-tertiary)" }}>
-                    <div style={{ minWidth: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg,#534AB7,#1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "13px", fontWeight: 500 }}>{s.step}</div>
+                    <div style={{ minWidth: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "13px", fontWeight: 500 }}>{s.step}</div>
                     <div>
                       <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{s.title}</p>
                       <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
@@ -817,7 +817,7 @@ export default function Mentorgram() {
               <h2 style={S.sectionTitle}>Join the waitlist</h2>
               <p style={S.sectionSub}>Be among the first to access Mentorgram's full platform.</p>
               {waitlistDone ? (
-                <div style={{ ...S.card, background: "#E1F5EE", border: "0.5px solid #5DCAA5" }}><p style={{ color: "#085041", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p></div>
+                <div style={{ ...S.card, background: "#FFF0E8", border: "0.5px solid #FF8C5A" }}><p style={{ color: "#AA2800", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p></div>
               ) : (
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input style={{ ...S.input, flex: 1 }} type="email" placeholder="Enter your email address" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && waitlistEmail && setWaitlistDone(true)} />
@@ -836,14 +836,14 @@ export default function Mentorgram() {
           <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", display: "flex", flexDirection: "column", height: "520px" }}>
             <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
               {messages.map((m, i) => (
-                <div key={i} style={m.role === "user" ? { alignSelf: "flex-end", background: "#534AB7", color: "#fff", padding: "10px 14px", borderRadius: "16px 16px 4px 16px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 } : { alignSelf: "flex-start", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", padding: "10px 14px", borderRadius: "16px 16px 16px 4px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 }}>{m.content}</div>
+                <div key={i} style={m.role === "user" ? { alignSelf: "flex-end", background: "#1A3FA8", color: "#fff", padding: "10px 14px", borderRadius: "16px 16px 4px 16px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 } : { alignSelf: "flex-start", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", padding: "10px 14px", borderRadius: "16px 16px 16px 4px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 }}>{m.content}</div>
               ))}
               {chatLoading && <div style={{ alignSelf: "flex-start", background: "var(--color-background-secondary)", padding: "10px 14px", borderRadius: "16px 16px 16px 4px", fontSize: "14px", color: "var(--color-text-secondary)" }}>Thinking...</div>}
               <div ref={messagesEndRef} />
             </div>
             <div style={{ display: "flex", gap: "8px", padding: "1rem", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
               <input style={{ ...S.input, flex: 1 }} placeholder="Ask about universities, careers, visas..." value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} />
-              <button style={{ padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "14px", cursor: "pointer", fontWeight: 500, fontFamily: "inherit" }} onClick={sendMessage} disabled={chatLoading}>Send</button>
+              <button style={{ padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "14px", cursor: "pointer", fontWeight: 500, fontFamily: "inherit" }} onClick={sendMessage} disabled={chatLoading}>Send</button>
             </div>
           </div>
           <div style={{ display: "flex", gap: "8px", marginTop: "1rem", flexWrap: "wrap" }}>
@@ -886,7 +886,7 @@ export default function Mentorgram() {
                   {[["UK entry",u.entry],["International",u.intl],["Scholarships",u.scholarships]].map(([l,v]) => (
                     <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
                       <span style={{ color: "var(--color-text-secondary)" }}>{l}</span>
-                      <span style={l==="Scholarships"?{color:"#3C3489"}:{}}>{v}</span>
+                      <span style={l==="Scholarships"?{color:"#0D2478"}:{}}>{v}</span>
                     </div>
                   ))}
                 </div>
@@ -934,17 +934,17 @@ export default function Mentorgram() {
       `}</style>
       <nav style={{ background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }} onClick={() => navTo("Home")}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#534AB7,#1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 500, fontSize: "18px" }}>M</div>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 500, fontSize: "18px" }}>M</div>
           <span style={{ fontSize: "18px", fontWeight: 500, color: "var(--color-text-primary)" }}>Mentorgram</span>
         </div>
         <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
           {NAV_LINKS.filter(l => l !== "My Profile").map(l => <button key={l} className="nav-btn" style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }} onClick={() => navTo(l)}>{l}</button>)}
           {user ? (
-            <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "34px", height: "34px", borderRadius: "50%", background: activePage === "My Profile" ? "#534AB7" : "linear-gradient(135deg,#534AB7,#1D9E75)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
+            <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "34px", height: "34px", borderRadius: "50%", background: activePage === "My Profile" ? "#1A3FA8" : "linear-gradient(135deg,#1A3FA8,#FF4500)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
               {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
             </button>
           ) : (
-            <button onClick={() => navTo("My Profile")} style={{ padding: "6px 16px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", border: "none", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Sign in</button>
+            <button onClick={() => navTo("My Profile")} style={{ padding: "6px 16px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Sign in</button>
           )}
         </div>
         <button className="hamburger-btn" style={{ display: "none", flexDirection: "column", gap: "5px", cursor: "pointer", padding: "8px", border: "none", background: "transparent" }} onClick={() => setMobileMenu(m => !m)}>
