@@ -218,3 +218,96 @@ export function ConsentCheckbox({ checked, onChange, onViewPrivacy, onViewTerms 
     </label>
   );
 }
+
+// ─── Legal Modal ───────────────────────────────────────────────────────────
+export function LegalModal({ type, onClose }) {
+  if (!type) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(0,0,0,0.55)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "1rem",
+        backdropFilter: "blur(3px)",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: "var(--color-background-primary)",
+          borderRadius: "var(--border-radius-lg)",
+          border: "0.5px solid var(--color-border-tertiary)",
+          width: "100%", maxWidth: "680px",
+          maxHeight: "80vh",
+          display: "flex", flexDirection: "column",
+          overflow: "hidden",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "1.1rem 1.4rem",
+          borderBottom: "0.5px solid var(--color-border-tertiary)",
+          flexShrink: 0,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{
+              width: "32px", height: "32px", borderRadius: "8px",
+              background: "linear-gradient(135deg, #534AB7, #1D9E75)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0,
+            }}>M</div>
+            <span style={{ fontWeight: 500, fontSize: "16px", color: "var(--color-text-primary)" }}>
+              {type === "terms" ? "Terms & Conditions" : "Privacy Policy"}
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: "var(--color-background-secondary)",
+              border: "0.5px solid var(--color-border-secondary)",
+              borderRadius: "var(--border-radius-md)",
+              width: "32px", height: "32px",
+              cursor: "pointer", display: "flex", alignItems: "center",
+              justifyContent: "center", flexShrink: 0, color: "var(--color-text-secondary)",
+              fontSize: "18px", lineHeight: 1,
+            }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Scrollable content */}
+        <div style={{ overflowY: "auto", flex: 1, padding: "1.4rem" }}>
+          {type === "terms" ? <TermsPage /> : <PrivacyPage />}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: "0.9rem 1.4rem",
+          borderTop: "0.5px solid var(--color-border-tertiary)",
+          display: "flex", justifyContent: "flex-end",
+          flexShrink: 0,
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: "9px 24px",
+              borderRadius: "var(--border-radius-md)",
+              background: "#534AB7", color: "#fff",
+              border: "none", fontSize: "14px", fontWeight: 500,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
