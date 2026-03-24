@@ -257,10 +257,10 @@ export function LegalModal({ type, onClose }) {
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{
               width: "32px", height: "32px", borderRadius: "8px",
-              background: "linear-gradient(135deg, #1A3FA8, #FF4500)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0,
-            }}>M</div>
+              flexShrink: 0, overflow: "hidden",
+            }}>
+              <img src="/logo.png" alt="Mentorgram" style={{ width: "32px", height: "32px", objectFit: "contain" }} />
+            </div>
             <span style={{ fontWeight: 500, fontSize: "16px", color: "var(--color-text-primary)" }}>
               {type === "terms" ? "Terms & Conditions" : "Privacy Policy"}
             </span>
