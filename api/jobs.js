@@ -1,186 +1,197 @@
 export const config = { runtime: "edge" };
 
-const SPONSORSHIP_KEYWORDS = [
-  "visa sponsor", "sponsorship", "skilled worker", "tier 2",
-  "certificate of sponsorship", "right to work provided",
-  "will sponsor", "visa provided", "work permit", "cos"
+// 60 diverse searches × ~10 results = 500-600 unique jobs
+const SEARCHES = [
+  // ── Technology ──────────────────────────────────
+  { q: "software engineer",            loc: "London" },
+  { q: "software developer",           loc: "Manchester" },
+  { q: "full stack developer",         loc: "Birmingham" },
+  { q: "backend developer python",     loc: "London" },
+  { q: "frontend developer react",     loc: "London" },
+  { q: "mobile developer iOS android", loc: "United Kingdom" },
+  { q: "DevOps engineer AWS cloud",    loc: "London" },
+  { q: "cybersecurity analyst",        loc: "London" },
+  { q: "network engineer IT",          loc: "Manchester" },
+  { q: "UX UI designer",               loc: "London" },
+  { q: "QA test automation engineer",  loc: "United Kingdom" },
+  { q: "systems architect",            loc: "London" },
+  // ── AI & Data ────────────────────────────────────
+  { q: "data scientist",               loc: "London" },
+  { q: "machine learning engineer",    loc: "London" },
+  { q: "data engineer",                loc: "Manchester" },
+  { q: "data analyst",                 loc: "Birmingham" },
+  { q: "AI engineer",                  loc: "United Kingdom" },
+  { q: "business intelligence analyst",loc: "London" },
+  // ── Healthcare ───────────────────────────────────
+  { q: "registered nurse",             loc: "London" },
+  { q: "staff nurse NHS",              loc: "Manchester" },
+  { q: "care worker",                  loc: "Birmingham" },
+  { q: "healthcare support worker",    loc: "London" },
+  { q: "doctor GP",                    loc: "United Kingdom" },
+  { q: "pharmacist",                   loc: "London" },
+  { q: "physiotherapist",              loc: "United Kingdom" },
+  { q: "dentist dental nurse",         loc: "London" },
+  { q: "radiographer",                 loc: "United Kingdom" },
+  // ── Finance ──────────────────────────────────────
+  { q: "financial analyst",            loc: "London" },
+  { q: "accountant",                   loc: "Birmingham" },
+  { q: "investment banker",            loc: "London" },
+  { q: "risk compliance manager",      loc: "London" },
+  { q: "audit manager",                loc: "Edinburgh" },
+  { q: "payroll specialist",           loc: "United Kingdom" },
+  // ── Engineering ──────────────────────────────────
+  { q: "mechanical engineer",          loc: "Derby" },
+  { q: "civil engineer",               loc: "London" },
+  { q: "electrical engineer",          loc: "Manchester" },
+  { q: "chemical engineer",            loc: "United Kingdom" },
+  { q: "project manager",              loc: "London" },
+  { q: "quantity surveyor",            loc: "London" },
+  { q: "structural engineer",          loc: "Bristol" },
+  // ── Business & Management ────────────────────────
+  { q: "marketing manager",            loc: "London" },
+  { q: "sales manager",                loc: "Manchester" },
+  { q: "operations manager",           loc: "Birmingham" },
+  { q: "product manager",              loc: "London" },
+  { q: "HR manager",                   loc: "United Kingdom" },
+  { q: "supply chain manager",         loc: "United Kingdom" },
+  { q: "business analyst",             loc: "London" },
+  // ── Education ────────────────────────────────────
+  { q: "secondary school teacher",     loc: "London" },
+  { q: "university lecturer",          loc: "United Kingdom" },
+  { q: "primary teacher",              loc: "Birmingham" },
+  // ── Hospitality ──────────────────────────────────
+  { q: "chef head chef",               loc: "London" },
+  { q: "hotel manager",                loc: "United Kingdom" },
+  { q: "restaurant manager",           loc: "Manchester" },
+  // ── Public Sector ────────────────────────────────
+  { q: "social worker",                loc: "London" },
+  { q: "probation officer",            loc: "United Kingdom" },
+  // ── Other in-demand ──────────────────────────────
+  { q: "architect",                    loc: "London" },
+  { q: "solicitor lawyer",             loc: "London" },
+  { q: "logistics coordinator",        loc: "United Kingdom" },
+  { q: "electrician plumber",          loc: "London" },
 ];
 
-function detectSponsorship(title = "", company = "", description = "") {
-  const text = `${title} ${company} ${description}`.toLowerCase();
-  return SPONSORSHIP_KEYWORDS.some(kw => text.includes(kw));
+const VISA_KW = ["visa sponsor","sponsorship","skilled worker","tier 2","certificate of sponsorship","will sponsor","work permit","cos ","visa provided","right to work provided"];
+
+function isSponsored(title = "", description = "") {
+  const t = `${title} ${description}`.toLowerCase();
+  if (t.includes("no sponsorship") || t.includes("sponsorship not available") || t.includes("unable to sponsor")) return false;
+  return VISA_KW.some(k => t.includes(k));
 }
 
-function guessSector(title = "") {
+function sector(title = "") {
   const t = title.toLowerCase();
-  if (t.match(/software|developer|programmer|web|mobile|it |tech|cyber|devops|cloud|designer|ux|ui/)) return "Technology";
-  if (t.match(/data|scientist|analyst|machine learning|ai |intelligence/)) return "AI & Data";
-  if (t.match(/nurse|doctor|nhs|healthcare|medical|dental|care|clinical|therapist|pharmacist/)) return "Healthcare";
-  if (t.match(/finance|financial|accountant|audit|banking|investment|payroll/)) return "Finance";
-  if (t.match(/engineer|engineering|mechanical|civil|electrical|manufacturing/)) return "Engineering";
-  if (t.match(/teacher|teaching|lecturer|education|school|university|academic/)) return "Education";
-  if (t.match(/chef|cook|hotel|restaurant|hospitality|catering/)) return "Hospitality";
-  if (t.match(/marketing|sales|business|manager|operations|hr|recruiter/)) return "Business";
-  if (t.match(/prison|police|council|government|public sector|civil service/)) return "Public Sector";
+  if (/software|developer|programmer|web|mobile|devops|cloud|designer|ux|ui|cyber|network|sysadmin/.test(t)) return "Technology";
+  if (/data|scientist|analyst|machine learning|ai |mlops|intelligence/.test(t)) return "AI & Data";
+  if (/nurse|doctor|gp|nhs|healthcare|medical|dental|care|clinical|therapist|pharmacist|surgeon|radiograph|paramedic/.test(t)) return "Healthcare";
+  if (/finance|financial|accountant|audit|banking|investment|payroll|actuar|risk|compliance/.test(t)) return "Finance";
+  if (/engineer|mechanical|civil|electrical|chemical|aerospace|manufacturing|quantity surveyor|architect/.test(t)) return "Engineering";
+  if (/teacher|teaching|lecturer|education|school|university|academic/.test(t)) return "Education";
+  if (/chef|cook|hotel|restaurant|hospitality|catering/.test(t)) return "Hospitality";
+  if (/marketing|sales|business|operations|product manager|hr |human resources|supply chain/.test(t)) return "Business";
+  if (/social worker|probation|council|government|police|civil service/.test(t)) return "Public Sector";
   return "Other";
 }
 
-function formatSalary(min, max) {
-  if (!min && !max) return "Competitive";
-  if (min && max) return `£${Math.round(min).toLocaleString()}–£${Math.round(max).toLocaleString()}`;
-  if (min) return `From £${Math.round(min).toLocaleString()}`;
-  return `Up to £${Math.round(max).toLocaleString()}`;
+async function one(apiKey, q, loc) {
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta": "mcp-client-2025-04-04",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 2000,
+        mcp_servers: [{ type: "url", url: "https://mcp.indeed.com/claude/mcp", name: "indeed" }],
+        system: `Search Indeed UK jobs. country_code GB, location "${loc}", query "${q}".
+Return ONLY a valid JSON array. No text. No markdown. No explanation.
+Schema per item: {"title":"","company":"","location":"","salary":"","posted":"","url":"","sponsorship":false}
+Rules:
+- sponsorship:true ONLY if listing explicitly says visa sponsorship/skilled worker/work permit
+- sponsorship:false if it says "no sponsorship" or "sponsorship unavailable"
+- salary: use "Competitive" if not stated
+- Return exactly 10 jobs`,
+        messages: [{ role: "user", content: q }],
+      }),
+    });
+    const d = await r.json();
+    const txt = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+    const s = txt.indexOf("["), e = txt.lastIndexOf("]");
+    if (s < 0 || e < 0) return [];
+    const jobs = JSON.parse(txt.slice(s, e + 1));
+    return Array.isArray(jobs) ? jobs : [];
+  } catch { return []; }
 }
 
-// ── Indeed via MCP ──────────────────────────────────────────────────────────
-async function fetchFromIndeed(apiKey, query, location) {
-  const searches = query
-    ? [query]
-    : ["software engineer developer", "NHS nurse healthcare", "data scientist analyst",
-       "finance accountant", "teacher education", "engineer manufacturing", "marketing business manager"];
-
-  const results = await Promise.allSettled(
-    searches.map(q =>
-      fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-beta": "mcp-client-2025-04-04",
-        },
-        body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 1500,
-          mcp_servers: [{ type: "url", url: "https://mcp.indeed.com/claude/mcp", name: "indeed-mcp" }],
-          system: `Search Indeed UK. country_code "GB", location "${location}", search "${q}".
-Return ONLY a JSON array. No markdown.
-Format: [{"title":"...","company":"...","location":"...","salary":"...","sector":"...","posted":"...","url":"...","sponsorship":false}]
-Set sponsorship:true ONLY if listing explicitly mentions visa sponsorship or skilled worker visa.
-If salary missing use "Competitive". Return 10 jobs.`,
-          messages: [{ role: "user", content: q }],
-        }),
-      })
-        .then(r => r.json())
-        .then(data => {
-          const text = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
-          const clean = text.replace(/```json|```/g, "").trim();
-          const s = clean.indexOf("["), e = clean.lastIndexOf("]");
-          if (s === -1 || e === -1) return [];
-          return JSON.parse(clean.slice(s, e + 1)).map(j => ({ ...j, source: "Indeed" }));
-        })
-        .catch(() => [])
-    )
-  );
-  return results.flatMap(r => (r.status === "fulfilled" ? r.value : []));
-}
-
-// ── Reed API ────────────────────────────────────────────────────────────────
-async function fetchFromReed(apiKey, query, location) {
-  const searches = query
-    ? [query]
-    : ["software engineer", "nurse healthcare", "data scientist", "finance analyst",
-       "teacher", "civil engineer", "marketing manager", "chef hospitality"];
-
-  const results = await Promise.allSettled(
-    searches.map(async keywords => {
-      const url = `https://www.reed.co.uk/api/1.0/search?keywords=${encodeURIComponent(keywords)}&locationName=${encodeURIComponent(location)}&resultsToTake=10&distanceFromLocation=15`;
-      const encoded = btoa(`${apiKey}:`);
-      const res = await fetch(url, { headers: { Authorization: `Basic ${encoded}`, Accept: "application/json" } });
-      if (!res.ok) return [];
-      const data = await res.json();
-      return (data.results || []).map(job => ({
-        title: job.jobTitle || "",
-        company: job.employerName || "Unknown",
-        location: job.locationName || location,
-        salary: formatSalary(job.minimumSalary, job.maximumSalary),
-        sector: guessSector(job.jobTitle),
-        posted: job.date ? new Date(job.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "",
-        url: job.jobUrl || "",
-        source: "Reed",
-        sponsorship: detectSponsorship(job.jobTitle, job.employerName, job.jobDescription || ""),
-      }));
-    })
-  );
-  return results.flatMap(r => (r.status === "fulfilled" ? r.value : []));
-}
-
-// ── Adzuna API ──────────────────────────────────────────────────────────────
-async function fetchFromAdzuna(appId, appKey, query, location) {
-  const searches = query
-    ? [query]
-    : ["software developer", "nurse care worker", "data analyst", "accountant finance",
-       "teacher school", "mechanical engineer", "sales marketing", "chef hotel"];
-
-  const results = await Promise.allSettled(
-    searches.map(async what => {
-      const url = `https://api.adzuna.com/v1/api/jobs/gb/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=10&what=${encodeURIComponent(what)}&where=${encodeURIComponent(location)}&content-type=application/json`;
-      const res = await fetch(url);
-      if (!res.ok) return [];
-      const data = await res.json();
-      return (data.results || []).map(job => ({
-        title: job.title || "",
-        company: job.company?.display_name || "Unknown",
-        location: job.location?.display_name || location,
-        salary: formatSalary(job.salary_min, job.salary_max),
-        sector: guessSector(job.title),
-        posted: job.created ? new Date(job.created).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "",
-        url: job.redirect_url || "",
-        source: "Adzuna",
-        sponsorship: detectSponsorship(job.title, job.company?.display_name || "", job.description || ""),
-      }));
-    })
-  );
-  return results.flatMap(r => (r.status === "fulfilled" ? r.value : []));
-}
-
-// ── Main handler ─────────────────────────────────────────────────────────────
 export default async function handler(req) {
-  const corsHeaders = { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" };
+  const cors = { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" };
+  const { searchParams } = new URL(req.url);
+  const customQ = searchParams.get("q") || "";
+  const customLoc = searchParams.get("location") || "United Kingdom";
+  const apiKey = process.env.ANTHROPIC_API_KEY;
 
   try {
-    const { searchParams } = new URL(req.url);
-    const query = searchParams.get("q") || "";
-    const location = searchParams.get("location") || "United Kingdom";
+    // Custom user search — 5 parallel targeted searches
+    const searches = customQ
+      ? [
+          { q: customQ, loc: customLoc },
+          { q: `${customQ} visa sponsorship`, loc: customLoc },
+          { q: customQ, loc: "London" },
+          { q: customQ, loc: "Manchester" },
+          { q: customQ, loc: "Birmingham" },
+        ]
+      : SEARCHES;
 
-    const [indeedJobs, reedJobs, adzunaJobs] = await Promise.all([
-      process.env.ANTHROPIC_API_KEY
-        ? fetchFromIndeed(process.env.ANTHROPIC_API_KEY, query, location).catch(() => [])
-        : [],
-      process.env.REED_API_KEY
-        ? fetchFromReed(process.env.REED_API_KEY, query, location).catch(() => [])
-        : [],
-      process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY
-        ? fetchFromAdzuna(process.env.ADZUNA_APP_ID, process.env.ADZUNA_APP_KEY, query, location).catch(() => [])
-        : [],
-    ]);
-
-    const seen = new Set();
-    const allJobs = [];
-
-    for (const job of [...indeedJobs, ...reedJobs, ...adzunaJobs]) {
-      if (!job.title || !job.company) continue;
-      const key = `${job.title}|${job.company}`.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      if (!job.sector || job.sector === "Other") job.sector = guessSector(job.title);
-      allJobs.push(job);
+    // Run ALL searches in parallel with individual 25s timeout
+    const withTimeout = (p) => Promise.race([p, new Promise(r => setTimeout(() => r([]), 25000))]);
+    const batches = [];
+    // Batch into groups of 20 to avoid overwhelming the edge runtime
+    for (let i = 0; i < searches.length; i += 20) {
+      const batch = searches.slice(i, i + 20);
+      const results = await Promise.allSettled(batch.map(({ q, loc }) => withTimeout(one(apiKey, q, loc))));
+      batches.push(...results);
     }
 
-    if (allJobs.length === 0) throw new Error("No jobs found");
+    // Deduplicate
+    const seen = new Set();
+    const jobs = [];
+    for (const r of batches) {
+      if (r.status !== "fulfilled" || !Array.isArray(r.value)) continue;
+      for (const j of r.value) {
+        if (!j.title || !j.company) continue;
+        const key = `${j.title}||${j.company}`.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        j.sector = sector(j.title);
+        j.sponsorship = j.sponsorship || isSponsored(j.title, j.description || "");
+        j.salary = j.salary || "Competitive";
+        jobs.push(j);
+      }
+    }
 
-    allJobs.sort((a, b) => (b.sponsorship ? 1 : 0) - (a.sponsorship ? 1 : 0));
+    if (jobs.length === 0) throw new Error("No jobs returned — check ANTHROPIC_API_KEY and Indeed MCP connection");
+
+    // Sponsored first, then alphabetical by title
+    jobs.sort((a, b) => {
+      if (a.sponsorship && !b.sponsorship) return -1;
+      if (!a.sponsorship && b.sponsorship) return 1;
+      return (a.title || "").localeCompare(b.title || "");
+    });
 
     return new Response(
-      JSON.stringify({
-        jobs: allJobs,
-        updatedAt: new Date().toISOString(),
-        total: allJobs.length,
-        sources: { indeed: indeedJobs.length, reed: reedJobs.length, adzuna: adzunaJobs.length },
-      }),
-      { status: 200, headers: corsHeaders }
+      JSON.stringify({ jobs, total: jobs.length, updatedAt: new Date().toISOString() }),
+      { status: 200, headers: cors }
     );
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message, jobs: [] }), { status: 500, headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ error: err.message, jobs: [] }),
+      { status: 500, headers: cors }
+    );
   }
 }
