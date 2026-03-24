@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import AuthPage from "./Auth.jsx";
+import SponsorsPage from "./Sponsors.jsx";
 import Dashboard from "./Dashboard.jsx";
 import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Contact", "My Profile"];
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "Visa Sponsorship", "No Sponsorship Info"];
 const JOBS_PER_PAGE = 15;
@@ -944,6 +945,7 @@ export default function Mentorgram() {
       );
 
       case "Contact": return <ContactPage />;
+      case "Visa Sponsors": return <SponsorsPage />;
       case "Privacy Policy": return <PrivacyPage />;
       case "Terms & Conditions": return <TermsPage />;
 
