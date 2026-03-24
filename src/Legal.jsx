@@ -178,14 +178,14 @@ export function CookieBanner({ onAccept, onReject }) {
           <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
             We use essential cookies to keep you logged in, and optional analytics cookies to improve the platform.
             See our{" "}
-            <a href="#privacy" style={{ color: "#534AB7" }}>Privacy Policy</a> for details.
+            <a href="#privacy" style={{ color: "#1A3FA8" }}>Privacy Policy</a> for details.
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
           <button onClick={onReject} style={{ padding: "9px 20px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", color: "var(--color-text-secondary)", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
             Essential only
           </button>
-          <button onClick={onAccept} style={{ padding: "9px 20px", borderRadius: "var(--border-radius-md)", border: "none", background: "#534AB7", color: "#fff", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+          <button onClick={onAccept} style={{ padding: "9px 20px", borderRadius: "var(--border-radius-md)", border: "none", background: "#1A3FA8", color: "#fff", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
             Accept all
           </button>
         </div>
@@ -202,15 +202,15 @@ export function ConsentCheckbox({ checked, onChange, onViewPrivacy, onViewTerms 
         type="checkbox"
         checked={checked}
         onChange={e => onChange(e.target.checked)}
-        style={{ marginTop: "2px", width: "16px", height: "16px", accentColor: "#534AB7", flexShrink: 0 }}
+        style={{ marginTop: "2px", width: "16px", height: "16px", accentColor: "#1A3FA8", flexShrink: 0 }}
       />
       <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
         I agree to the{" "}
-        <button onClick={onViewTerms} style={{ background: "none", border: "none", color: "#534AB7", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500, padding: 0 }}>
+        <button onClick={onViewTerms} style={{ background: "none", border: "none", color: "#1A3FA8", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500, padding: 0 }}>
           Terms & Conditions
         </button>
         {" "}and{" "}
-        <button onClick={onViewPrivacy} style={{ background: "none", border: "none", color: "#534AB7", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500, padding: 0 }}>
+        <button onClick={onViewPrivacy} style={{ background: "none", border: "none", color: "#1A3FA8", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500, padding: 0 }}>
           Privacy Policy
         </button>
         . I understand my data will be processed to provide personalised job recommendations.
@@ -257,7 +257,7 @@ export function LegalModal({ type, onClose }) {
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{
               width: "32px", height: "32px", borderRadius: "8px",
-              background: "linear-gradient(135deg, #534AB7, #1D9E75)",
+              background: "linear-gradient(135deg, #1A3FA8, #FF4500)",
               display: "flex", alignItems: "center", justifyContent: "center",
               color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0,
             }}>M</div>
@@ -299,7 +299,7 @@ export function LegalModal({ type, onClose }) {
             style={{
               padding: "9px 24px",
               borderRadius: "var(--border-radius-md)",
-              background: "#534AB7", color: "#fff",
+              background: "#1A3FA8", color: "#fff",
               border: "none", fontSize: "14px", fontWeight: 500,
               cursor: "pointer", fontFamily: "inherit",
             }}
