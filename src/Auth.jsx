@@ -398,8 +398,8 @@ export default function AuthPage({ onLogin }) {
             )}
             {mode === "signup" && (
               <ConsentCheckbox checked={consent} onChange={setConsent}
-                onViewPrivacy={() => window.open("https://mentorgramai.com", "_blank")}
-                onViewTerms={() => window.open("https://mentorgramai.com", "_blank")} />
+                onViewPrivacy={() => window.open("https://mentorgramai.com#privacy", "_blank")}
+                onViewTerms={() => window.open("https://mentorgramai.com#terms", "_blank")} />
             )}
             <button style={{ ...S.btn(true), opacity: loading ? 0.7 : 1, marginTop: "4px" }}
               onClick={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgot}
