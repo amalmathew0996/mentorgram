@@ -48,7 +48,7 @@ function clearSession() {
 // ─── Style helpers ─────────────────────────────────────────────────────────
 const btn = (primary) => ({
   padding: "11px 24px", borderRadius: "var(--border-radius-md)",
-  background: primary ? "#534AB7" : "transparent",
+  background: primary ? "#1A3FA8" : "transparent",
   color: primary ? "#fff" : "var(--color-text-primary)",
   border: primary ? "none" : "0.5px solid var(--color-border-secondary)",
   fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
@@ -70,7 +70,7 @@ const tag = (active) => ({
   padding: "6px 14px", borderRadius: "20px", fontSize: "13px",
   fontWeight: active ? 500 : 400, cursor: "pointer", fontFamily: "inherit",
   border: active ? "none" : "0.5px solid var(--color-border-secondary)",
-  background: active ? "#534AB7" : "var(--color-background-primary)",
+  background: active ? "#1A3FA8" : "var(--color-background-primary)",
   color: active ? "#fff" : "var(--color-text-secondary)",
   transition: "all 0.15s",
 });
@@ -120,7 +120,7 @@ export function AuthPage({ onLogin }) {
   return (
     <div style={{ maxWidth: "420px", margin: "4rem auto", padding: "0 1.5rem" }}>
       <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "linear-gradient(135deg,#534AB7,#1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: "22px", margin: "0 auto 1rem" }}>M</div>
+        <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: "22px", margin: "0 auto 1rem" }}>M</div>
         <h1 style={{ fontSize: "1.6rem", fontWeight: 500, margin: "0 0 0.4rem" }}>
           {mode === "login" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset password"}
         </h1>
@@ -130,7 +130,7 @@ export function AuthPage({ onLogin }) {
       </div>
 
       <div style={card}>
-        {success && <div style={{ background: "#E1F5EE", border: "0.5px solid #5DCAA5", borderRadius: "var(--border-radius-md)", padding: "10px 14px", marginBottom: "1rem", fontSize: "14px", color: "#085041" }}>{success}</div>}
+        {success && <div style={{ background: "#FFF0E8", border: "0.5px solid #FF8C5A", borderRadius: "var(--border-radius-md)", padding: "10px 14px", marginBottom: "1rem", fontSize: "14px", color: "#AA2800" }}>{success}</div>}
         {error && <div style={{ background: "#FEE8E8", border: "0.5px solid #F5A0A0", borderRadius: "var(--border-radius-md)", padding: "10px 14px", marginBottom: "1rem", fontSize: "14px", color: "#9B1C1C" }}>{error}</div>}
 
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -156,11 +156,11 @@ export function AuthPage({ onLogin }) {
 
         <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "1.25rem", paddingTop: "1.25rem", display: "flex", flexDirection: "column", gap: "8px", textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)" }}>
           {mode === "login" && (<>
-            <span>Don't have an account? <button onClick={() => { setMode("signup"); setError(""); }} style={{ background: "none", border: "none", color: "#534AB7", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500 }}>Sign up free</button></span>
+            <span>Don't have an account? <button onClick={() => { setMode("signup"); setError(""); }} style={{ background: "none", border: "none", color: "#1A3FA8", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500 }}>Sign up free</button></span>
             <button onClick={() => { setMode("forgot"); setError(""); }} style={{ background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontFamily: "inherit", fontSize: "13px" }}>Forgot password?</button>
           </>)}
-          {mode === "signup" && <span>Already have an account? <button onClick={() => { setMode("login"); setError(""); }} style={{ background: "none", border: "none", color: "#534AB7", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500 }}>Sign in</button></span>}
-          {mode === "forgot" && <button onClick={() => { setMode("login"); setError(""); }} style={{ background: "none", border: "none", color: "#534AB7", cursor: "pointer", fontFamily: "inherit", fontSize: "13px" }}>← Back to sign in</button>}
+          {mode === "signup" && <span>Already have an account? <button onClick={() => { setMode("login"); setError(""); }} style={{ background: "none", border: "none", color: "#1A3FA8", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500 }}>Sign in</button></span>}
+          {mode === "forgot" && <button onClick={() => { setMode("login"); setError(""); }} style={{ background: "none", border: "none", color: "#1A3FA8", cursor: "pointer", fontFamily: "inherit", fontSize: "13px" }}>← Back to sign in</button>}
         </div>
       </div>
     </div>
@@ -260,13 +260,13 @@ export function ProfilePage({ user, onLogout, onFilterByProfile, allJobs, onNavi
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "2rem 1.5rem" }}>
 
       {/* Header */}
-      <div style={{ ...card, marginBottom: "1.5rem", background: "linear-gradient(135deg, rgba(83,74,183,0.08), rgba(29,158,117,0.05))" }}>
+      <div style={{ ...card, marginBottom: "1.5rem", background: "linear-gradient(135deg, rgba(26,63,168,0.08), rgba(29,158,117,0.05))" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "linear-gradient(135deg,#534AB7,#1D9E75)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: "22px", flexShrink: 0 }}>{initials}</div>
+          <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: "22px", flexShrink: 0 }}>{initials}</div>
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: "1.3rem", fontWeight: 500, margin: "0 0 4px" }}>{fullName || "Your Profile"}</h2>
             <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>{user.email}</p>
-            {jobTitle && <p style={{ color: "#534AB7", fontSize: "13px", margin: "4px 0 0", fontWeight: 500 }}>{jobTitle}</p>}
+            {jobTitle && <p style={{ color: "#1A3FA8", fontSize: "13px", margin: "4px 0 0", fontWeight: 500 }}>{jobTitle}</p>}
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button style={{ ...btn(false), width: "auto", padding: "8px 16px", fontSize: "13px" }} onClick={() => { onFilterByProfile({ sectors, location, visaStatus, experience, salary }); onNavigate("Sponsorship Jobs"); }}>
@@ -282,7 +282,7 @@ export function ProfilePage({ user, onLogout, onFilterByProfile, allJobs, onNavi
       {/* Tabs */}
       <div style={{ display: "flex", gap: "4px", marginBottom: "1.5rem", background: "var(--color-background-primary)", padding: "4px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-tertiary)", width: "fit-content" }}>
         {[["profile","👤 My Profile"], ["matches", `🎯 My Matches (${matchedJobs.length})`]].map(([t, label]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 18px", borderRadius: "var(--border-radius-md)", border: "none", background: tab === t ? "#534AB7" : "transparent", color: tab === t ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", fontWeight: tab === t ? 500 : 400, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>{label}</button>
+          <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 18px", borderRadius: "var(--border-radius-md)", border: "none", background: tab === t ? "#1A3FA8" : "transparent", color: tab === t ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", fontWeight: tab === t ? 500 : 400, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>{label}</button>
         ))}
       </div>
 
@@ -361,7 +361,7 @@ export function ProfilePage({ user, onLogout, onFilterByProfile, allJobs, onNavi
           </div>
 
           {/* Save */}
-          <button style={{ ...btn(true), padding: "13px", fontSize: "15px", opacity: saving ? 0.7 : 1, background: saved ? "#1D9E75" : "#534AB7" }} onClick={saveProfile} disabled={saving}>
+          <button style={{ ...btn(true), padding: "13px", fontSize: "15px", opacity: saving ? 0.7 : 1, background: saved ? "#FF4500" : "#1A3FA8" }} onClick={saveProfile} disabled={saving}>
             {saving ? "Saving..." : saved ? "✓ Profile saved!" : "Save profile"}
           </button>
 
@@ -398,18 +398,18 @@ export function ProfilePage({ user, onLogout, onFilterByProfile, allJobs, onNavi
                   <div key={i} style={{ ...card, display: "flex", flexDirection: "column", gap: "10px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>
-                        <p style={{ fontWeight: 500, margin: "0 0 3px", fontSize: "15px", color: "#534AB7" }}>{j.title}</p>
+                        <p style={{ fontWeight: 500, margin: "0 0 3px", fontSize: "15px", color: "#1A3FA8" }}>{j.title}</p>
                         <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
                       </div>
-                      {j.sponsorship && <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "#E1F5EE", color: "#085041", whiteSpace: "nowrap" }}>✓ Sponsorship</span>}
+                      {j.sponsorship && <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "#FFF0E8", color: "#AA2800", whiteSpace: "nowrap" }}>✓ Sponsorship</span>}
                     </div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
-                      <span style={{ display: "inline-block", padding: "2px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, background: "#EEEDFE", color: "#3C3489" }}>{j.sector}</span>
+                      <span style={{ display: "inline-block", padding: "2px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, background: "#E8EDFC", color: "#0D2478" }}>{j.sector}</span>
                       <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <p style={{ fontWeight: 500, color: "#3C3489", margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                      {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", background: "#534AB7", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
+                      <p style={{ fontWeight: 500, color: "#0D2478", margin: 0, fontSize: "14px" }}>{j.salary}</p>
+                      {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
                     </div>
                   </div>
                 ))}
