@@ -1,311 +1,434 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { ConsentCheckbox, LegalModal } from "./Legal.jsx";
+
+function EyeIcon({ visible }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {visible ? (
+        <>
+          <path d="M1 12s4-6.5 11-6.5S23 12 23 12s-4 6.5-11 6.5S1 12 1 12z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      ) : (
+        <>
+          <path d="M3 3l18 18" />
+          <path d="M10.6 10.6A2 2 0 0013.4 13.4" />
+          <path d="M9.2 5.4A11.3 11.3 0 0112 5c7 0 11 7 11 7a21.1 21.1 0 01-4.2 4.8" />
+          <path d="M6.3 6.3A21.3 21.3 0 001 12s4 7 11 7a11.6 11.6 0 005.7-1.5" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+const SUPA_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Create user via Supabase Admin API (through our own backend)
+async function createUser(email, password, name) {
+  const res = await fetch("/api/create-user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, name }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to create account");
+  return data;
+}
+
+async function loginUser(email, password) {
+  const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: SUPA_KEY },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || "Incorrect email or password");
+  return data;
+}
+
+async function sendOTP(email, type = "signup") {
+  const res = await fetch("/api/send-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, type }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to send code");
+  return data.token; // signed token returned from server
+}
+
+async function verifyAndLogin(email, otp, token, password, name) {
+  const res = await fetch("/api/verify-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp, token, password, name }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Invalid or expired code");
+  return data;
+}
+
+async function resetPassword(email, otp, token, newPassword) {
+  const res = await fetch("/api/reset-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp, token, newPassword }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to reset password");
+  return data;
+}
 
 const S = {
-  page: { maxWidth: "760px", margin: "0 auto", padding: "2rem 1.5rem" },
-  card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "2rem" },
-  h1: { fontSize: "1.8rem", fontWeight: 500, margin: "0 0 0.5rem", color: "var(--color-text-primary)" },
-  h2: { fontSize: "1.1rem", fontWeight: 500, margin: "1.75rem 0 0.5rem", color: "var(--color-text-primary)" },
-  p: { fontSize: "14px", lineHeight: 1.8, color: "var(--color-text-secondary)", margin: "0 0 0.75rem" },
-  li: { fontSize: "14px", lineHeight: 1.8, color: "var(--color-text-secondary)", marginBottom: "4px" },
-  updated: { fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 2rem", borderBottom: "0.5px solid var(--color-border-tertiary)", paddingBottom: "1rem" },
+  wrap: {
+    minHeight: "80vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2rem 1.5rem",
+  },
+  box: { width: "100%", maxWidth: "460px" },
+  logo: {
+    width: "54px", height: "54px", borderRadius: "var(--border-radius-md)",
+    background: "linear-gradient(135deg,#534AB7,#1D9E75)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    color: "var(--color-text-primary)", fontWeight: 700, fontSize: "24px",
+    margin: "0 auto 1.25rem",
+    boxShadow: "0 8px 24px rgba(83,74,183,0.2)",
+  },
+  card: {
+    background: "var(--color-background-primary)",
+    border: "0.5px solid var(--color-border-tertiary)",
+    borderRadius: "var(--border-radius-lg)",
+    padding: "2rem",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+  },
+  inp: {
+    padding: "12px 14px",
+    borderRadius: "var(--border-radius-md)",
+    border: "0.5px solid var(--color-border-secondary)",
+    background: "var(--color-background-secondary)",
+    color: "var(--color-text-primary)",
+    fontSize: "15px", outline: "none",
+    fontFamily: "inherit", width: "100%", boxSizing: "border-box",
+    transition: "border-color 0.15s",
+  },
+  btn: (primary) => ({
+    padding: "12px",
+    borderRadius: "var(--border-radius-md)",
+    background: primary ? "#534AB7" : "transparent",
+    color: primary ? "#fff" : "var(--color-text-secondary)",
+    border: primary ? "none" : "0.5px solid var(--color-border-secondary)",
+    fontSize: "15px", fontWeight: 500,
+    cursor: "pointer", fontFamily: "inherit", width: "100%",
+    transition: "opacity 0.15s",
+  }),
+  label: {
+    fontSize: "13px", fontWeight: 500,
+    color: "var(--color-text-secondary)",
+    display: "block", marginBottom: "7px",
+  },
+  err: {
+    background: "#FEE8E8", border: "0.5px solid #F5A0A0",
+    borderRadius: "var(--border-radius-md)",
+    padding: "10px 14px", fontSize: "13px", color: "#9B1C1C",
+  },
+  ok: {
+    background: "#E1F5EE", border: "0.5px solid #5DCAA5",
+    borderRadius: "var(--border-radius-md)",
+    padding: "10px 14px", fontSize: "13px", color: "#085041",
+  },
+  link: {
+    background: "none", border: "none",
+    color: "#534AB7", cursor: "pointer",
+    fontFamily: "inherit", fontSize: "13px",
+    fontWeight: 500, padding: 0,
+  },
 };
 
-// ─── Privacy Policy ────────────────────────────────────────────────────────
-export function PrivacyPage() {
+function OTPInput({ value, onChange, disabled }) {
+  const digits = (value + "      ").slice(0, 6).split("");
   return (
-    <div style={S.page}>
-      <h1 style={S.h1}>Privacy Policy</h1>
-      <p style={S.updated}>Last updated: March 2026 · Mentorgram AI Limited</p>
-      <div style={S.card}>
-
-        <p style={S.p}>This Privacy Policy explains how <strong>Mentorgram AI</strong> ("we", "us", "our") collects, uses, stores and protects your personal data when you use our platform at <strong>mentorgramai.com</strong>. We are committed to protecting your privacy in accordance with the <strong>UK General Data Protection Regulation (UK GDPR)</strong> and the <strong>Data Protection Act 2018</strong>.</p>
-
-        <h2 style={S.h2}>1. Who We Are</h2>
-        <p style={S.p}>Mentorgram AI is an AI-powered education and career guidance platform based in the United Kingdom. Our contact details are:</p>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}>Email: info@mentorgramai.com</li>
-          <li style={S.li}>Website: mentorgramai.com</li>
-          <li style={S.li}>Jurisdiction: England and Wales</li>
-        </ul>
-
-        <h2 style={S.h2}>2. What Personal Data We Collect</h2>
-        <p style={S.p}>When you create an account or use our platform, we may collect:</p>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}><strong>Account data:</strong> your name and email address</li>
-          <li style={S.li}><strong>Profile data:</strong> job title, preferred sectors, experience level, preferred location, skills, visa status, and a personal bio — all provided voluntarily by you</li>
-          <li style={S.li}><strong>Usage data:</strong> pages visited, features used, and session activity (collected via Vercel Analytics)</li>
-          <li style={S.li}><strong>Communications:</strong> messages sent via the contact form</li>
-        </ul>
-        <p style={S.p}>We do <strong>not</strong> collect sensitive personal data such as racial or ethnic origin, health data, or financial information.</p>
-
-        <h2 style={S.h2}>3. Why We Collect Your Data (Lawful Basis)</h2>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}><strong>Contract performance:</strong> to provide the service you signed up for (job matching, AI mentoring)</li>
-          <li style={S.li}><strong>Legitimate interests:</strong> to improve our platform and prevent fraud</li>
-          <li style={S.li}><strong>Consent:</strong> for optional features like marketing communications (you may withdraw at any time)</li>
-        </ul>
-
-        <h2 style={S.h2}>4. How We Use Your Data</h2>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}>To create and manage your account</li>
-          <li style={S.li}>To provide personalised job recommendations based on your profile</li>
-          <li style={S.li}>To power the AI Mentor chat (conversations are not stored permanently)</li>
-          <li style={S.li}>To respond to contact form enquiries</li>
-          <li style={S.li}>To improve and develop our platform</li>
-        </ul>
-
-        <h2 style={S.h2}>5. Who We Share Your Data With</h2>
-        <p style={S.p}>We do not sell your personal data. We share data only with trusted third-party processors necessary to operate the platform:</p>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}><strong>Supabase</strong> (database and authentication) — EU/UK infrastructure, GDPR compliant</li>
-          <li style={S.li}><strong>Vercel</strong> (hosting and analytics) — GDPR compliant</li>
-          <li style={S.li}><strong>Anthropic</strong> (AI processing) — used for AI Mentor responses only</li>
-          <li style={S.li}><strong>Zoho</strong> (email) — for contact form responses</li>
-        </ul>
-
-        <h2 style={S.h2}>6. How Long We Keep Your Data</h2>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}>Account and profile data: retained until you delete your account</li>
-          <li style={S.li}>Contact form messages: 12 months</li>
-          <li style={S.li}>AI chat conversations: not stored — each session is ephemeral</li>
-          <li style={S.li}>Analytics data: 12 months</li>
-        </ul>
-
-        <h2 style={S.h2}>7. Your Rights Under UK GDPR</h2>
-        <p style={S.p}>You have the following rights regarding your personal data:</p>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}><strong>Right of access</strong> — request a copy of your data</li>
-          <li style={S.li}><strong>Right to rectification</strong> — correct inaccurate data</li>
-          <li style={S.li}><strong>Right to erasure</strong> — delete your account and all associated data</li>
-          <li style={S.li}><strong>Right to restriction</strong> — limit how we process your data</li>
-          <li style={S.li}><strong>Right to data portability</strong> — receive your data in a portable format</li>
-          <li style={S.li}><strong>Right to object</strong> — object to processing based on legitimate interests</li>
-          <li style={S.li}><strong>Right to withdraw consent</strong> — at any time, where processing is based on consent</li>
-        </ul>
-        <p style={S.p}>To exercise any of these rights, email us at <strong>info@mentorgramai.com</strong>. We will respond within 30 days.</p>
-
-        <h2 style={S.h2}>8. Cookies</h2>
-        <p style={S.p}>We use essential cookies required to operate the platform (authentication tokens). We also use analytics cookies to understand how the platform is used. You can control cookie preferences via the cookie banner shown on your first visit. See our Cookie Policy for details.</p>
-
-        <h2 style={S.h2}>9. Data Security</h2>
-        <p style={S.p}>We use industry-standard security measures including HTTPS encryption, secure authentication via Supabase, and environment variable protection for all API keys. No system is 100% secure, but we take all reasonable steps to protect your data.</p>
-
-        <h2 style={S.h2}>10. International Transfers</h2>
-        <p style={S.p}>We store data primarily in the EU/UK. Where data is processed outside the UK (e.g. by Anthropic in the USA), we ensure appropriate safeguards are in place in accordance with UK GDPR Chapter V.</p>
-
-        <h2 style={S.h2}>11. Children's Privacy</h2>
-        <p style={S.p}>Our platform is not intended for children under 13. We do not knowingly collect data from children under 13. If you believe a child has provided us with personal data, please contact us immediately.</p>
-
-        <h2 style={S.h2}>12. Changes to This Policy</h2>
-        <p style={S.p}>We may update this policy periodically. We will notify you of significant changes by email or via the platform. Continued use after changes constitutes acceptance.</p>
-
-        <h2 style={S.h2}>13. Complaints</h2>
-        <p style={S.p}>If you are unhappy with how we handle your data, you have the right to lodge a complaint with the <strong>Information Commissioner's Office (ICO)</strong> at ico.org.uk or by calling 0303 123 1113.</p>
-      </div>
+    <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
+      {digits.map((d, i) => (
+        <input key={i}
+          style={{ width: "44px", height: "52px", textAlign: "center", fontSize: "22px", fontWeight: 700, borderRadius: "var(--border-radius-md)", border: d.trim() ? "1.5px solid #534AB7" : "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", outline: "none", fontFamily: "monospace", transition: "border-color 0.15s", opacity: disabled ? 0.6 : 1 }}
+          maxLength={1} value={d.trim()} inputMode="numeric" disabled={disabled}
+          onChange={e => {
+            const v = e.target.value.replace(/\D/g, "").slice(-1);
+            const newVal = digits.map((x, j) => j === i ? v : x).join("").replace(/ /g, "");
+            onChange(newVal);
+            if (v && i < 5) { const next = e.target.parentElement.children[i + 1]; if (next) next.focus(); }
+          }}
+          onKeyDown={e => {
+            if (e.key === "Backspace" && !e.target.value && i > 0) {
+              const prev = e.target.parentElement.children[i - 1];
+              if (prev) { prev.focus(); onChange(digits.map((x, j) => j === i - 1 ? "" : x).join("").replace(/ /g, "")); }
+            }
+          }}
+          onPaste={e => { const p = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6); onChange(p); e.preventDefault(); }}
+        />
+      ))}
     </div>
   );
 }
 
-// ─── Terms & Conditions ────────────────────────────────────────────────────
-export function TermsPage() {
-  return (
-    <div style={S.page}>
-      <h1 style={S.h1}>Terms & Conditions</h1>
-      <p style={S.updated}>Last updated: March 2026 · Mentorgram AI Limited</p>
-      <div style={S.card}>
+export default function AuthPage({ onLogin }) {
+  const [step, setStep] = useState("entry"); // entry | otp | reset-otp
+  const [mode, setMode] = useState("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [name, setName] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpToken, setOtpToken] = useState(""); // server-signed token
+  const [consent, setConsent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [legalModal, setLegalModal] = useState(null); // "terms" | "privacy" | null
 
-        <p style={S.p}>These Terms and Conditions ("Terms") govern your use of the Mentorgram AI platform at <strong>mentorgramai.com</strong>. By creating an account or using our platform, you agree to these Terms. Please read them carefully.</p>
+  function startTimer() {
+    setResendTimer(60);
+    const t = setInterval(() => setResendTimer(n => { if (n <= 1) { clearInterval(t); return 0; } return n - 1; }), 1000);
+  }
 
-        <h2 style={S.h2}>1. About Mentorgram AI</h2>
-        <p style={S.p}>Mentorgram AI provides AI-powered education and career guidance, UK university information, and a job listings board. We are based in the United Kingdom and operate under English law.</p>
+  // ── Step 1: Submit signup form → send OTP via Zoho ──
+  async function handleSignup() {
+    if (!name.trim() || !email.trim() || !password.trim()) { setError("Please fill in all fields"); return; }
+    if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (!consent) { setError("Please accept the Terms & Conditions and Privacy Policy"); return; }
+    setLoading(true); setError("");
+    try {
+      const token = await sendOTP(email, "signup");
+      setOtpToken(token);
+      setStep("otp");
+      setInfo(`We've sent a 6-digit code to ${email}. Check your inbox and spam folder.`);
+      startTimer();
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }
 
-        <h2 style={S.h2}>2. Eligibility</h2>
-        <p style={S.p}>You must be at least 13 years old to use this platform. By registering, you confirm you meet this requirement.</p>
+  // ── Step 2: Verify OTP → create Supabase account ──
+  async function handleVerifyOTP() {
+    if (otp.length < 6) { setError("Please enter all 6 digits"); return; }
+    setLoading(true); setError("");
+    try {
+      const data = await verifyAndLogin(email, otp, otpToken, password, name);
+      localStorage.setItem("mg_session", JSON.stringify(data.session));
+      localStorage.setItem("mg_user", JSON.stringify(data.user));
+      onLogin(data.user);
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }
 
-        <h2 style={S.h2}>3. Your Account</h2>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}>You are responsible for keeping your login credentials secure</li>
-          <li style={S.li}>You must provide accurate information when registering</li>
-          <li style={S.li}>You must not share your account with others</li>
-          <li style={S.li}>You may delete your account at any time from your Profile page</li>
-        </ul>
+  // ── Login ──
+  async function handleLogin() {
+    if (!email.trim() || !password.trim()) { setError("Please fill in all fields"); return; }
+    setLoading(true); setError("");
+    try {
+      const data = await loginUser(email, password);
+      localStorage.setItem("mg_session", JSON.stringify(data));
+      localStorage.setItem("mg_user", JSON.stringify(data.user));
+      onLogin(data.user);
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }
 
-        <h2 style={S.h2}>4. Use of the Platform</h2>
-        <p style={S.p}>You agree not to:</p>
-        <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-          <li style={S.li}>Use the platform for any unlawful purpose</li>
-          <li style={S.li}>Attempt to scrape, copy, or reverse-engineer any part of the platform</li>
-          <li style={S.li}>Submit false or misleading information</li>
-          <li style={S.li}>Harass, abuse, or harm other users</li>
-          <li style={S.li}>Attempt to gain unauthorised access to any part of the platform</li>
-        </ul>
+  // ── Forgot password: send OTP ──
+  async function handleForgot() {
+    if (!email.trim()) { setError("Please enter your email address"); return; }
+    setLoading(true); setError("");
+    try {
+      const token = await sendOTP(email, "reset");
+      setOtpToken(token);
+      setStep("reset-otp");
+      setInfo(`We've sent a reset code to ${email}.`);
+      startTimer();
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }
 
-        <h2 style={S.h2}>5. AI Mentor Disclaimer</h2>
-        <p style={S.p}>The AI Mentor provides general educational and career guidance only. It does <strong>not</strong> constitute legal, financial, immigration, or professional advice. Visa and immigration information is provided for general guidance only — always consult a qualified immigration adviser or solicitor for your specific situation. Mentorgram AI accepts no liability for decisions made based on AI-generated content.</p>
+  // ── Reset password: verify OTP + set new password ──
+  async function handleResetPassword() {
+    if (otp.length < 6) { setError("Please enter all 6 digits"); return; }
+    if (newPassword.length < 8) { setError("Password must be at least 8 characters"); return; }
+    setLoading(true); setError("");
+    try {
+      await resetPassword(email, otp, otpToken, newPassword);
+      setStep("entry"); setMode("login"); setOtp(""); setInfo("Password updated! Please sign in.");
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }
 
-        <h2 style={S.h2}>6. Job Listings</h2>
-        <p style={S.p}>Job listings are sourced from third-party providers (Indeed, Reed, Adzuna). We do not verify the accuracy of job listings and are not responsible for the content of external job adverts or the conduct of employers. We do not guarantee that any job listed offers visa sponsorship — always verify directly with the employer.</p>
+  // ── Resend OTP ──
+  async function handleResend() {
+    if (resendTimer > 0) return;
+    setLoading(true); setError(""); setInfo("");
+    try {
+      const token = await sendOTP(email, step === "otp" ? "signup" : "reset");
+      setOtpToken(token);
+      setOtp("");
+      setInfo("New code sent! Check your inbox.");
+      startTimer();
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }
 
-        <h2 style={S.h2}>7. Intellectual Property</h2>
-        <p style={S.p}>All content on the platform including the Mentorgram AI brand, design, and technology is owned by or licensed to Mentorgram AI. You may not reproduce or use our content without written permission.</p>
-
-        <h2 style={S.h2}>8. Limitation of Liability</h2>
-        <p style={S.p}>To the fullest extent permitted by law, Mentorgram AI shall not be liable for any indirect, incidental, or consequential loss arising from your use of the platform. Our total liability shall not exceed £100.</p>
-
-        <h2 style={S.h2}>9. Termination</h2>
-        <p style={S.p}>We reserve the right to suspend or terminate your account if you breach these Terms. You may terminate your account at any time from your Profile settings.</p>
-
-        <h2 style={S.h2}>10. Changes to These Terms</h2>
-        <p style={S.p}>We may update these Terms from time to time. We will notify you of material changes. Continued use of the platform after changes constitutes acceptance.</p>
-
-        <h2 style={S.h2}>11. Governing Law</h2>
-        <p style={S.p}>These Terms are governed by the laws of England and Wales. Any disputes shall be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
-
-        <h2 style={S.h2}>12. Contact</h2>
-        <p style={S.p}>For any questions about these Terms, contact us at info@mentorgramai.com.</p>
+  // ── OTP Screen ──
+  if (step === "otp" || step === "reset-otp") {
+    const isReset = step === "reset-otp";
+    return (
+      <div style={S.wrap}>
+        <div style={S.box}>
+          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            <div style={{ ...S.logo, fontSize: "26px" }}>✉</div>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 0.4rem" }}>Check your email</h1>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>Enter the 6-digit code sent to</p>
+            <p style={{ fontSize: "15px", fontWeight: 500, margin: "4px 0 0" }}>{email}</p>
+          </div>
+          <div style={S.card}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {error && <div style={S.err}>{error}</div>}
+              {info && <div style={S.ok}>{info}</div>}
+              <div>
+                <label style={{ ...S.label, textAlign: "center", display: "block", marginBottom: "14px" }}>Enter your 6-digit code</label>
+                <OTPInput value={otp} onChange={v => { setOtp(v); setError(""); }} disabled={loading} />
+              </div>
+              {isReset && (
+                <div>
+                  <label style={S.label}>New password</label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      style={{ ...S.inp, paddingRight: "44px" }}
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="At least 8 characters"
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(v => !v)}
+                      style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", padding: 0, display: "flex", alignItems: "center" }}
+                      onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
+                      onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
+                    >
+                      <EyeIcon visible={showNewPassword} />
+                    </button>
+                  </div>
+                </div>
+              )}
+              <button style={{ ...S.btn(true), opacity: loading || otp.length < 6 ? 0.6 : 1 }}
+                onClick={isReset ? handleResetPassword : handleVerifyOTP}
+                disabled={loading || otp.length < 6}>
+                {loading ? "Verifying..." : isReset ? "Reset password" : "Verify & create account"}
+              </button>
+              <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+                Didn't get a code?{" "}
+                <button onClick={handleResend} disabled={resendTimer > 0 || loading}
+                  style={{ ...S.link, opacity: resendTimer > 0 ? 0.5 : 1 }}>
+                  {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend code"}
+                </button>
+              </p>
+              <button onClick={() => { setStep("entry"); setOtp(""); setError(""); setInfo(""); }}
+                style={{ ...S.btn(false), fontSize: "13px", padding: "8px" }}>← Back</button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-// ─── Cookie Banner ─────────────────────────────────────────────────────────
-export function CookieBanner({ onAccept, onReject }) {
+  // ── Entry Screen ──
   return (
-    <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9999, padding: "1rem 1.5rem", background: "var(--color-background-primary)", borderTop: "0.5px solid var(--color-border-tertiary)", boxShadow: "0 -4px 20px rgba(0,0,0,0.1)" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: "260px" }}>
-          <p style={{ fontSize: "14px", fontWeight: 500, margin: "0 0 4px", color: "var(--color-text-primary)" }}>🍪 We use cookies</p>
-          <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
-            We use essential cookies to keep you logged in, and optional analytics cookies to improve the platform.
-            See our{" "}
-            <a href="#privacy" style={{ color: "#534AB7" }}>Privacy Policy</a> for details.
+    <div style={S.wrap}>
+      <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
+      <div style={S.box}>
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <div style={S.logo}>M</div>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 0.4rem" }}>
+            {mode === "login" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset your password"}
+          </h1>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>
+            {mode === "signup" ? "Get personalised UK job recommendations" : mode === "login" ? "Sign in to your Mentorgram account" : "We'll send you a 6-digit reset code"}
           </p>
         </div>
-        <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-          <button onClick={onReject} style={{ padding: "9px 20px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", color: "var(--color-text-secondary)", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
-            Essential only
-          </button>
-          <button onClick={onAccept} style={{ padding: "9px 20px", borderRadius: "var(--border-radius-md)", border: "none", background: "#534AB7", color: "#fff", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
-            Accept all
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-// ─── Consent Checkbox ──────────────────────────────────────────────────────
-export function ConsentCheckbox({ checked, onChange, onViewPrivacy, onViewTerms }) {
-  return (
-    <label style={{ display: "flex", gap: "10px", alignItems: "flex-start", cursor: "pointer", marginTop: "4px" }}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={e => onChange(e.target.checked)}
-        style={{ marginTop: "2px", width: "16px", height: "16px", accentColor: "#534AB7", flexShrink: 0 }}
-      />
-      <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-        I agree to the{" "}
-        <button onClick={onViewTerms} style={{ background: "none", border: "none", color: "#534AB7", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500, padding: 0 }}>
-          Terms & Conditions
-        </button>
-        {" "}and{" "}
-        <button onClick={onViewPrivacy} style={{ background: "none", border: "none", color: "#534AB7", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500, padding: 0 }}>
-          Privacy Policy
-        </button>
-        . I understand my data will be processed to provide personalised job recommendations.
-      </span>
-    </label>
-  );
-}
-
-// ─── Legal Modal ───────────────────────────────────────────────────────────
-export function LegalModal({ type, onClose }) {
-  if (!type) return null;
-
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 9999,
-        background: "rgba(0,0,0,0.55)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "1rem",
-        backdropFilter: "blur(3px)",
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: "var(--color-background-primary)",
-          borderRadius: "var(--border-radius-lg)",
-          border: "0.5px solid var(--color-border-tertiary)",
-          width: "100%", maxWidth: "680px",
-          maxHeight: "80vh",
-          display: "flex", flexDirection: "column",
-          overflow: "hidden",
-          boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
-        }}
-      >
-        {/* Header */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "1.1rem 1.4rem",
-          borderBottom: "0.5px solid var(--color-border-tertiary)",
-          flexShrink: 0,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{
-              width: "32px", height: "32px", borderRadius: "8px",
-              background: "linear-gradient(135deg, #534AB7, #1D9E75)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0,
-            }}>M</div>
-            <span style={{ fontWeight: 500, fontSize: "16px", color: "var(--color-text-primary)" }}>
-              {type === "terms" ? "Terms & Conditions" : "Privacy Policy"}
-            </span>
+        <div style={S.card}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {error && <div style={S.err}>{error}</div>}
+            {info && <div style={S.ok}>{info}</div>}
+            {mode === "signup" && (
+              <div>
+                <label style={S.label}>Full name</label>
+                <input style={S.inp} placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
+              </div>
+            )}
+            <div>
+              <label style={S.label}>Email address</label>
+              <input style={S.inp} type="email" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && (mode === "login" ? handleLogin() : mode === "signup" ? handleSignup() : handleForgot())} />
+            </div>
+            {mode !== "forgot" && (
+              <div>
+                <label style={S.label}>Password</label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    style={{ ...S.inp, paddingRight: "44px" }}
+                    type={showPassword ? "text" : "password"}
+                    placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && (mode === "login" ? handleLogin() : handleSignup())}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", padding: 0, display: "flex", alignItems: "center" }}
+                    onMouseEnter={e => e.currentTarget.style.color = "var(--color-text-primary)"}
+                    onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
+                  >
+                    <EyeIcon visible={showPassword} />
+                  </button>
+                </div>
+              </div>
+            )}
+            {mode === "signup" && (
+              <ConsentCheckbox checked={consent} onChange={setConsent}
+                onViewPrivacy={() => setLegalModal("privacy")}
+                onViewTerms={() => setLegalModal("terms")} />
+            )}
+            <button style={{ ...S.btn(true), opacity: loading ? 0.7 : 1, marginTop: "4px" }}
+              onClick={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgot}
+              disabled={loading}>
+              {loading ? "Please wait..." : mode === "login" ? "Sign in" : mode === "signup" ? "Create account →" : "Send reset code"}
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: "var(--color-background-secondary)",
-              border: "0.5px solid var(--color-border-secondary)",
-              borderRadius: "var(--border-radius-md)",
-              width: "32px", height: "32px",
-              cursor: "pointer", display: "flex", alignItems: "center",
-              justifyContent: "center", flexShrink: 0, color: "var(--color-text-secondary)",
-              fontSize: "18px", lineHeight: 1,
-            }}
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
 
-        {/* Scrollable content */}
-        <div style={{ overflowY: "auto", flex: 1, padding: "1.4rem" }}>
-          {type === "terms" ? <TermsPage /> : <PrivacyPage />}
-        </div>
-
-        {/* Footer */}
-        <div style={{
-          padding: "0.9rem 1.4rem",
-          borderTop: "0.5px solid var(--color-border-tertiary)",
-          display: "flex", justifyContent: "flex-end",
-          flexShrink: 0,
-        }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: "9px 24px",
-              borderRadius: "var(--border-radius-md)",
-              background: "#534AB7", color: "#fff",
-              border: "none", fontSize: "14px", fontWeight: 500,
-              cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            Close
-          </button>
+          <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "1.25rem", paddingTop: "1.25rem", display: "flex", flexDirection: "column", gap: "10px", textAlign: "center" }}>
+            {mode === "login" && (<>
+              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+                Don't have an account? <button onClick={() => { setMode("signup"); setError(""); setInfo(""); }} style={S.link}>Sign up free</button>
+              </p>
+              <button onClick={() => { setMode("forgot"); setError(""); setInfo(""); }}
+                style={{ background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontFamily: "inherit", fontSize: "13px" }}>
+                Forgot password?
+              </button>
+            </>)}
+            {mode === "signup" && (
+              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+                Already have an account? <button onClick={() => { setMode("login"); setError(""); setInfo(""); }} style={S.link}>Sign in</button>
+              </p>
+            )}
+            {mode === "forgot" && (
+              <button onClick={() => { setMode("login"); setError(""); setInfo(""); }} style={S.link}>← Back to sign in</button>
+            )}
+          </div>
         </div>
       </div>
     </div>
