@@ -94,6 +94,8 @@ const S = {
     width: "72px", height: "72px",
     margin: "0 auto 1.4rem",
     display: "block",
+    borderRadius: "22%",
+    objectFit: "cover",
   },
   card: {
     background: "var(--color-background-primary)",
