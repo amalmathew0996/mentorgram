@@ -348,7 +348,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Filter:</span>
         {VISA_TYPES.map(v => (
           <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v
-            ? (v === "Visa Sponsorship" ? "#FF4500" : v === "No Sponsorship Info" ? "#888" : "#1A3FA8")
+            ? (v === "Visa Sponsorship" ? "#16A34A" : v === "No Sponsorship Info" ? "#888" : "#1A3FA8")
             : "var(--color-background-primary)" }}
             onClick={() => setVisaType(v)}>{v}</button>
         ))}
@@ -412,7 +412,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
                   <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
                 </div>
                 {j.sponsorship === true
-                  ? <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"rgba(255,69,0,0.15)", color:"#FF4500", whiteSpace:"nowrap" }}>✓ Sponsorship</span>
+                  ? <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"rgba(22,163,74,0.15)", color:"#16A34A", whiteSpace:"nowrap" }}>✓ Sponsorship</span>
                   : <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"var(--color-background-secondary)", color:"var(--color-text-secondary)", whiteSpace:"nowrap" }}>No info</span>
                 }
               </div>
@@ -794,7 +794,7 @@ export default function Mentorgram() {
                 Your AI Mentor for<br /><span className="shimmer-text">Education & UK Careers</span>
               </h1>
               <p className="hero-sub" style={{ fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.8, margin: "0 0 2.25rem", maxWidth: "560px", marginLeft: "auto", marginRight: "auto" }}>
-                Mentorgram guides students worldwide from education to employment — with personalised AI mentoring, UK university pathways, and visa-sponsored job opportunities.
+                Mentorgram guides students from education to employment across the UK, Australia, Germany, Finland and Austria — with AI mentoring, university pathways, and visa-sponsored job opportunities.
               </p>
               <div className="hero-btns" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
                 <button className="hero-btn-primary" style={S.btnPrimary} onClick={() => navTo("AI Mentor")}>Chat with AI Mentor</button>
@@ -864,30 +864,33 @@ export default function Mentorgram() {
       );
 
       case "AI Mentor": return (
-        <div style={{ maxWidth: "760px", margin: "0 auto", padding: "1.5rem" }}>
-          <h2 style={{ ...S.sectionTitle, marginBottom: "0.25rem" }}>AI Mentor</h2>
-          <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Ask me anything about education, universities, careers, or UK jobs.</p>
-          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", display: "flex", flexDirection: "column", height: "520px" }}>
-            <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {messages.map((m, i) => (
-                <div key={i} style={m.role === "user" ? { alignSelf: "flex-end", background: "#1A3FA8", color: "#fff", padding: "10px 14px", borderRadius: "16px 16px 4px 16px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 } : { alignSelf: "flex-start", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", padding: "10px 14px", borderRadius: "16px 16px 16px 4px", maxWidth: "75%", fontSize: "14px", lineHeight: 1.6 }}>{m.content}</div>
+        <div style={{ maxWidth: "560px", margin: "0 auto", padding: "4rem 1.5rem", textAlign: "center" }}>
+          <div style={{ fontSize: "56px", marginBottom: "1.5rem" }}>🤖</div>
+          <h2 style={{ fontSize: "1.8rem", fontWeight: 500, margin: "0 0 0.75rem", color: "var(--color-text-primary)" }}>AI Mentor</h2>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: "16px", lineHeight: 1.7, margin: "0 0 2rem" }}>
+            We're building something powerful — a personalised AI mentor that guides you through education pathways, career decisions, and UK visa-sponsored job opportunities.
+          </p>
+          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "1.5rem" }}>
+            <p style={{ fontSize: "13px", fontWeight: 600, color: "#16A34A", margin: "0 0 0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>✦ Coming Soon</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", textAlign: "left" }}>
+              {["Personalised career roadmaps for your background", "UK, Australia, Germany, Finland & Austria pathways", "Visa guidance and sponsorship job matching", "University application support (UCAS & international)", "Live industry demand forecasts and salary insights"].map((f, i) => (
+                <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                  <span style={{ color: "#1A3FA8", fontWeight: 600, flexShrink: 0 }}>→</span>
+                  <span style={{ fontSize: "14px", color: "var(--color-text-primary)" }}>{f}</span>
+                </div>
               ))}
-              {chatLoading && <div style={{ alignSelf: "flex-start", background: "var(--color-background-secondary)", padding: "10px 14px", borderRadius: "16px 16px 16px 4px", fontSize: "14px", color: "var(--color-text-secondary)" }}>Thinking...</div>}
-              <div ref={messagesEndRef} />
-            </div>
-            <div style={{ display: "flex", gap: "8px", padding: "1rem", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-              <input style={{ ...S.input, flex: 1 }} placeholder="Ask about universities, careers, visas..." value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} />
-              <button style={{ padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "14px", cursor: "pointer", fontWeight: 500, fontFamily: "inherit" }} onClick={sendMessage} disabled={chatLoading}>Send</button>
             </div>
           </div>
-          <div style={{ display: "flex", gap: "8px", marginTop: "1rem", flexWrap: "wrap" }}>
-            {["How do I apply to UK universities?", "What jobs offer visa sponsorship?", "Which A-levels should I choose?", "How does the Skilled Worker visa work?"].map(q => (
-              <button key={q} style={{ ...S.filterBtn(false), fontSize: "12px" }} onClick={() => setChatInput(q)}>{q}</button>
-            ))}
-          </div>
+          <p style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>
+            Want early access?{" "}
+            <button onClick={() => navTo("Contact")} style={{ background: "none", border: "none", color: "#1A3FA8", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
+              Get in touch
+            </button>
+          </p>
         </div>
       );
 
+      
       case "Education Paths": return (
         <div style={S.section}>
           <h2 style={S.sectionTitle}>Education pathways</h2>
@@ -972,7 +975,18 @@ export default function Mentorgram() {
           <span style={{ fontSize: "17px", fontWeight: 600, color: "var(--color-text-primary)", letterSpacing: "-0.01em" }}>Mentorgram</span>
         </div>
         <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-          {NAV_LINKS.filter(l => l !== "My Profile").map(l => <button key={l} className="nav-btn" style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit" }} onClick={() => navTo(l)}>{l}</button>)}
+          {NAV_LINKS.filter(l => l !== "My Profile").map(l => {
+            const isDisabled = l === "AI Mentor";
+            return (
+              <button key={l} className="nav-btn"
+                style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: isDisabled ? "default" : "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: isDisabled ? "var(--color-border-secondary)" : activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", opacity: isDisabled ? 0.45 : 1 }}
+                onClick={() => !isDisabled && navTo(l)}
+                title={isDisabled ? "Coming soon" : ""}
+              >
+                {l}{isDisabled && <span style={{ fontSize: "9px", background: "rgba(128,128,128,0.15)", color: "var(--color-text-secondary)", padding: "1px 5px", borderRadius: "4px", marginLeft: "4px", verticalAlign: "middle" }}>Soon</span>}
+              </button>
+            );
+          })}
           {user ? (
             <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "34px", height: "34px", borderRadius: "50%", background: activePage === "My Profile" ? "#1A3FA8" : "linear-gradient(135deg,#1A3FA8,#FF4500)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
               {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
@@ -988,7 +1002,17 @@ export default function Mentorgram() {
         </button>
       </nav>
       <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
-        {NAV_LINKS.map(l => <button key={l} style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: activePage === l ? 500 : 400 }} onClick={() => navTo(l)}>{l}</button>)}
+        {NAV_LINKS.map(l => {
+          const isDisabled = l === "AI Mentor";
+          return (
+            <button key={l}
+              style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: isDisabled ? "default" : "pointer", fontSize: "15px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: isDisabled ? "var(--color-border-secondary)" : activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: activePage === l ? 500 : 400, opacity: isDisabled ? 0.5 : 1 }}
+              onClick={() => !isDisabled && navTo(l)}
+            >
+              {l}{isDisabled && <span style={{ fontSize: "10px", marginLeft: "6px", color: "var(--color-text-secondary)" }}>— Coming soon</span>}
+            </button>
+          );
+        })}
       </div>
       <main onClick={() => mobileMenu && setMobileMenu(false)} style={{ paddingBottom: cookieConsent ? 0 : "80px" }}>
         <style>{`
@@ -1006,8 +1030,27 @@ export default function Mentorgram() {
         </div>
       </main>
       <footer style={S.footer}>
+        {/* Social links */}
+        <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginBottom: "14px" }}>
+          <a href="https://www.linkedin.com/company/mentorgramai" target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-text-secondary)", textDecoration: "none", fontSize: "13px", fontWeight: 500, transition: "color 0.15s" }}
+            onMouseEnter={e => e.currentTarget.style.color = "#0A66C2"}
+            onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            LinkedIn
+          </a>
+          <a href="https://www.instagram.com/mentorgramai" target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-text-secondary)", textDecoration: "none", fontSize: "13px", fontWeight: 500, transition: "color 0.15s" }}
+            onMouseEnter={e => e.currentTarget.style.color = "#E1306C"}
+            onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            Instagram
+          </a>
+        </div>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>© 2025 Mentorgram AI · info@mentorgramai.com · mentorgramai.com</p>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "6px 0 0" }}>Empowering students worldwide to study, work, and thrive in the UK 🇬🇧</p>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: "6px 0 0" }}>Guiding students to study, work and thrive in 🇬🇧 UK · 🇦🇺 Australia · 🇩🇪 Germany · 🇫🇮 Finland · 🇦🇹 Austria</p>
         <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "1rem", flexWrap: "wrap" }}>
           {["Privacy Policy", "Terms & Conditions", "Contact"].map(l => (
             <button key={l} onClick={() => navTo(l)} style={{ background: "none", border: "none", color: "var(--color-text-secondary)", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>{l}</button>
