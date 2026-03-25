@@ -93,7 +93,7 @@ const S = {
   grid3: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" },
   grid2: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" },
   card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" },
-  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "#E8EDFC" : c === "teal" ? "#FFF0E8" : "#E6F1FB", color: c === "purple" ? "#0D2478" : c === "teal" ? "#AA2800" : "#0C447C" }),
+  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "rgba(26,63,168,0.15)" : c === "teal" ? "rgba(255,69,0,0.15)" : "rgba(26,63,168,0.1)", color: c === "purple" ? "#1A3FA8" : c === "teal" ? "#FF4500" : "#1A3FA8" }),
   input: { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
   footer: { borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "2rem 1.5rem", textAlign: "center" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", margin: "2rem 0" },
@@ -206,10 +206,10 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
           The role is in the <strong>{job.sector || "General"}</strong> sector and eligible for a <strong>Skilled Worker visa</strong>. Click Apply for full details and requirements.
         </p>
       </div>
-      <div style={{ background: "#E8EDFC", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#0D2478" }}>🛂 Visa sponsorship info</h2>
+      <div style={{ background: "rgba(26,63,168,0.1)", border: "0.5px solid rgba(26,63,168,0.2)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "var(--color-text-primary)" }}>🛂 Visa sponsorship info</h2>
         {["This employer is registered as a UK visa sponsor","You may be eligible for a Skilled Worker or Health & Care visa","Minimum salary thresholds apply (usually £26,200+)","Your employer will assign a Certificate of Sponsorship (CoS)"].map((item, i) => (
-          <p key={i} style={{ fontSize: "14px", color: "#0D2478", margin: "0 0 4px", display: "flex", gap: "8px" }}><span>✓</span><span>{item}</span></p>
+          <p key={i} style={{ fontSize: "14px", color: "var(--color-text-primary)", margin: "0 0 4px", display: "flex", gap: "8px" }}><span>✓</span><span>{item}</span></p>
         ))}
       </div>
       <div style={{ ...S.card, marginBottom: "1.5rem" }}>
@@ -408,11 +408,11 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
               onClick={() => { setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ flex: 1, marginRight: "10px" }}>
-                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px", color: "#1A3FA8" }}>{j.title}</p>
+                  <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px", color: "var(--color-text-primary)" }}>{j.title}</p>
                   <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p>
                 </div>
                 {j.sponsorship === true
-                  ? <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"#FFF0E8", color:"#AA2800", whiteSpace:"nowrap" }}>✓ Sponsorship</span>
+                  ? <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"rgba(255,69,0,0.15)", color:"#FF4500", whiteSpace:"nowrap" }}>✓ Sponsorship</span>
                   : <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"var(--color-background-secondary)", color:"var(--color-text-secondary)", whiteSpace:"nowrap" }}>No info</span>
                 }
               </div>
@@ -423,7 +423,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
                 {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ fontWeight: 500, color: "#0D2478", margin: 0, fontSize: "14px" }}>{j.salary}</p>
+                <p style={{ fontWeight: 500, color: "var(--color-text-primary)", margin: 0, fontSize: "14px", fontWeight: 600 }}>{j.salary}</p>
                 <div style={{ display: "flex", gap: "6px" }} onClick={e => e.stopPropagation()}>
                   <ShareButton job={j} />
                   <button onClick={e => { e.stopPropagation(); setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}
@@ -817,7 +817,7 @@ export default function Mentorgram() {
               <h2 style={S.sectionTitle}>Join the waitlist</h2>
               <p style={S.sectionSub}>Be among the first to access Mentorgram's full platform.</p>
               {waitlistDone ? (
-                <div style={{ ...S.card, background: "#FFF0E8", border: "0.5px solid #FF8C5A" }}><p style={{ color: "#AA2800", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p></div>
+                <div style={{ ...S.card, background: "rgba(255,69,0,0.1)", border: "0.5px solid rgba(255,69,0,0.3)" }}><p style={{ color: "#FF4500", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p></div>
               ) : (
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input style={{ ...S.input, flex: 1 }} type="email" placeholder="Enter your email address" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && waitlistEmail && setWaitlistDone(true)} />
@@ -886,7 +886,7 @@ export default function Mentorgram() {
                   {[["UK entry",u.entry],["International",u.intl],["Scholarships",u.scholarships]].map(([l,v]) => (
                     <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
                       <span style={{ color: "var(--color-text-secondary)" }}>{l}</span>
-                      <span style={l==="Scholarships"?{color:"#0D2478"}:{}}>{v}</span>
+                      <span style={l==="Scholarships"?{color:"#1A3FA8"}:{}}>{v}</span>
                     </div>
                   ))}
                 </div>
