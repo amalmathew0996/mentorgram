@@ -6,7 +6,7 @@ const PER_PAGE = 20;
 
 const S = {
   card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" },
-  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "#E8EDFC" : c === "teal" ? "#FFF0E8" : c === "blue" ? "#E3F2FD" : c === "green" ? "#E8F5E9" : "#F5F5F5", color: c === "purple" ? "#0D2478" : c === "teal" ? "#AA2800" : c === "blue" ? "#0D47A1" : c === "green" ? "#2E7D32" : "#444" }),
+  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "rgba(26,63,168,0.12)" : c === "teal" ? "rgba(255,69,0,0.1)" : c === "blue" ? "#E3F2FD" : c === "green" ? "#E8F5E9" : "#F5F5F5", color: c === "purple" ? "#1A3FA8" : c === "teal" ? "#FF4500" : c === "blue" ? "#0D47A1" : c === "green" ? "#2E7D32" : "#444" }),
   inp: { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
   pill: (a, color) => ({ padding: "6px 16px", borderRadius: "20px", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? (color || "#1A3FA8") : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400, transition: "all 0.15s" }),
   btn: (primary) => ({ padding: "10px 22px", borderRadius: "var(--border-radius-md)", background: primary ? "#1A3FA8" : "transparent", color: primary ? "#fff" : "var(--color-text-primary)", border: primary ? "none" : "0.5px solid var(--color-border-secondary)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }),
@@ -94,10 +94,10 @@ function SponsorDetail({ sponsor, onBack }) {
         ))}
       </div>
 
-      <div style={{ background: "#E8EDFC", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "#0D2478" }}>📋 How to get sponsored here</h2>
+      <div style={{ background: "rgba(26,63,168,0.12)", border: "0.5px solid #AFA9EC", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "var(--color-text-primary)" }}>📋 How to get sponsored here</h2>
         {["Find and apply for a suitable role at this organisation", "State in your application that you require visa sponsorship", "If offered the job, they assign you a Certificate of Sponsorship (CoS)", "Apply for your Skilled Worker visa using the CoS reference number", "Home Office decision: typically 3–8 weeks from application"].map((step, i) => (
-          <p key={i} style={{ fontSize: "14px", color: "#0D2478", margin: "0 0 8px", display: "flex", gap: "10px", lineHeight: 1.6 }}>
+          <p key={i} style={{ fontSize: "14px", color: "var(--color-text-primary)", margin: "0 0 8px", display: "flex", gap: "10px", lineHeight: 1.6 }}>
             <span style={{ background: "#1A3FA8", color: "#fff", borderRadius: "50%", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
             <span>{step}</span>
           </p>
