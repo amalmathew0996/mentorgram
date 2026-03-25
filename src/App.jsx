@@ -934,7 +934,7 @@ export default function Mentorgram() {
       `}</style>
       <nav style={{ background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer" }} onClick={() => navTo("Home")}>
-          <img src="/logo.png" alt="Mentorgram" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
+          <img src="/logo.png" alt="Mentorgram" style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "22%", display: "block" }} />
           <span style={{ fontSize: "17px", fontWeight: 600, color: "var(--color-text-primary)", letterSpacing: "-0.01em" }}>Mentorgram</span>
         </div>
         <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
