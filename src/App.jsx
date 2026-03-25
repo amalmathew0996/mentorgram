@@ -39,44 +39,44 @@ const FEATURES = [
 // These are 100% real verified jobs fetched from Indeed
 // The live API fetches 500+ more on page load
 const FALLBACK_JOBS = [
-  { title: "ICT Senior Networking & Security Engineer", company: "Great Ormond Street Hospital", location: "London", salary: "\u00a356,276\u2013\u00a363,176/yr", sector: "Technology", sponsorship: true, posted: "24 Mar 2026", url: "https://to.indeed.com/aa2ckl2qbytx" },
-  { title: "Campus Software Engineer 2026", company: "American Express", location: "London", salary: "\u00a348,300\u2013\u00a380,000/yr", sector: "Technology", sponsorship: true, posted: "23 Mar 2026", url: "https://to.indeed.com/aa4mpzx6gtsj" },
-  { title: "Staff Software Engineer AI/ML", company: "OpenAsset", location: "London", salary: "Competitive", sector: "Technology", sponsorship: false, posted: "2 Mar 2026", url: "https://to.indeed.com/aakgzmdscfyl" },
-  { title: "Senior Software Engineer", company: "SKEDULO", location: "London", salary: "\u00a390,000\u2013\u00a3105,000/yr", sector: "Technology", sponsorship: false, posted: "4 Mar 2026", url: "https://to.indeed.com/aalcxlf2xgy2" },
-  { title: "CX/UX Designer", company: "Wolters Kluwer", location: "Kingston upon Thames", salary: "\u00a352,000\u2013\u00a374,750/yr", sector: "Technology", sponsorship: false, posted: "2 Mar 2026", url: "https://to.indeed.com/aapq46llchjf" },
-  { title: "Software and Controls Engineer", company: "Warburtons", location: "Enfield", salary: "Up to \u00a370,000/yr", sector: "Technology", sponsorship: false, posted: "12 Jan 2026", url: "https://to.indeed.com/aahwjyjkk774" },
-  { title: "Systems Specialist Business Intelligence", company: "Transport for London", location: "Stratford", salary: "\u00a363,000/yr", sector: "AI & Data", sponsorship: false, posted: "17 Mar 2026", url: "https://to.indeed.com/aahdcvnk444l" },
-  { title: "IT Engineer", company: "ASPECT Studios", location: "London", salary: "\u00a330,500\u2013\u00a354,500/yr", sector: "Technology", sponsorship: false, posted: "20 Mar 2026", url: "https://to.indeed.com/aaxnkwvwwxj2" },
-  { title: "Sales Development Representative SaaS", company: "Research Grid Ltd", location: "London", salary: "Up to \u00a345,000/yr", sector: "Business", sponsorship: false, posted: "19 Mar 2026", url: "https://to.indeed.com/aan8sxxk6lnk" },
-  { title: "Clinical Support Worker", company: "NHS", location: "Sutton-In-Ashfield", salary: "\u00a324,937\u2013\u00a326,598/yr", sector: "Healthcare", sponsorship: true, posted: "19 Mar 2026", url: "https://to.indeed.com/aanfm7p9nhhw" },
-  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Basingstoke", salary: "Up to \u00a337.50/hr", sector: "Healthcare", sponsorship: true, posted: "18 Mar 2026", url: "https://to.indeed.com/aavpdrxz979r" },
-  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Maidstone", salary: "Up to \u00a340/hr", sector: "Healthcare", sponsorship: true, posted: "20 Mar 2026", url: "https://to.indeed.com/aats4fkncn7c" },
-  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Crawley", salary: "From \u00a328/hr", sector: "Healthcare", sponsorship: true, posted: "17 Mar 2026", url: "https://to.indeed.com/aaxsgwrwx69x" },
-  { title: "Registered Nurse", company: "Leonard Cheshire", location: "Penzance", salary: "\u00a322.20/hr", sector: "Healthcare", sponsorship: false, posted: "12 Mar 2026", url: "https://to.indeed.com/aajzp4l6ck8t" },
-  { title: "Registered Nurse RGN", company: "Roseberry Care Centres", location: "Morpeth", salary: "\u00a320.50/hr", sector: "Healthcare", sponsorship: false, posted: "19 Mar 2026", url: "https://to.indeed.com/aab8y4vkxy98" },
-  { title: "Registered Nurse", company: "St Wilfrid's Hospice", location: "Chichester", salary: "\u00a331,216\u2013\u00a337,861/yr", sector: "Healthcare", sponsorship: false, posted: "18 Mar 2026", url: "https://to.indeed.com/aa6r642hsmg2" },
-  { title: "Registered Nurse", company: "Advinia Healthcare", location: "Falkirk", salary: "\u00a321.95/hr", sector: "Healthcare", sponsorship: false, posted: "25 Feb 2026", url: "https://to.indeed.com/aaypb99krk9c" },
-  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Heathfield", salary: "From \u00a328/hr", sector: "Healthcare", sponsorship: false, posted: "17 Mar 2026", url: "https://to.indeed.com/aalnvznnf2sn" },
-  { title: "Process Engineer", company: "Drive Medical", location: "Halifax", salary: "\u00a335,000\u2013\u00a345,000/yr", sector: "Engineering", sponsorship: false, posted: "20 Jan 2026", url: "https://to.indeed.com/aaslyktl9288" },
-  { title: "Manufacturing Engineer", company: "DMM Engineering", location: "Caernarfon", salary: "\u00a337,000\u2013\u00a339,000/yr", sector: "Engineering", sponsorship: false, posted: "13 Mar 2026", url: "https://to.indeed.com/aajsdp76xzwh" },
-  { title: "Manufacturing Engineer", company: "Rubicon People Partnership", location: "Lymington", salary: "\u00a345,000\u2013\u00a355,000/yr", sector: "Engineering", sponsorship: false, posted: "19 Mar 2026", url: "https://to.indeed.com/aajc8m96x2zv" },
-  { title: "Project Engineer", company: "SF Engineering Ltd", location: "Saint Ives", salary: "\u00a338,000\u2013\u00a350,000/yr", sector: "Engineering", sponsorship: false, posted: "24 Mar 2026", url: "https://to.indeed.com/aaychvplxtwn" },
-  { title: "Manufacturing Engineer", company: "Staffbase Recruitment", location: "Derby", salary: "\u00a338,000\u2013\u00a340,000/yr", sector: "Engineering", sponsorship: false, posted: "24 Feb 2026", url: "https://to.indeed.com/aa7txg8vmss4" },
-  { title: "Multi Skilled Engineer", company: "Reed Recruitment", location: "Antrim", salary: "\u00a320\u2013\u00a330/hr", sector: "Engineering", sponsorship: false, posted: "20 Mar 2026", url: "https://to.indeed.com/aabzmtlmh8rp" },
-  { title: "Data Science Lead", company: "QBE Insurance", location: "London", salary: "\u00a357,600\u2013\u00a374,600/yr", sector: "AI & Data", sponsorship: true, posted: "6 Jan 2026", url: "https://to.indeed.com/aah82lc9gw48" },
-  { title: "Junior Data Analyst", company: "EE", location: "London", salary: "\u00a339,250\u2013\u00a349,250/yr", sector: "AI & Data", sponsorship: false, posted: "18 Mar 2026", url: "https://to.indeed.com/aaxmh4zh7kts" },
-  { title: "Junior Data Analyst", company: "Climate Policy Initiative", location: "London", salary: "\u00a332,000\u2013\u00a340,000/yr", sector: "AI & Data", sponsorship: false, posted: "23 Mar 2026", url: "https://to.indeed.com/aa9mp4m24hry" },
-  { title: "Data Analyst", company: "LexisNexis Risk Solutions", location: "London", salary: "\u00a339,000\u2013\u00a347,000/yr", sector: "AI & Data", sponsorship: false, posted: "27 Feb 2026", url: "https://to.indeed.com/aa9trwg4nnyv" },
-  { title: "Associate Data Scientist", company: "Sainsbury's", location: "London", salary: "\u00a355,000\u2013\u00a378,000/yr", sector: "AI & Data", sponsorship: false, posted: "18 Mar 2026", url: "https://to.indeed.com/aahqn2jzw7wr" },
-  { title: "Machine Learning Intern", company: "Deliveroo", location: "London", salary: "Competitive", sector: "AI & Data", sponsorship: false, posted: "5 Mar 2026", url: "https://to.indeed.com/aa9c4kspdpsp" },
-  { title: "Clinical Homecare Nurse", company: "Pharmaxo", location: "London", salary: "\u00a335,000\u2013\u00a338,000/yr", sector: "Healthcare", sponsorship: true, posted: "24 Feb 2026", url: "https://to.indeed.com/aaddgg6snrfh" },
-  { title: "Complex Community Nurse", company: "Advantage Healthcare", location: "Croydon", salary: "\u00a343,950/yr", sector: "Healthcare", sponsorship: true, posted: "18 Mar 2026", url: "https://to.indeed.com/aaqwvz8xsc9y" },
-  { title: "Senior Staff Nurse", company: "St John & St Elizabeth Hospital", location: "London", salary: "\u00a335,750\u2013\u00a340,375/yr", sector: "Healthcare", sponsorship: true, posted: "12 Mar 2026", url: "https://to.indeed.com/aat626kkfq9g" },
-  { title: "NHS 111 Clinical Advisor Band 6", company: "Integrated Care Group", location: "Barking", salary: "\u00a321\u2013\u00a344/hr", sector: "Healthcare", sponsorship: true, posted: "20 Mar 2026", url: "https://to.indeed.com/aa6q2qhx6s47" },
-  { title: "Associate Dentist Visa Sponsorship", company: "MedMatch Group", location: "London", salary: "\u00a3140,000\u2013\u00a3160,000/yr", sector: "Healthcare", sponsorship: true, posted: "1 Nov 2025", url: "https://to.indeed.com/aa9lvwhlyw8c" },
-  { title: "Lead Veterinary Surgeon", company: "Medivet Group", location: "London", salary: "Up to \u00a380,000/yr", sector: "Healthcare", sponsorship: true, posted: "29 Sep 2025", url: "https://to.indeed.com/aayn69cms2xy" },
-  { title: "Software Engineer Backend", company: "Duffel", location: "London", salary: "Competitive", sector: "Technology", sponsorship: true, posted: "10 Mar 2026", url: "https://to.indeed.com/aanddsw9z6s7" },
-  { title: "kdb+ Developer Sponsorship Available", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", sponsorship: true, posted: "18 Mar 2026", url: "https://to.indeed.com/aaqklnbjq422" }
+  { title: "ICT Senior Networking & Security Engineer", company: "Great Ormond Street Hospital", location: "London", salary: "\u00a356,276\u2013\u00a363,176/yr", sector: "Technology", sponsorship: true, posted: "24 Mar 2026", url: "https://to.indeed.com/aa2ckl2qbytx", source: "indeed" },
+  { title: "Campus Software Engineer 2026", company: "American Express", location: "London", salary: "\u00a348,300\u2013\u00a380,000/yr", sector: "Technology", sponsorship: true, posted: "23 Mar 2026", url: "https://to.indeed.com/aa4mpzx6gtsj", source: "indeed" },
+  { title: "Staff Software Engineer AI/ML", company: "OpenAsset", location: "London", salary: "Competitive", sector: "Technology", sponsorship: false, posted: "2 Mar 2026", url: "https://to.indeed.com/aakgzmdscfyl", source: "indeed" },
+  { title: "Senior Software Engineer", company: "SKEDULO", location: "London", salary: "\u00a390,000\u2013\u00a3105,000/yr", sector: "Technology", sponsorship: false, posted: "4 Mar 2026", url: "https://to.indeed.com/aalcxlf2xgy2", source: "indeed" },
+  { title: "CX/UX Designer", company: "Wolters Kluwer", location: "Kingston upon Thames", salary: "\u00a352,000\u2013\u00a374,750/yr", sector: "Technology", sponsorship: false, posted: "2 Mar 2026", url: "https://to.indeed.com/aapq46llchjf", source: "indeed" },
+  { title: "Software and Controls Engineer", company: "Warburtons", location: "Enfield", salary: "Up to \u00a370,000/yr", sector: "Technology", sponsorship: false, posted: "12 Jan 2026", url: "https://to.indeed.com/aahwjyjkk774", source: "indeed" },
+  { title: "Systems Specialist Business Intelligence", company: "Transport for London", location: "Stratford", salary: "\u00a363,000/yr", sector: "AI & Data", sponsorship: false, posted: "17 Mar 2026", url: "https://to.indeed.com/aahdcvnk444l", source: "indeed" },
+  { title: "IT Engineer", company: "ASPECT Studios", location: "London", salary: "\u00a330,500\u2013\u00a354,500/yr", sector: "Technology", sponsorship: false, posted: "20 Mar 2026", url: "https://to.indeed.com/aaxnkwvwwxj2", source: "indeed" },
+  { title: "Sales Development Representative SaaS", company: "Research Grid Ltd", location: "London", salary: "Up to \u00a345,000/yr", sector: "Business", sponsorship: false, posted: "19 Mar 2026", url: "https://to.indeed.com/aan8sxxk6lnk", source: "indeed" },
+  { title: "Clinical Support Worker", company: "NHS", location: "Sutton-In-Ashfield", salary: "\u00a324,937\u2013\u00a326,598/yr", sector: "Healthcare", sponsorship: true, posted: "19 Mar 2026", url: "https://to.indeed.com/aanfm7p9nhhw", source: "indeed" },
+  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Basingstoke", salary: "Up to \u00a337.50/hr", sector: "Healthcare", sponsorship: true, posted: "18 Mar 2026", url: "https://to.indeed.com/aavpdrxz979r", source: "indeed" },
+  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Maidstone", salary: "Up to \u00a340/hr", sector: "Healthcare", sponsorship: true, posted: "20 Mar 2026", url: "https://to.indeed.com/aats4fkncn7c", source: "indeed" },
+  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Crawley", salary: "From \u00a328/hr", sector: "Healthcare", sponsorship: true, posted: "17 Mar 2026", url: "https://to.indeed.com/aaxsgwrwx69x", source: "indeed" },
+  { title: "Registered Nurse", company: "Leonard Cheshire", location: "Penzance", salary: "\u00a322.20/hr", sector: "Healthcare", sponsorship: false, posted: "12 Mar 2026", url: "https://to.indeed.com/aajzp4l6ck8t", source: "indeed" },
+  { title: "Registered Nurse RGN", company: "Roseberry Care Centres", location: "Morpeth", salary: "\u00a320.50/hr", sector: "Healthcare", sponsorship: false, posted: "19 Mar 2026", url: "https://to.indeed.com/aab8y4vkxy98", source: "indeed" },
+  { title: "Registered Nurse", company: "St Wilfrid's Hospice", location: "Chichester", salary: "\u00a331,216\u2013\u00a337,861/yr", sector: "Healthcare", sponsorship: false, posted: "18 Mar 2026", url: "https://to.indeed.com/aa6r642hsmg2", source: "indeed" },
+  { title: "Registered Nurse", company: "Advinia Healthcare", location: "Falkirk", salary: "\u00a321.95/hr", sector: "Healthcare", sponsorship: false, posted: "25 Feb 2026", url: "https://to.indeed.com/aaypb99krk9c", source: "indeed" },
+  { title: "Registered Nurse", company: "Unity Care Solutions", location: "Heathfield", salary: "From \u00a328/hr", sector: "Healthcare", sponsorship: false, posted: "17 Mar 2026", url: "https://to.indeed.com/aalnvznnf2sn", source: "indeed" },
+  { title: "Process Engineer", company: "Drive Medical", location: "Halifax", salary: "\u00a335,000\u2013\u00a345,000/yr", sector: "Engineering", sponsorship: false, posted: "20 Jan 2026", url: "https://to.indeed.com/aaslyktl9288", source: "indeed" },
+  { title: "Manufacturing Engineer", company: "DMM Engineering", location: "Caernarfon", salary: "\u00a337,000\u2013\u00a339,000/yr", sector: "Engineering", sponsorship: false, posted: "13 Mar 2026", url: "https://to.indeed.com/aajsdp76xzwh", source: "indeed" },
+  { title: "Manufacturing Engineer", company: "Rubicon People Partnership", location: "Lymington", salary: "\u00a345,000\u2013\u00a355,000/yr", sector: "Engineering", sponsorship: false, posted: "19 Mar 2026", url: "https://to.indeed.com/aajc8m96x2zv", source: "indeed" },
+  { title: "Project Engineer", company: "SF Engineering Ltd", location: "Saint Ives", salary: "\u00a338,000\u2013\u00a350,000/yr", sector: "Engineering", sponsorship: false, posted: "24 Mar 2026", url: "https://to.indeed.com/aaychvplxtwn", source: "indeed" },
+  { title: "Manufacturing Engineer", company: "Staffbase Recruitment", location: "Derby", salary: "\u00a338,000\u2013\u00a340,000/yr", sector: "Engineering", sponsorship: false, posted: "24 Feb 2026", url: "https://to.indeed.com/aa7txg8vmss4", source: "indeed" },
+  { title: "Multi Skilled Engineer", company: "Reed Recruitment", location: "Antrim", salary: "\u00a320\u2013\u00a330/hr", sector: "Engineering", sponsorship: false, posted: "20 Mar 2026", url: "https://to.indeed.com/aabzmtlmh8rp", source: "indeed" },
+  { title: "Data Science Lead", company: "QBE Insurance", location: "London", salary: "\u00a357,600\u2013\u00a374,600/yr", sector: "AI & Data", sponsorship: true, posted: "6 Jan 2026", url: "https://to.indeed.com/aah82lc9gw48", source: "indeed" },
+  { title: "Junior Data Analyst", company: "EE", location: "London", salary: "\u00a339,250\u2013\u00a349,250/yr", sector: "AI & Data", sponsorship: false, posted: "18 Mar 2026", url: "https://to.indeed.com/aaxmh4zh7kts", source: "indeed" },
+  { title: "Junior Data Analyst", company: "Climate Policy Initiative", location: "London", salary: "\u00a332,000\u2013\u00a340,000/yr", sector: "AI & Data", sponsorship: false, posted: "23 Mar 2026", url: "https://to.indeed.com/aa9mp4m24hry", source: "indeed" },
+  { title: "Data Analyst", company: "LexisNexis Risk Solutions", location: "London", salary: "\u00a339,000\u2013\u00a347,000/yr", sector: "AI & Data", sponsorship: false, posted: "27 Feb 2026", url: "https://to.indeed.com/aa9trwg4nnyv", source: "indeed" },
+  { title: "Associate Data Scientist", company: "Sainsbury's", location: "London", salary: "\u00a355,000\u2013\u00a378,000/yr", sector: "AI & Data", sponsorship: false, posted: "18 Mar 2026", url: "https://to.indeed.com/aahqn2jzw7wr", source: "indeed" },
+  { title: "Machine Learning Intern", company: "Deliveroo", location: "London", salary: "Competitive", sector: "AI & Data", sponsorship: false, posted: "5 Mar 2026", url: "https://to.indeed.com/aa9c4kspdpsp", source: "indeed" },
+  { title: "Clinical Homecare Nurse", company: "Pharmaxo", location: "London", salary: "\u00a335,000\u2013\u00a338,000/yr", sector: "Healthcare", sponsorship: true, posted: "24 Feb 2026", url: "https://to.indeed.com/aaddgg6snrfh", source: "indeed" },
+  { title: "Complex Community Nurse", company: "Advantage Healthcare", location: "Croydon", salary: "\u00a343,950/yr", sector: "Healthcare", sponsorship: true, posted: "18 Mar 2026", url: "https://to.indeed.com/aaqwvz8xsc9y", source: "indeed" },
+  { title: "Senior Staff Nurse", company: "St John & St Elizabeth Hospital", location: "London", salary: "\u00a335,750\u2013\u00a340,375/yr", sector: "Healthcare", sponsorship: true, posted: "12 Mar 2026", url: "https://to.indeed.com/aat626kkfq9g", source: "indeed" },
+  { title: "NHS 111 Clinical Advisor Band 6", company: "Integrated Care Group", location: "Barking", salary: "\u00a321\u2013\u00a344/hr", sector: "Healthcare", sponsorship: true, posted: "20 Mar 2026", url: "https://to.indeed.com/aa6q2qhx6s47", source: "indeed" },
+  { title: "Associate Dentist Visa Sponsorship", company: "MedMatch Group", location: "London", salary: "\u00a3140,000\u2013\u00a3160,000/yr", sector: "Healthcare", sponsorship: true, posted: "1 Nov 2025", url: "https://to.indeed.com/aa9lvwhlyw8c", source: "indeed" },
+  { title: "Lead Veterinary Surgeon", company: "Medivet Group", location: "London", salary: "Up to \u00a380,000/yr", sector: "Healthcare", sponsorship: true, posted: "29 Sep 2025", url: "https://to.indeed.com/aayn69cms2xy", source: "indeed" },
+  { title: "Software Engineer Backend", company: "Duffel", location: "London", salary: "Competitive", sector: "Technology", sponsorship: true, posted: "10 Mar 2026", url: "https://to.indeed.com/aanddsw9z6s7", source: "indeed" },
+  { title: "kdb+ Developer Sponsorship Available", company: "Data Intellect", location: "London", salary: "Competitive", sector: "Technology", sponsorship: true, posted: "18 Mar 2026", url: "https://to.indeed.com/aaqklnbjq422", source: "indeed" }
 ];
 
 
@@ -262,7 +262,9 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   function handleLocationChange(val) {
     setLocationQuery(val);
     clearTimeout(searchTimer.current);
-    if (val.length >= 2) {
+    if (val.length === 0) {
+      searchTimer.current = setTimeout(() => onFetchJobs(titleQuery, ""), 300);
+    } else if (val.length >= 2) {
       searchTimer.current = setTimeout(() => onFetchJobs(titleQuery, val), 600);
     }
   }
@@ -300,9 +302,15 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
       {/* Search box */}
       <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <input style={{ ...S.input, flex: 2, minWidth: "160px" }} placeholder="🔍 Job title or keywords..."
-            value={titleQuery} onChange={e => handleTitleChange(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)} />
+          <div style={{ flex: 2, minWidth: "160px", position: "relative", display: "flex", alignItems: "center" }}>
+            <input style={{ ...S.input, paddingRight: titleQuery ? "32px" : "12px" }} placeholder="🔍 Job title or keywords..."
+              value={titleQuery} onChange={e => handleTitleChange(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)} />
+            {titleQuery && (
+              <button onClick={() => handleTitleChange("")}
+                style={{ position: "absolute", right: "8px", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: "18px", lineHeight: 1, padding: "0 2px", display: "flex", alignItems: "center" }}>×</button>
+            )}
+          </div>
           <input style={{ ...S.input, flex: 1, minWidth: "120px" }} placeholder="📍 Location..."
             value={locationQuery} onChange={e => handleLocationChange(e.target.value)}
             onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)} />
@@ -667,20 +675,15 @@ export default function Mentorgram() {
 
       // Fetch Indeed/Reed/Adzuna and jobs.ac.uk in parallel
       const [mainRes, acadRes] = await Promise.allSettled([
-        fetch(`/api/jobs?${params}`),
-        fetch(`/api/jobsacuk?${params}`),
+        fetch(`/api/jobs?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
+        fetch(`/api/jobsacuk?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
       ]);
 
-      let combined = [];
+      const mainJobs  = mainRes.status  === "fulfilled" ? (mainRes.value.jobs  || []) : [];
+      const acadJobs  = acadRes.status  === "fulfilled" ? (acadRes.value.jobs  || []) : [];
 
-      if (mainRes.status === "fulfilled") {
-        const data = await mainRes.value.json();
-        if (data.jobs?.length > 0) combined = [...combined, ...data.jobs];
-      }
-      if (acadRes.status === "fulfilled") {
-        const data = await acadRes.value.json();
-        if (data.jobs?.length > 0) combined = [...combined, ...data.jobs];
-      }
+      // Put Indeed/sponsorship jobs FIRST so they appear at top
+      let combined = [...mainJobs, ...acadJobs];
 
       // Deduplicate by URL
       const seen = new Set();
@@ -690,6 +693,7 @@ export default function Mentorgram() {
         return true;
       });
 
+      // If we got nothing from live APIs, keep the current jobs (fallback)
       if (combined.length > 0) {
         setAllJobs(combined);
         setUpdatedAt(new Date().toISOString());
@@ -1002,7 +1006,7 @@ export default function Mentorgram() {
         </button>
       </nav>
       <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
-        {NAV_LINKS.map(l => {
+        {NAV_LINKS.filter(l => l !== "My Profile").map(l => {
           const isDisabled = l === "AI Mentor";
           return (
             <button key={l}
@@ -1013,6 +1017,23 @@ export default function Mentorgram() {
             </button>
           );
         })}
+        {/* Sign In / Dashboard in mobile menu */}
+        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "4px", paddingTop: "8px" }}>
+          {user ? (
+            <button onClick={() => { navTo("My Profile"); setMobileMenu(false); }}
+              style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: activePage === "My Profile" ? "var(--color-background-secondary)" : "transparent", color: "var(--color-text-primary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: 500, display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: "12px", flexShrink: 0 }}>
+                {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
+              </div>
+              My Dashboard
+            </button>
+          ) : (
+            <button onClick={() => { navTo("My Profile"); setMobileMenu(false); }}
+              style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: "#1A3FA8", color: "#fff", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: 500 }}>
+              Sign In / Register
+            </button>
+          )}
+        </div>
       </div>
       <main onClick={() => mobileMenu && setMobileMenu(false)} style={{ paddingBottom: cookieConsent ? 0 : "80px" }}>
         <style>{`
@@ -1049,7 +1070,7 @@ export default function Mentorgram() {
             Instagram
           </a>
         </div>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>© 2025 Mentorgram AI · info@mentorgramai.com · mentorgramai.com</p>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>© 2026 Mentorgram AI · <span style={{ textDecoration: "none" }}>info@mentorgramai.com</span> · mentorgramai.com</p>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: "6px 0 0" }}>Guiding students to study, work and thrive in 🇬🇧 UK · 🇦🇺 Australia · 🇩🇪 Germany · 🇫🇮 Finland · 🇦🇹 Austria</p>
         <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "1rem", flexWrap: "wrap" }}>
           {["Privacy Policy", "Terms & Conditions", "Contact"].map(l => (
