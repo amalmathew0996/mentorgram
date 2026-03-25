@@ -256,10 +256,10 @@ export function LegalModal({ type, onClose }) {
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{
-              width: "32px", height: "32px", borderRadius: "8px",
+              width: "32px", height: "32px",
               flexShrink: 0, overflow: "hidden",
             }}>
-              <img src="/logo.png" alt="Mentorgram" style={{ width: "32px", height: "32px", objectFit: "contain" }} />
+              <img src="/logo.png" alt="Mentorgram" style={{ width: "32px", height: "32px", objectFit: "cover", borderRadius: "22%", display: "block" }} />
             </div>
             <span style={{ fontWeight: 500, fontSize: "16px", color: "var(--color-text-primary)" }}>
               {type === "terms" ? "Terms & Conditions" : "Privacy Policy"}
