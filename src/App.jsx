@@ -294,7 +294,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
     <div style={S.section}>
       <div ref={topRef}>
         <h2 style={S.sectionTitle}>Sponsorship jobs</h2>
-        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — results update as you type.</p>
+        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — sourced live from Indeed, Reed, Adzuna & jobs.ac.uk.</p>
       </div>
 
       {/* Search box */}
@@ -315,7 +315,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
           💡 Type to filter instantly · Click Search for live results from Indeed
         </p>
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Teacher", "Chef", "Marketing Manager"].map(q => (
+          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager", "Research Fellow", "Lecturer"].map(q => (
             <button key={q} style={{ ...S.filterBtn(titleQuery === q), fontSize: "12px", padding: "4px 12px" }}
               onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}>{q}</button>
           ))}
@@ -423,7 +423,14 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
                 {j.posted && <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>🗓 {j.posted}</span>}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ fontWeight: 500, color: "var(--color-text-primary)", margin: 0, fontSize: "14px", fontWeight: 600 }}>{j.salary}</p>
+                <div>
+                  <p style={{ fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 3px", fontSize: "14px" }}>{j.salary}</p>
+                  {j.source === "jobs.ac.uk" && (
+                    <span style={{ fontSize: "11px", fontWeight: 500, padding: "2px 7px", borderRadius: "var(--border-radius-md)", display: "inline-block", background: "rgba(26,63,168,0.1)", color: "#1A3FA8" }}>
+                      🎓 jobs.ac.uk
+                    </span>
+                  )}
+                </div>
                 <div style={{ display: "flex", gap: "6px" }} onClick={e => e.stopPropagation()}>
                   <ShareButton job={j} />
                   <button onClick={e => { e.stopPropagation(); setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}
@@ -657,10 +664,37 @@ export default function Mentorgram() {
       const params = new URLSearchParams();
       if (q) params.set("q", q);
       if (loc) params.set("location", loc);
-      const res = await fetch(`/api/jobs?${params}`);
-      const data = await res.json();
-      if (data.jobs?.length > 0) { setAllJobs(data.jobs); setUpdatedAt(data.updatedAt); }
-    } catch { /* keep fallback */ }
+
+      // Fetch Indeed/Reed/Adzuna and jobs.ac.uk in parallel
+      const [mainRes, acadRes] = await Promise.allSettled([
+        fetch(`/api/jobs?${params}`),
+        fetch(`/api/jobsacuk?${params}`),
+      ]);
+
+      let combined = [];
+
+      if (mainRes.status === "fulfilled") {
+        const data = await mainRes.value.json();
+        if (data.jobs?.length > 0) combined = [...combined, ...data.jobs];
+      }
+      if (acadRes.status === "fulfilled") {
+        const data = await acadRes.value.json();
+        if (data.jobs?.length > 0) combined = [...combined, ...data.jobs];
+      }
+
+      // Deduplicate by URL
+      const seen = new Set();
+      combined = combined.filter(j => {
+        if (!j.url || seen.has(j.url)) return false;
+        seen.add(j.url);
+        return true;
+      });
+
+      if (combined.length > 0) {
+        setAllJobs(combined);
+        setUpdatedAt(new Date().toISOString());
+      }
+    } catch { /* keep fallback jobs */ }
     setJobsLoading(false);
   }
 
