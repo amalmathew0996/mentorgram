@@ -169,7 +169,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: "1.25rem", fontWeight: 500, margin: "0 0 3px" }}>{fullName || "Your Account"}</h2>
             <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{user.email}</p>
-            {jobTitle && <p style={{ color: "#1A3FA8", fontSize: "13px", margin: "3px 0 0", fontWeight: 500 }}>{jobTitle}</p>}
+            {jobTitle && <p style={{ color: "var(--color-text-primary)", fontSize: "13px", margin: "3px 0 0", fontWeight: 500 }}>{jobTitle}</p>}
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             {matchedJobs.length > 0 && (
@@ -203,7 +203,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
           {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
             {[
-              { icon: "🎯", label: "Job Matches", value: matchedJobs.length, color: "#1A3FA8" },
+              { icon: "🎯", label: "Job Matches", value: matchedJobs.length, color: "var(--color-text-primary)" },
               { icon: "🏢", label: "Sectors Selected", value: sectors.length || "None", color: "#FF4500" },
               { icon: "📍", label: "Preferred Location", value: location || "Not set", color: "#F59E0B" },
               { icon: "🛂", label: "Visa Status", value: visaStatus ? "Set" : "Not set", color: "#8B5CF6" },
@@ -248,12 +248,12 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 {matchedJobs.slice(0, 4).map((j, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", gap: "10px", flexWrap: "wrap" }}>
                     <div style={{ flex: 1, minWidth: "140px" }}>
-                      <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 2px", color: "#1A3FA8" }}>{j.title}</p>
+                      <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 2px", color: "var(--color-text-primary)" }}>{j.title}</p>
                       <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{j.company} · {j.location}</p>
                     </div>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                      {j.sponsorship && <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 500, background: "#FFF0E8", color: "#AA2800" }}>✓ Visa</span>}
-                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#0D2478" }}>{j.salary}</span>
+                      {j.sponsorship && <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 500, background: "rgba(255,69,0,0.1)", color: "#FF4500" }}>✓ Visa</span>}
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--color-text-primary)" }}>{j.salary}</span>
                       {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
                     </div>
                   </div>
@@ -345,15 +345,15 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
               {matchedJobs.slice(0, 20).map((j, i) => (
                 <div key={i} style={{ ...card, display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div><p style={{ fontWeight: 500, margin: "0 0 3px", fontSize: "15px", color: "#1A3FA8" }}>{j.title}</p><p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p></div>
-                    {j.sponsorship && <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "#FFF0E8", color: "#AA2800", whiteSpace: "nowrap" }}>✓ Visa</span>}
+                    <div><p style={{ fontWeight: 500, margin: "0 0 3px", fontSize: "15px", color: "var(--color-text-primary)" }}>{j.title}</p><p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p></div>
+                    {j.sponsorship && <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "rgba(255,69,0,0.1)", color: "#FF4500", whiteSpace: "nowrap" }}>✓ Visa</span>}
                   </div>
                   <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                    <span style={{ padding: "2px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, background: "#E8EDFC", color: "#0D2478" }}>{j.sector}</span>
+                    <span style={{ padding: "2px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "var(--color-text-primary)" }}>{j.sector}</span>
                     <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <p style={{ fontWeight: 500, color: "#0D2478", margin: 0, fontSize: "14px" }}>{j.salary}</p>
+                    <p style={{ fontWeight: 500, color: "var(--color-text-primary)", margin: 0, fontSize: "14px" }}>{j.salary}</p>
                     {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
                   </div>
                 </div>
@@ -389,7 +389,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
           <div style={card}>
             <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>🔑 Change Password</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {passMsg.text && <div style={{ padding: "10px 14px", borderRadius: "var(--border-radius-md)", fontSize: "13px", background: passMsg.type === "ok" ? "#FFF0E8" : "#FEE8E8", color: passMsg.type === "ok" ? "#AA2800" : "#9B1C1C", border: `0.5px solid ${passMsg.type === "ok" ? "#FF8C5A" : "#F5A0A0"}` }}>{passMsg.text}</div>}
+              {passMsg.text && <div style={{ padding: "10px 14px", borderRadius: "var(--border-radius-md)", fontSize: "13px", background: passMsg.type === "ok" ? "rgba(255,69,0,0.1)" : "#FEE8E8", color: passMsg.type === "ok" ? "#FF4500" : "#9B1C1C", border: `0.5px solid ${passMsg.type === "ok" ? "#FF8C5A" : "#F5A0A0"}` }}>{passMsg.text}</div>}
               <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>New password</label><input style={inp} type="password" placeholder="At least 8 characters" value={newPass} onChange={e => setNewPass(e.target.value)} /></div>
               <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Confirm new password</label><input style={inp} type="password" placeholder="Repeat new password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} /></div>
               <button style={{ ...btn(true), opacity: passLoading ? 0.7 : 1 }} onClick={changePassword} disabled={passLoading}>
