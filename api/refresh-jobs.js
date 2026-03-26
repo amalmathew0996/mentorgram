@@ -1,8 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-
 export const config = { runtime: "nodejs", maxDuration: 60 };
 
-// ── All RSS feed sources ────────────────────────────────────────────────────
 const RSS_FEEDS = [
   { url: "https://www.jobs.ac.uk/jobs/computer-sciences/?format=rss",               sector: "Technology",   source: "jobs.ac.uk" },
   { url: "https://www.jobs.ac.uk/jobs/engineering-and-technology/?format=rss",      sector: "Engineering",  source: "jobs.ac.uk" },
@@ -38,8 +35,8 @@ const RSS_FEEDS = [
   { url: "https://jobs.theguardian.com/jobs/charity/?format=rss",                   sector: "Public Sector",source: "Guardian Jobs" },
 ];
 
-const SPONSOR_KW  = ["visa sponsor","sponsorship","skilled worker","tier 2","work permit","certificate of sponsorship","will sponsor"];
-const NO_SPONSOR  = ["no sponsorship","unable to sponsor","must have right to work","must already have the right","uk residency required"];
+const SPONSOR_KW = ["visa sponsor","sponsorship","skilled worker","tier 2","work permit","certificate of sponsorship","will sponsor"];
+const NO_SPONSOR = ["no sponsorship","unable to sponsor","must have right to work","must already have the right","uk residency required"];
 
 function detectSponsorship(title = "", desc = "") {
   const t = `${title} ${desc}`.toLowerCase();
@@ -65,47 +62,93 @@ function parseRSS(xml, sector, source) {
     const pubDate = get("pubDate");
     const desc    = get("description") || "";
     if (!title || !link) continue;
-    const org  = desc.match(/(?:Organisation|Employer|Institution):\s*([^\n<]+)/i);
-    const loc  = desc.match(/(?:Location|Place of [Ww]ork):\s*([^\n<,]+)/i);
-    const sal  = desc.match(/(?:Salary|Remuneration|Grade):\s*([^\n<]+)/i);
+    const org = desc.match(/(?:Organisation|Employer|Institution):\s*([^\n<]+)/i);
+    const loc = desc.match(/(?:Location|Place of [Ww]ork):\s*([^\n<,]+)/i);
+    const sal = desc.match(/(?:Salary|Remuneration|Grade):\s*([^\n<]+)/i);
     let posted = "";
     if (pubDate) { try { posted = new Date(pubDate).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); } catch {} }
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     jobs.push({
       title,
-      company:     org ? clean(org[1]).substring(0,80) : "UK Employer",
-      location:    loc ? clean(loc[1]).substring(0,80) : "United Kingdom",
-      salary:      sal ? clean(sal[1]).substring(0,70) : "Competitive",
+      company:     org  ? clean(org[1]).substring(0,80)  : "UK Employer",
+      location:    loc  ? clean(loc[1]).substring(0,80)  : "United Kingdom",
+      salary:      sal  ? clean(sal[1]).substring(0,70)  : "Competitive",
       sector, posted, source,
       url:         link,
       sponsorship: detectSponsorship(title, desc),
-      expires_at:  new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      expires_at:  expiresAt,
     });
   }
   return jobs;
 }
 
+// Supabase REST API — no npm package needed
+async function supabaseUpsert(supabaseUrl, serviceKey, rows) {
+  const res = await fetch(`${supabaseUrl}/rest/v1/jobs`, {
+    method: "POST",
+    headers: {
+      "Content-Type":  "application/json",
+      "apikey":        serviceKey,
+      "Authorization": `Bearer ${serviceKey}`,
+      "Prefer":        "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify(rows),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Supabase upsert failed: ${res.status} ${err}`);
+  }
+  return true;
+}
+
+async function supabaseDeleteExpired(supabaseUrl, serviceKey) {
+  const now = new Date().toISOString();
+  const res = await fetch(`${supabaseUrl}/rest/v1/jobs?expires_at=lt.${encodeURIComponent(now)}`, {
+    method: "DELETE",
+    headers: {
+      "apikey":        serviceKey,
+      "Authorization": `Bearer ${serviceKey}`,
+      "Prefer":        "return=minimal",
+    },
+  });
+  return res.ok;
+}
+
+async function supabaseCount(supabaseUrl, serviceKey) {
+  const res = await fetch(`${supabaseUrl}/rest/v1/jobs?select=id`, {
+    headers: {
+      "apikey":        serviceKey,
+      "Authorization": `Bearer ${serviceKey}`,
+      "Prefer":        "count=exact",
+      "Range":         "0-0",
+    },
+  });
+  const range = res.headers.get("content-range") || "";
+  const match = range.match(/\/(\d+)/);
+  return match ? parseInt(match[1]) : 0;
+}
+
 export default async function handler(req, res) {
-  // Security: only allow Vercel Cron calls or manual trigger with secret
-  const authHeader = req.headers["authorization"];
+  // Auth check
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return res.status(401).json({ error: "Unauthorised" });
+  if (cronSecret) {
+    const auth = req.headers["authorization"];
+    if (auth !== `Bearer ${cronSecret}`) {
+      return res.status(401).json({ error: "Unauthorised" });
+    }
   }
 
-  const supabase = createClient(
-    process.env.VITE_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  const log = [];
-  let totalInserted = 0;
-  let totalSkipped  = 0;
+  if (!supabaseUrl || !serviceKey) {
+    return res.status(500).json({ error: "Missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars" });
+  }
+
+  const log = [`[${new Date().toISOString()}] Starting refresh of ${RSS_FEEDS.length} feeds...`];
 
   try {
-    // ── Step 1: Fetch all RSS feeds in parallel ─────────────────────────
-    log.push(`[${new Date().toISOString()}] Starting job refresh...`);
-    log.push(`Fetching ${RSS_FEEDS.length} RSS feeds...`);
-
+    // Fetch all RSS feeds in parallel
     const settled = await Promise.allSettled(
       RSS_FEEDS.map(({ url, sector, source }) =>
         fetch(url, {
@@ -118,9 +161,7 @@ export default async function handler(req, res) {
       )
     );
 
-    let allJobs = settled
-      .filter(r => r.status === "fulfilled")
-      .flatMap(r => r.value);
+    let allJobs = settled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
 
     // Deduplicate by URL
     const seen = new Set();
@@ -130,56 +171,31 @@ export default async function handler(req, res) {
       seen.add(k); return true;
     });
 
-    log.push(`Fetched ${allJobs.length} unique jobs from RSS feeds`);
+    log.push(`Fetched ${allJobs.length} unique jobs from feeds`);
 
-    // ── Step 2: Upsert into Supabase in batches of 100 ─────────────────
+    // Upsert in batches of 100
     const BATCH = 100;
+    let inserted = 0;
     for (let i = 0; i < allJobs.length; i += BATCH) {
       const batch = allJobs.slice(i, i + BATCH);
-      const { error, count } = await supabase
-        .from("jobs")
-        .upsert(batch, {
-          onConflict: "url",
-          ignoreDuplicates: false,
-          count: "exact",
-        });
-      if (error) {
-        log.push(`Batch ${i/BATCH + 1} error: ${error.message}`);
-        totalSkipped += batch.length;
-      } else {
-        totalInserted += batch.length;
-        log.push(`Batch ${i/BATCH + 1}: inserted/updated ${batch.length} jobs`);
-      }
+      await supabaseUpsert(supabaseUrl, serviceKey, batch);
+      inserted += batch.length;
+      log.push(`Upserted batch ${Math.floor(i/BATCH)+1}: ${batch.length} jobs`);
     }
 
-    // ── Step 3: Delete expired jobs ─────────────────────────────────────
-    const { error: deleteError, count: deletedCount } = await supabase
-      .from("jobs")
-      .delete({ count: "exact" })
-      .lt("expires_at", new Date().toISOString());
+    // Delete expired
+    await supabaseDeleteExpired(supabaseUrl, serviceKey);
+    log.push("Deleted expired jobs");
 
-    if (!deleteError) {
-      log.push(`Deleted ${deletedCount || 0} expired jobs`);
-    }
+    // Final count
+    const total = await supabaseCount(supabaseUrl, serviceKey);
+    log.push(`Total jobs in database: ${total}`);
+    log.push("✅ Refresh complete!");
 
-    // ── Step 4: Get total count ─────────────────────────────────────────
-    const { count: totalCount } = await supabase
-      .from("jobs")
-      .select("*", { count: "exact", head: true });
-
-    log.push(`Total jobs in database: ${totalCount}`);
-    log.push(`Refresh complete!`);
-
-    return res.status(200).json({
-      success: true,
-      inserted: totalInserted,
-      skipped: totalSkipped,
-      total: totalCount,
-      log,
-    });
+    return res.status(200).json({ success: true, inserted, total, log });
 
   } catch (err) {
-    log.push(`FATAL ERROR: ${err.message}`);
+    log.push(`ERROR: ${err.message}`);
     return res.status(500).json({ error: err.message, log });
   }
 }
