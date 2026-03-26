@@ -222,6 +222,45 @@ async function fetchAdzuna(appId, appKey, q, sector) {
 }
 
 
+// ── Reed API — up to 2,500 UK jobs ────────────────────────────────────────
+const REED_SEARCHES = [
+  "software engineer", "software developer", "data scientist", "data analyst",
+  "machine learning engineer", "DevOps engineer", "web developer", "cybersecurity",
+  "registered nurse", "healthcare assistant", "pharmacist", "physiotherapist",
+  "doctor", "care worker", "dental nurse", "radiographer",
+  "financial analyst", "accountant", "investment banker", "risk analyst",
+  "mechanical engineer", "civil engineer", "electrical engineer", "structural engineer",
+  "project manager", "business analyst", "marketing manager", "HR manager",
+  "operations manager", "product manager", "social worker", "teacher",
+  "chef", "hotel manager", "quantity surveyor", "architect",
+];
+
+async function fetchReed(reedKey, q) {
+  try {
+    const params = new URLSearchParams({ keywords: q, locationName: "United Kingdom", resultsToTake: "100" });
+    const r = await fetch(`https://www.reed.co.uk/api/1.0/search?${params}`, {
+      headers: { "Authorization": `Basic ${Buffer.from(reedKey + ":").toString("base64")}` },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    const expiresAt = new Date(Date.now() + 30*24*60*60*1000).toISOString();
+    return (d.results || []).map(j => ({
+      title:       (j.jobTitle || "").substring(0, 120),
+      company:     j.employerName || "UK Employer",
+      location:    j.locationName || "United Kingdom",
+      salary:      j.minimumSalary ? `£${Math.round(j.minimumSalary).toLocaleString()}–£${Math.round(j.maximumSalary||j.minimumSalary).toLocaleString()}/yr` : "Competitive",
+      sector:      getSector(j.jobTitle||"", "Other"),
+      posted:      j.date ? new Date(j.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
+      url:         `https://www.reed.co.uk/jobs/${j.jobId}`,
+      source:      "Reed",
+      sponsorship: detectSponsorship(j.jobTitle||"", j.jobDescription||""),
+      expires_at:  expiresAt,
+    })).filter(j => j.url);
+  } catch { return []; }
+}
+
+
 export default async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
   if (secret && req.headers["authorization"] !== `Bearer ${secret}`) {
@@ -239,8 +278,10 @@ export default async function handler(req, res) {
     const appId  = process.env.ADZUNA_APP_ID;
     const appKey = process.env.ADZUNA_APP_KEY;
 
-    // Fetch RSS feeds and Adzuna in parallel
-    const [rssSettled, adzunaSettled] = await Promise.all([
+    const reedKey = process.env.REED_API_KEY;
+
+    // Fetch RSS, Adzuna AND Reed all in parallel
+    const [rssSettled, adzunaSettled, reedSettled] = await Promise.all([
       Promise.allSettled(
         ALL_FEEDS.map(({ url, sector }) =>
           fetch(url, { headers:{ "User-Agent":"Mentorgram AI (+https://mentorgramai.com)" }, signal: AbortSignal.timeout(12000) })
@@ -252,11 +293,15 @@ export default async function handler(req, res) {
       appId && appKey
         ? Promise.allSettled(ADZUNA_SEARCHES.map(({ q, sector }) => fetchAdzuna(appId, appKey, q, sector)))
         : Promise.resolve([]),
+      reedKey
+        ? Promise.allSettled(REED_SEARCHES.map(q => fetchReed(reedKey, q)))
+        : Promise.resolve([]),
     ]);
 
     const rssJobs    = rssSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
     const adzunaJobs = Array.isArray(adzunaSettled) ? adzunaSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value) : [];
-    let jobs = [...rssJobs, ...adzunaJobs];
+    const reedJobs   = Array.isArray(reedSettled)   ? reedSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value) : [];
+    let jobs = [...rssJobs, ...adzunaJobs, ...reedJobs];
     // Normalise URLs — strip query params so same job isn't duplicated
     jobs = jobs.map(j => ({ ...j, url: j.url.split("?")[0].substring(0, 500) }));
     const seen = new Set();
@@ -266,7 +311,7 @@ export default async function handler(req, res) {
       seen.add(j.url);
       return true;
     });
-    log.push(`RSS: ${rssJobs.length} jobs, Adzuna: ${adzunaJobs.length} jobs, Total unique: ${jobs.length}`);
+    log.push(`RSS: ${rssJobs.length} | Adzuna: ${adzunaJobs.length} | Reed: ${reedJobs.length} | Raw total: ${jobs.length}`);
 
     const BATCH = 100;
     let batchNum = 0;
