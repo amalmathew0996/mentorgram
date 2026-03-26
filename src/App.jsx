@@ -275,7 +275,14 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
     const matchVisa = visaType === "All Jobs"
       || (visaType === "✓ Visa Sponsorship" && j.sponsorship === true)
       || (visaType === "No Info" && j.sponsorship !== true);
-    const matchSource = sourceFilter === "All" || (j.source || "").toLowerCase().includes(sourceFilter.toLowerCase());
+    const src = (j.source || "").toLowerCase();
+    const sf = sourceFilter.toLowerCase();
+    const matchSource = sourceFilter === "All"
+      || src === sf
+      || (sf === "jobs.ac.uk" && src.includes("jobs.ac"))
+      || (sf === "guardian jobs" && src.includes("guardian"))
+      || (sf === "indeed" && (src === "indeed" || src === "fallback"))
+      || src.includes(sf);
     const q = titleQuery.toLowerCase().trim();
     const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
     const loc = locationQuery.toLowerCase().trim();
@@ -823,7 +830,7 @@ export default function Mentorgram() {
       const params = new URLSearchParams();
       if (q) params.set("q", q);
       if (loc) params.set("location", loc);
-      params.set("pageSize", "500");
+      params.set("pageSize", "3000");
 
       // Try database first (fast, 500+ jobs), fall back to live RSS
       let dbJobs = [];
