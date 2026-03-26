@@ -1,0 +1,17 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/guide", "destination": "/guide.html" },
+    { "source": "/sponsorship-guide.pdf", "destination": "/sponsorship-guide.pdf" },
+    { "source": "/ai-mentor", "destination": "/index.html" },
+    { "source": "/education", "destination": "/index.html" },
+    { "source": "/universities", "destination": "/index.html" },
+    { "source": "/jobs", "destination": "/index.html" },
+    { "source": "/visa-sponsors", "destination": "/index.html" },
+    { "source": "/contact", "destination": "/index.html" },
+    { "source": "/profile", "destination": "/index.html" },
+    { "source": "/privacy", "destination": "/index.html" },
+    { "source": "/terms", "destination": "/index.html" },
+    { "source": "/:path*", "destination": "/index.html" }
+  ]
+}
