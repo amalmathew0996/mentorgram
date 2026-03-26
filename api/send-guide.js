@@ -34,9 +34,34 @@ export default async function handler(req, res) {
       },
     });
 
-    // Read the PDF file
-    const pdfPath = path.join(process.cwd(), "public", "sponsorship-guide.pdf");
-    const pdfBuffer = fs.readFileSync(pdfPath);
+    // Fetch the PDF from the public URL (more reliable in serverless than filesystem)
+    let pdfBuffer;
+    try {
+      // Try filesystem first (works locally and some Vercel configs)
+      const possiblePaths = [
+        path.join(process.cwd(), "public", "sponsorship-guide.pdf"),
+        path.join(process.cwd(), "dist", "sponsorship-guide.pdf"),
+        path.join("/var/task", "public", "sponsorship-guide.pdf"),
+        path.join("/var/task", "dist", "sponsorship-guide.pdf"),
+      ];
+      let loaded = false;
+      for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+          pdfBuffer = fs.readFileSync(p);
+          loaded = true;
+          break;
+        }
+      }
+      if (!loaded) {
+        // Fallback: fetch from our own domain
+        const pdfRes = await fetch("https://mentorgramai.com/sponsorship-guide.pdf");
+        if (pdfRes.ok) {
+          pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
+        }
+      }
+    } catch (e) {
+      console.error("PDF load error:", e.message);
+    }
 
     await transporter.sendMail({
       from: `"Mentorgram AI" <${process.env.ZOHO_EMAIL}>`,
@@ -51,14 +76,14 @@ export default async function handler(req, res) {
 
             <!-- Header -->
             <div style="background:linear-gradient(135deg,#1a3fa8,#0d2478);padding:40px 36px;text-align:center;">
-              <div style="width:56px;height:56px;background:white;border-radius:14px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#1a3fa8;line-height:56px;text-align:center;">M</div>
+              <img src="https://mentorgramai.com/logo.png" alt="Mentorgram" width="56" height="56" style="border-radius:14px;display:block;margin:0 auto 16px;" />
               <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.02em;">Your Free Guide is Attached!</h1>
               <p style="margin:10px 0 0;color:#b0c4f8;font-size:15px;">How to Land a UK Visa-Sponsored Role</p>
             </div>
 
             <!-- Body -->
             <div style="padding:36px;">
-              <p style="margin:0 0 16px;color:#1a1a2e;font-size:16px;line-height:1.6;">Hi there,</p>
+              <p style="margin:0 0 16px;color:#1a1a2e;font-size:16px;line-height:1.6;">Hi,</p>
               <p style="margin:0 0 16px;color:#1a1a2e;font-size:15px;line-height:1.7;">
                 Thank you for downloading our free guide. Your PDF is attached to this email — simply open the attachment to start reading.
               </p>
@@ -113,13 +138,13 @@ export default async function handler(req, res) {
         </body>
         </html>
       `,
-      attachments: [
+      attachments: pdfBuffer ? [
         {
           filename: "Mentorgram_UK_Sponsorship_Guide.pdf",
           content: pdfBuffer,
           contentType: "application/pdf",
         },
-      ],
+      ] : [],
     });
 
     // Also notify yourself as a lead
