@@ -6,8 +6,8 @@ import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
 
 const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
-const VISA_TYPES = ["All Jobs", "Visa Sponsorship", "No Sponsorship Info"];
-const JOBS_PER_PAGE = 15;
+const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship", "No Info"];
+const JOBS_PER_PAGE = 20;
 
 const EDUCATION_SYSTEMS = [
   { country: "🇬🇧 United Kingdom", systems: ["GCSE", "A-Levels", "BTEC", "Scottish Highers"] },
@@ -272,8 +272,8 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   const filtered = allJobs.filter(j => {
     const matchSector = sector === "All" || j.sector === sector;
     const matchVisa = visaType === "All Jobs"
-      || (visaType === "Visa Sponsorship" && j.sponsorship === true)
-      || (visaType === "No Sponsorship Info" && j.sponsorship !== true);
+      || (visaType === "✓ Visa Sponsorship" && j.sponsorship === true)
+      || (visaType === "No Info" && j.sponsorship !== true);
     const q = titleQuery.toLowerCase().trim();
     const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
     const loc = locationQuery.toLowerCase().trim();
