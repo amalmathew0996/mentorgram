@@ -794,22 +794,24 @@ export default function Mentorgram() {
       const params = new URLSearchParams();
       if (q) params.set("q", q);
       if (loc) params.set("location", loc);
+      params.set("pageSize", "500");
 
-      // Run both APIs in parallel with a 6s timeout each
-      const withTimeout = (promise, ms) =>
-        Promise.race([promise, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+      // Try database first (fast, 500+ jobs), fall back to live RSS
+      let dbJobs = [];
+      let rssJobs = [];
 
-      const [mainRes, acadRes] = await Promise.allSettled([
-        withTimeout(fetch(`/api/jobs?${params}`).then(r => r.json()), 6000).catch(() => ({ jobs: [] })),
-        withTimeout(fetch(`/api/jobsacuk?${params}`).then(r => r.json()), 8000).catch(() => ({ jobs: [] })),
+      const [dbRes, rssRes, indeedRes] = await Promise.allSettled([
+        fetch(`/api/jobs-db?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
+        fetch(`/api/jobsacuk?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
+        fetch(`/api/jobs?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
       ]);
 
-      const mainJobs = mainRes.status === "fulfilled" ? (mainRes.value?.jobs || []) : [];
-      const acadJobs = acadRes.status === "fulfilled" ? (acadRes.value?.jobs || []) : [];
+      dbJobs     = dbRes.status     === "fulfilled" ? (dbRes.value?.jobs     || []) : [];
+      rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
+      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
 
-      // Always include FALLBACK_JOBS (they have sponsorship data) + live results
-      // Indeed/sponsored first, then academic
-      const allSources = [...FALLBACK_JOBS, ...mainJobs, ...acadJobs];
+      // Merge: FALLBACK (always has sponsorship data) + Indeed + DB + RSS
+      const allSources = [...FALLBACK_JOBS, ...indeedJobs, ...dbJobs, ...rssJobs];
 
       // Deduplicate by URL
       const seen = new Set();
@@ -819,7 +821,7 @@ export default function Mentorgram() {
         return true;
       });
 
-      // Apply search filter locally if query given
+      // Apply local filter if query given
       const filtered = (q || loc) ? combined.filter(j => {
         const matchQ = !q || j.title.toLowerCase().includes(q.toLowerCase()) ||
           j.company.toLowerCase().includes(q.toLowerCase()) ||
