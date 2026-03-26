@@ -232,6 +232,7 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
 function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, profileFilter, onClearProfileFilter }) {
   const [sector, setSector] = useState("All");
   const [visaType, setVisaType] = useState("All Jobs");
+  const [sourceFilter, setSourceFilter] = useState("All");
   const [titleQuery, setTitleQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -274,11 +275,12 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
     const matchVisa = visaType === "All Jobs"
       || (visaType === "✓ Visa Sponsorship" && j.sponsorship === true)
       || (visaType === "No Info" && j.sponsorship !== true);
+    const matchSource = sourceFilter === "All" || (j.source || "").toLowerCase().includes(sourceFilter.toLowerCase());
     const q = titleQuery.toLowerCase().trim();
     const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
     const loc = locationQuery.toLowerCase().trim();
     const matchLoc = !loc || j.location.toLowerCase().includes(loc);
-    return matchSector && matchVisa && matchTitle && matchLoc;
+    return matchSector && matchVisa && matchSource && matchTitle && matchLoc;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
@@ -356,9 +358,31 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Filter:</span>
         {VISA_TYPES.map(v => (
           <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v
-            ? (v === "Visa Sponsorship" ? "#16A34A" : v === "No Sponsorship Info" ? "#888" : "#1A3FA8")
+            ? (v === "✓ Visa Sponsorship" ? "#16A34A" : v === "No Info" ? "#888" : "#1A3FA8")
             : "var(--color-background-primary)" }}
-            onClick={() => setVisaType(v)}>{v}</button>
+            onClick={() => { setVisaType(v); setPage(1); }}>{v}</button>
+        ))}
+      </div>
+
+      {/* Source filter row */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+        <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Source:</span>
+        {["All", "Adzuna", "Reed", "jobs.ac.uk", "Guardian Jobs", "indeed"].map(src => (
+          <button key={src}
+            style={{
+              ...S.filterBtn(sourceFilter === src),
+              background: sourceFilter === src ? "#1A3FA8" : "var(--color-background-primary)",
+              color: sourceFilter === src ? "#fff" : "var(--color-text-secondary)",
+              fontSize: "12px", padding: "5px 12px",
+            }}
+            onClick={() => { setSourceFilter(src); setPage(1); }}>
+            {src === "All" ? "🌐 All Sources"
+              : src === "Adzuna" ? "🔵 Adzuna"
+              : src === "Reed" ? "🟠 Reed"
+              : src === "jobs.ac.uk" ? "🎓 jobs.ac.uk"
+              : src === "Guardian Jobs" ? "📰 Guardian"
+              : "💼 Indeed"}
+          </button>
         ))}
       </div>
 
@@ -367,7 +391,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         {jobsLoading
           ? "🔍 Fetching live jobs from Indeed, Reed & Adzuna..."
           : <>
-              Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs
+              Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs{sourceFilter !== "All" ? ` from ${sourceFilter}` : ""}
               {" · "}
               <span style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
                 {[...new Set(allJobs.map(j => j.source).filter(Boolean))].map((src, i) => (
@@ -459,7 +483,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
           <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
           <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No jobs found</p>
           <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>Try searching for a specific role above</p>
-          <button style={S.btnPrimary} onClick={() => { setTitleQuery(""); setLocationQuery(""); setSector("All"); setVisaType("All Jobs"); onFetchJobs("", ""); }}>Show all jobs</button>
+          <button style={S.btnPrimary} onClick={() => { setTitleQuery(""); setLocationQuery(""); setSector("All"); setVisaType("All Jobs"); setSourceFilter("All"); setPage(1); onFetchJobs("", ""); }}>Show all jobs</button>
         </div>
       )}
 
