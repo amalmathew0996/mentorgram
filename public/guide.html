@@ -35,7 +35,7 @@
   .submit-btn:hover:not(:disabled) { background: #0d2478; }
   .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
   .error-msg { display: none; background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 12px; line-height: 1.5; }
-  .privacy-note { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 12px; }
+  .privacy-note { font-size: 10px; color: #b0bec5; text-align: center; margin-top: 8px; letter-spacing: 0.01em; }
   .success { display: none; text-align: center; }
   .success-icon { font-size: 52px; margin-bottom: 14px; }
   .email-sent-badge { display: inline-flex; align-items: center; gap: 6px; background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
@@ -113,7 +113,7 @@
       <div class="email-sent-badge">✓ Guide sent to your inbox!</div>
       <h3>Check your email</h3>
       <p>We've emailed your copy of <strong>How to Land a UK Visa-Sponsored Role</strong>. Check your spam folder if you don't see it within a minute.</p>
-      <a href="/sponsorship-guide.pdf" class="dl-btn" download>⬇ Download Directly</a>
+      <a href="/sponsorship-guide.pdf" class="dl-btn" target="_blank" rel="noopener">⬇ Download Directly</a>
       <p class="jobs-link">Search <a href="https://mentorgramai.com/jobs">500+ live sponsored jobs</a> on Mentorgram AI.</p>
     </div>
   </div>
@@ -199,7 +199,7 @@ async function handleSubmit() {
     }
   } catch (err) {
     errorMsg.innerHTML = (err.message || 'Could not send email.') +
-      ' <a href="/sponsorship-guide.pdf" download style="color:#1a3fa8;font-weight:600;">Download directly →</a>';
+      ' <a href="/sponsorship-guide.pdf" target="_blank" style="color:#1a3fa8;font-weight:600;">Download directly →</a>';
     errorMsg.style.display = 'block';
     btn.disabled = false;
     spinner.style.display = 'none';
