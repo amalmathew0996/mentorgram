@@ -733,8 +733,8 @@ export default function Mentorgram() {
   const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([k,v]) => [v, k]));
 
   function getInitialPage() {
-    const hash = window.location.hash.replace("#", "").split("=")[0];
-    return SLUG_TO_PAGE[hash] || "Home";
+    const path = window.location.pathname.replace("/", "").split("?")[0];
+    return SLUG_TO_PAGE[path] || "Home";
   }
 
   const [activePage, setActivePage] = useState(getInitialPage);
@@ -762,18 +762,24 @@ export default function Mentorgram() {
   useEffect(() => {
     function checkHash() {
       try {
+        // Handle deep-linked job
         const hash = window.location.hash;
         if (hash.startsWith("#job=")) {
           const encoded = decodeURIComponent(hash.replace("#job=", ""));
           const job = JSON.parse(decodeURIComponent(atob(encoded)));
           setSelectedJob(job);
           setActivePage("Sponsorship Jobs");
+          return;
         }
-      } catch { /* ignore invalid hash */ }
+        // Handle clean path navigation (back/forward buttons)
+        const path = window.location.pathname.replace("/", "").split("?")[0];
+        const page = SLUG_TO_PAGE[path];
+        if (page) setActivePage(page);
+      } catch { /* ignore */ }
     }
     checkHash();
-    window.addEventListener("hashchange", checkHash);
-    return () => window.removeEventListener("hashchange", checkHash);
+    window.addEventListener("popstate", checkHash);
+    return () => window.removeEventListener("popstate", checkHash);
   }, []);
 
   useEffect(() => {
@@ -861,7 +867,7 @@ export default function Mentorgram() {
       window.scrollTo({ top: 0, behavior: "smooth" });
       // Update URL hash so refresh works + back button works
       const slug = PAGE_SLUGS[page] || "";
-      window.history.pushState(null, "", slug ? `#${slug}` : window.location.pathname);
+      window.history.pushState(null, "", slug ? `/${slug}` : "/");
     }, 220);
   }
 
