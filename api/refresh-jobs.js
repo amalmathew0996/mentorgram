@@ -145,6 +145,58 @@ async function supabaseCount(url, key) {
   return match ? parseInt(match[1]) : 0;
 }
 
+// ── Adzuna API — up to 1000 jobs with real sponsorship data ──────────────
+const ADZUNA_SEARCHES = [
+  { q: "visa sponsorship", sector: "Technology" },
+  { q: "skilled worker sponsor", sector: "Healthcare" },
+  { q: "software engineer", sector: "Technology" },
+  { q: "nurse sponsorship", sector: "Healthcare" },
+  { q: "data scientist", sector: "AI & Data" },
+  { q: "financial analyst", sector: "Finance" },
+  { q: "mechanical engineer sponsor", sector: "Engineering" },
+  { q: "marketing manager", sector: "Business" },
+  { q: "civil engineer", sector: "Engineering" },
+  { q: "teacher sponsorship", sector: "Education" },
+  { q: "chef sponsorship", sector: "Hospitality" },
+  { q: "social worker", sector: "Public Sector" },
+  { q: "pharmacist", sector: "Healthcare" },
+  { q: "project manager", sector: "Business" },
+  { q: "accountant", sector: "Finance" },
+  { q: "DevOps engineer", sector: "Technology" },
+  { q: "care worker", sector: "Healthcare" },
+  { q: "business analyst", sector: "Business" },
+  { q: "electrical engineer", sector: "Engineering" },
+  { q: "machine learning", sector: "AI & Data" },
+];
+
+async function fetchAdzuna(appId, appKey, q, sector) {
+  try {
+    const params = new URLSearchParams({
+      app_id: appId, app_key: appKey,
+      results_per_page: "50", what: q, where: "UK",
+    });
+    const r = await fetch(`https://api.adzuna.com/v1/api/jobs/gb/search/1?${params}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    const expiresAt = new Date(Date.now() + 30*24*60*60*1000).toISOString();
+    return (d.results || []).map(j => ({
+      title:       (j.title || "").substring(0, 120),
+      company:     j.company?.display_name || "UK Employer",
+      location:    j.location?.display_name || "United Kingdom",
+      salary:      j.salary_min ? `£${Math.round(j.salary_min).toLocaleString()}–£${Math.round(j.salary_max||j.salary_min).toLocaleString()}/yr` : "Competitive",
+      sector:      getSector(j.title || "", sector),
+      posted:      j.created ? new Date(j.created).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
+      url:         j.redirect_url || "",
+      source:      "Adzuna",
+      sponsorship: detectSponsorship(j.title||"", j.description||""),
+      expires_at:  expiresAt,
+    })).filter(j => j.url);
+  } catch { return []; }
+}
+
+
 export default async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
   if (secret && req.headers["authorization"] !== `Bearer ${secret}`) {
@@ -159,19 +211,30 @@ export default async function handler(req, res) {
   const log = [`Starting refresh of ${ALL_FEEDS.length} feeds...`];
 
   try {
-    const settled = await Promise.allSettled(
-      ALL_FEEDS.map(({ url, sector }) =>
-        fetch(url, { headers:{ "User-Agent":"Mentorgram AI (+https://mentorgramai.com)" }, signal: AbortSignal.timeout(12000) })
-          .then(r => r.ok ? r.text() : "")
-          .then(xml => xml ? parseRSS(xml, sector) : [])
-          .catch(() => [])
-      )
-    );
+    const appId  = process.env.ADZUNA_APP_ID;
+    const appKey = process.env.ADZUNA_APP_KEY;
 
-    let jobs = settled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
+    // Fetch RSS feeds and Adzuna in parallel
+    const [rssSettled, adzunaSettled] = await Promise.all([
+      Promise.allSettled(
+        ALL_FEEDS.map(({ url, sector }) =>
+          fetch(url, { headers:{ "User-Agent":"Mentorgram AI (+https://mentorgramai.com)" }, signal: AbortSignal.timeout(12000) })
+            .then(r => r.ok ? r.text() : "")
+            .then(xml => xml ? parseRSS(xml, sector) : [])
+            .catch(() => [])
+        )
+      ),
+      appId && appKey
+        ? Promise.allSettled(ADZUNA_SEARCHES.map(({ q, sector }) => fetchAdzuna(appId, appKey, q, sector)))
+        : Promise.resolve([]),
+    ]);
+
+    const rssJobs    = rssSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
+    const adzunaJobs = Array.isArray(adzunaSettled) ? adzunaSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value) : [];
+    let jobs = [...rssJobs, ...adzunaJobs];
     const seen = new Set();
     jobs = jobs.filter(j => { const k = j.url.split("?")[0]; if (seen.has(k)) return false; seen.add(k); return true; });
-    log.push(`Fetched ${jobs.length} unique jobs from ${ALL_FEEDS.length} feeds`);
+    log.push(`RSS: ${rssJobs.length} jobs, Adzuna: ${adzunaJobs.length} jobs, Total unique: ${jobs.length}`);
 
     const BATCH = 100;
     for (let i = 0; i < jobs.length; i += BATCH) {
