@@ -157,52 +157,67 @@ async function supabaseCount(url, key) {
 
 // ── Adzuna API — up to 1000 jobs with real sponsorship data ──────────────
 const ADZUNA_SEARCHES = [
-  { q: "visa sponsorship", sector: "Technology" },
-  { q: "skilled worker sponsor", sector: "Healthcare" },
+  // Broad terms get 50 results each — no "sponsorship" keyword (reduces results on Adzuna)
   { q: "software engineer", sector: "Technology" },
-  { q: "nurse sponsorship", sector: "Healthcare" },
+  { q: "software developer", sector: "Technology" },
   { q: "data scientist", sector: "AI & Data" },
-  { q: "financial analyst", sector: "Finance" },
-  { q: "mechanical engineer sponsor", sector: "Engineering" },
-  { q: "marketing manager", sector: "Business" },
-  { q: "civil engineer", sector: "Engineering" },
-  { q: "teacher sponsorship", sector: "Education" },
-  { q: "chef sponsorship", sector: "Hospitality" },
-  { q: "social worker", sector: "Public Sector" },
+  { q: "data engineer", sector: "AI & Data" },
+  { q: "machine learning engineer", sector: "AI & Data" },
+  { q: "registered nurse", sector: "Healthcare" },
+  { q: "healthcare assistant", sector: "Healthcare" },
   { q: "pharmacist", sector: "Healthcare" },
-  { q: "project manager", sector: "Business" },
+  { q: "financial analyst", sector: "Finance" },
   { q: "accountant", sector: "Finance" },
-  { q: "DevOps engineer", sector: "Technology" },
-  { q: "care worker", sector: "Healthcare" },
-  { q: "business analyst", sector: "Business" },
+  { q: "mechanical engineer", sector: "Engineering" },
+  { q: "civil engineer", sector: "Engineering" },
   { q: "electrical engineer", sector: "Engineering" },
-  { q: "machine learning", sector: "AI & Data" },
+  { q: "project manager", sector: "Business" },
+  { q: "marketing manager", sector: "Business" },
+  { q: "business analyst", sector: "Business" },
+  { q: "social worker", sector: "Public Sector" },
+  { q: "teacher", sector: "Education" },
+  { q: "chef", sector: "Hospitality" },
+  { q: "DevOps engineer", sector: "Technology" },
+  { q: "product manager", sector: "Business" },
+  { q: "HR manager", sector: "Business" },
+  { q: "care worker", sector: "Healthcare" },
+  { q: "architect", sector: "Engineering" },
+  { q: "web developer", sector: "Technology" },
+  { q: "cybersecurity analyst", sector: "Technology" },
+  { q: "operations manager", sector: "Business" },
+  { q: "supply chain manager", sector: "Business" },
+  { q: "network engineer", sector: "Technology" },
+  { q: "physiotherapist", sector: "Healthcare" },
 ];
 
 async function fetchAdzuna(appId, appKey, q, sector) {
   try {
-    const params = new URLSearchParams({
-      app_id: appId, app_key: appKey,
-      results_per_page: "50", what: q, where: "UK",
-    });
-    const r = await fetch(`https://api.adzuna.com/v1/api/jobs/gb/search/1?${params}`, {
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!r.ok) return [];
-    const d = await r.json();
     const expiresAt = new Date(Date.now() + 30*24*60*60*1000).toISOString();
-    return (d.results || []).map(j => ({
+    const mapJob = j => ({
       title:       (j.title || "").substring(0, 120),
       company:     j.company?.display_name || "UK Employer",
       location:    j.location?.display_name || "United Kingdom",
       salary:      j.salary_min ? `£${Math.round(j.salary_min).toLocaleString()}–£${Math.round(j.salary_max||j.salary_min).toLocaleString()}/yr` : "Competitive",
       sector:      getSector(j.title || "", sector),
       posted:      j.created ? new Date(j.created).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
-      url:         j.redirect_url || "",
+      url:         (j.redirect_url || "").split("?")[0],
       source:      "Adzuna",
       sponsorship: detectSponsorship(j.title||"", j.description||""),
       expires_at:  expiresAt,
-    })).filter(j => j.url);
+    });
+    // Fetch pages 1 and 2 to get up to 100 results per search
+    const [r1, r2] = await Promise.allSettled([
+      fetch(`https://api.adzuna.com/v1/api/jobs/gb/search/1?${new URLSearchParams({app_id:appId,app_key:appKey,results_per_page:"50",what:q,where:"UK"})}`, { signal: AbortSignal.timeout(8000) }),
+      fetch(`https://api.adzuna.com/v1/api/jobs/gb/search/2?${new URLSearchParams({app_id:appId,app_key:appKey,results_per_page:"50",what:q,where:"UK"})}`, { signal: AbortSignal.timeout(8000) }),
+    ]);
+    const jobs = [];
+    for (const r of [r1, r2]) {
+      if (r.status === "fulfilled" && r.value.ok) {
+        const d = await r.value.json();
+        jobs.push(...(d.results || []).map(mapJob).filter(j => j.url));
+      }
+    }
+    return jobs;
   } catch { return []; }
 }
 
