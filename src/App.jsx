@@ -601,6 +601,120 @@ function ContactPage() {
 }
 
 // ─── Main component ────────────────────────────────────────────────────────
+// ── Instagram Lead Capture / Guide Page ─────────────────────────────────────
+function GuidePage({ navTo }) {
+  const [emailVal, setEmailVal] = useState("");
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState(false);
+
+  function handleSubmit() {
+    if (!emailVal.trim() || !emailVal.includes("@")) { setErr(true); return; }
+    setErr(false);
+    // Try to save email
+    fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Guide Download", email: emailVal, subject: "Guide Request", message: "Requested sponsorship guide via Instagram landing page." }),
+    }).catch(() => {});
+    setDone(true);
+  }
+
+  const chapters = [
+    { n: "1", title: "How UK Sponsorship Works", desc: "Skilled Worker visa explained — points, salary thresholds, CoS process" },
+    { n: "2", title: "Where to Find Sponsored Jobs", desc: "7 best sources including GOV.UK register and Mentorgram's free jobs board" },
+    { n: "3", title: "CV & Cover Letter Formula", desc: "UK CV format, how to mention sponsorship professionally, template phrases" },
+    { n: "4", title: "Interview & Visa Timeline", desc: "What to expect, questions to ask, and how long the full process takes" },
+    { n: "5", title: "5 Costly Mistakes to Avoid", desc: "The most common errors that waste months of applications" },
+    { n: "✓", title: "Your 7-Step Action Plan", desc: "A concrete plan to start your sponsored job search today" },
+  ];
+
+  return (
+    <div style={{ fontFamily: "var(--font-sans)", color: "var(--color-text-primary)", minHeight: "100vh" }}>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(160deg, #0d2478 0%, #1a3fa8 50%, #0f1535 100%)", padding: "60px 20px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ display: "inline-block", background: "rgba(255,69,0,0.2)", color: "#ff6b35", border: "1px solid rgba(255,69,0,0.3)", padding: "6px 16px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "20px" }}>
+          🎁 Free Download
+        </div>
+        <h1 style={{ fontSize: "clamp(26px, 5vw, 44px)", fontWeight: 800, lineHeight: 1.15, margin: "0 0 16px", color: "#fff", letterSpacing: "-0.02em" }}>
+          How to Land a<br /><span style={{ color: "#FF4500" }}>UK Visa-Sponsored Role</span>
+        </h1>
+        <p style={{ fontSize: "16px", color: "#94a3c8", maxWidth: "520px", margin: "0 auto 36px", lineHeight: 1.7 }}>
+          The step-by-step guide to finding, applying and getting sponsored to work in the UK — completely free.
+        </p>
+
+        {/* Lead capture card */}
+        <div style={{ background: "#fff", color: "#1a1a2e", borderRadius: "20px", padding: "32px 28px", maxWidth: "440px", margin: "0 auto", boxShadow: "0 32px 80px rgba(0,0,0,0.4)" }}>
+          {!done ? (
+            <>
+              <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#1A3FA8", margin: "0 0 6px" }}>Get Your Free Guide</h2>
+              <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 20px", lineHeight: 1.6 }}>Enter your email and download instantly — no spam, ever.</p>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>Email address</label>
+              <input
+                type="email"
+                value={emailVal}
+                onChange={e => { setEmailVal(e.target.value); setErr(false); }}
+                onKeyDown={e => e.key === "Enter" && handleSubmit()}
+                placeholder="you@email.com"
+                style={{ width: "100%", padding: "12px 14px", border: err ? "1.5px solid #ef4444" : "1.5px solid #e2e8f0", borderRadius: "10px", fontSize: "14px", outline: "none", marginBottom: "12px", boxSizing: "border-box", fontFamily: "inherit", color: "#1a1a2e" }}
+              />
+              {err && <p style={{ color: "#ef4444", fontSize: "12px", margin: "-8px 0 10px" }}>Please enter a valid email address</p>}
+              <button
+                onClick={handleSubmit}
+                style={{ width: "100%", padding: "13px", background: "#1A3FA8", color: "#fff", border: "none", borderRadius: "10px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                Send Me the Free Guide →
+              </button>
+              <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", marginTop: "10px" }}>🔒 No spam. Unsubscribe anytime.</p>
+            </>
+          ) : (
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎉</div>
+              <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#16A34A", marginBottom: "8px" }}>Your guide is ready!</h3>
+              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "20px", lineHeight: 1.6 }}>Click below to download your free copy.</p>
+              <a href="/sponsorship-guide.pdf" download
+                style={{ display: "inline-block", padding: "12px 28px", background: "linear-gradient(135deg, #1A3FA8, #FF4500)", color: "#fff", borderRadius: "10px", fontSize: "14px", fontWeight: 700, textDecoration: "none" }}>
+                ⬇ Download Free Guide
+              </a>
+              <p style={{ marginTop: "16px", fontSize: "12px", color: "#94a3b8" }}>
+                Also search 500+ live sponsored jobs on{" "}
+                <button onClick={() => navTo("Sponsorship Jobs")} style={{ background: "none", border: "none", color: "#1A3FA8", cursor: "pointer", fontFamily: "inherit", fontSize: "12px", fontWeight: 600, padding: 0, textDecoration: "underline" }}>
+                  Mentorgram Jobs
+                </button>
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* What's inside */}
+      <div style={{ padding: "60px 20px", maxWidth: "700px", margin: "0 auto" }}>
+        <h2 style={{ fontSize: "24px", fontWeight: 700, textAlign: "center", margin: "0 0 8px" }}>What's Inside the Guide</h2>
+        <p style={{ textAlign: "center", color: "var(--color-text-secondary)", marginBottom: "36px" }}>8 pages of actionable, no-fluff advice</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
+          {chapters.map(c => (
+            <div key={c.n} style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "18px", display: "flex", gap: "14px", alignItems: "flex-start" }}>
+              <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #1A3FA8, #0d2478)", color: "#fff", fontWeight: 800, fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{c.n}</div>
+              <div>
+                <p style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 3px", color: "var(--color-text-primary)" }}>{c.title}</p>
+                <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>{c.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA bar */}
+      <div style={{ background: "#1A3FA8", padding: "40px 20px", textAlign: "center" }}>
+        <p style={{ fontSize: "13px", color: "#b0c4f8", marginBottom: "4px" }}>While you're here</p>
+        <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#fff", marginBottom: "16px" }}>Search 500+ Live Visa-Sponsored Jobs</h3>
+        <button onClick={() => navTo("Sponsorship Jobs")}
+          style={{ padding: "12px 28px", background: "#FF4500", color: "#fff", border: "none", borderRadius: "10px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+          Browse Jobs →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Mentorgram() {
   // Hash-based routing — maps page names to URL hashes
   const PAGE_SLUGS = {
@@ -614,6 +728,7 @@ export default function Mentorgram() {
     "My Profile": "profile",
     "Privacy Policy": "privacy",
     "Terms & Conditions": "terms",
+    "Guide": "guide",
   };
   const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([k,v]) => [v, k]));
 
@@ -963,6 +1078,8 @@ export default function Mentorgram() {
       case "Visa Sponsors": return <SponsorsPage />;
       case "Privacy Policy": return <PrivacyPage />;
       case "Terms & Conditions": return <TermsPage />;
+
+      case "Guide": return <GuidePage navTo={navTo} />;
 
       case "My Profile": return user ? (
         <Dashboard
