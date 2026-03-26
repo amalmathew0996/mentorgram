@@ -1,170 +1,215 @@
-import nodemailer from "nodemailer";
-import fs from "fs";
-import path from "path";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Free Guide: How to Land a UK Visa-Sponsored Job | Mentorgram AI</title>
+<meta name="description" content="Get your free step-by-step guide to finding and landing a UK visa-sponsored role. Sent instantly to your inbox." />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #0f0f1a; color: #f0f4ff; min-height: 100vh; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,26,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+  .nav-m { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, #1a3fa8, #0d2478); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; }
+  .nav-name { font-size: 16px; font-weight: 600; color: #f0f4ff; }
+  .nav-cta { font-size: 13px; color: #93b4ff; text-decoration: none; padding: 7px 16px; border: 1px solid rgba(26,63,168,0.4); border-radius: 8px; font-weight: 500; transition: background 0.15s; }
+  .nav-cta:hover { background: rgba(26,63,168,0.2); }
+  .hero { background: linear-gradient(160deg, #0d2478 0%, #1a3fa8 45%, #0f0f1a 100%); padding: 100px 20px 80px; text-align: center; position: relative; overflow: hidden; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(26,63,168,0.3); color: #93b4ff; border: 1px solid rgba(26,63,168,0.5); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 24px; }
+  .hero h1 { font-size: clamp(30px, 6vw, 52px); font-weight: 800; line-height: 1.12; margin-bottom: 18px; letter-spacing: -0.03em; }
+  .hero h1 .accent { color: #5b8fff; }
+  .hero p { font-size: 17px; color: #8ba4d8; max-width: 500px; margin: 0 auto 40px; line-height: 1.7; }
+  .card { background: #fff; color: #1a1a2e; border-radius: 20px; padding: 36px 32px; max-width: 460px; margin: 0 auto; box-shadow: 0 32px 80px rgba(0,0,0,0.5); }
+  .card-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; color: #1a1a2e; }
+  .card-sub { font-size: 13.5px; color: #64748b; margin-bottom: 22px; line-height: 1.5; }
+  .field-label { display: block; font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .field-input { width: 100%; padding: 13px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 15px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; margin-bottom: 16px; font-family: inherit; color: #1a1a2e; background: #fafbff; }
+  .field-input:focus { border-color: #1a3fa8; box-shadow: 0 0 0 3px rgba(26,63,168,0.08); }
+  .field-input.error { border-color: #ef4444; }
+  .consent-wrap { display: flex; gap: 11px; align-items: flex-start; margin-bottom: 6px; padding: 14px; background: #f8faff; border: 1.5px solid #dde8ff; border-radius: 10px; }
+  .consent-wrap input[type="checkbox"] { width: 17px; height: 17px; accent-color: #1a3fa8; flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+  .consent-wrap label { font-size: 12px; color: #374151; line-height: 1.6; cursor: pointer; }
+  .consent-wrap label a { color: #1a3fa8; }
+  .consent-error { font-size: 12px; color: #ef4444; margin: 4px 0 12px 4px; display: none; }
+  .submit-btn { width: 100%; padding: 14px; background: #1a3fa8; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s, transform 0.1s, opacity 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
+  .submit-btn:hover:not(:disabled) { background: #0d2478; }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .error-msg { display: none; background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 12px; line-height: 1.5; }
+  .privacy-note { font-size: 6px; color: #b0bec5; text-align: center; margin-top: 6px; letter-spacing: 0.01em; opacity: 0.7; }
+  .success { display: none; text-align: center; }
+  .success-icon { font-size: 52px; margin-bottom: 14px; }
+  .email-sent-badge { display: inline-flex; align-items: center; gap: 6px; background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+  .success h3 { font-size: 20px; font-weight: 800; color: #1a1a2e; margin-bottom: 8px; }
+  .success p { font-size: 13.5px; color: #64748b; margin-bottom: 18px; line-height: 1.6; }
+  .dl-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 26px; background: #1a3fa8; color: #fff; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background 0.15s; margin-bottom: 12px; }
+  .dl-btn:hover { background: #0d2478; }
+  .jobs-link { font-size: 12.5px; color: #94a3b8; }
+  .jobs-link a { color: #1a3fa8; font-weight: 600; }
+  .spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .inside { padding: 72px 20px; max-width: 700px; margin: 0 auto; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5b8fff; text-align: center; margin-bottom: 10px; }
+  .inside h2 { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 10px; letter-spacing: -0.02em; }
+  .inside .sub { text-align: center; color: #64748b; font-size: 15px; margin-bottom: 40px; }
+  .chapters { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+  .chapter { background: #13172e; border: 1px solid #1e2545; border-radius: 14px; padding: 18px 20px; display: flex; gap: 14px; align-items: flex-start; }
+  .ch-num { width: 34px; height: 34px; border-radius: 8px; background: rgba(26,63,168,0.2); border: 1px solid rgba(26,63,168,0.3); color: #5b8fff; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ch-title { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; color: #f0f4ff; }
+  .ch-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+  .stats-bar { background: #13172e; border-top: 1px solid #1e2545; border-bottom: 1px solid #1e2545; padding: 36px 20px; }
+  .stats-inner { max-width: 600px; margin: 0 auto; display: flex; justify-content: center; flex-wrap: wrap; }
+  .stat { text-align: center; padding: 12px 32px; border-right: 1px solid #1e2545; }
+  .stat:last-child { border-right: none; }
+  .stat .num { font-size: 30px; font-weight: 800; color: #5b8fff; }
+  .stat .lbl { font-size: 12px; color: #64748b; margin-top: 3px; }
+  footer { padding: 28px 20px; text-align: center; font-size: 12px; color: #4a5568; border-top: 1px solid #1e2545; }
+  footer a { color: #5b8fff; text-decoration: none; }
+</style>
+</head>
+<body>
 
-export const config = { runtime: "nodejs" };
+<nav>
+  <a class="nav-logo" href="https://mentorgramai.com">
+    <img src="/logo.png" alt="Mentorgram" style="width:34px;height:34px;border-radius:9px;object-fit:cover;" />
+    <span class="nav-name">Mentorgram</span>
+  </a>
+  <a class="nav-cta" href="https://mentorgramai.com/jobs">Browse Jobs →</a>
+</nav>
 
-export default async function handler(req, res) {
-  const cors = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-  };
+<section class="hero">
+  <div class="badge">🎁 Free Download</div>
+  <h1>How to Land a<br /><span class="accent">UK Visa-Sponsored Role</span></h1>
+  <p>The step-by-step guide international professionals use to find, apply and get sponsored to work in the UK.</p>
 
-  if (req.method === "OPTIONS") return res.status(200).json({});
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  <div class="card">
+    <div id="form-view">
+      <div class="card-title">Get Your Free Guide</div>
+      <div class="card-sub">Enter your email — we'll send the PDF to your inbox instantly.</div>
 
-  const { email, consent } = req.body || {};
+      <label class="field-label" for="email">Email address</label>
+      <input type="email" id="email" class="field-input" placeholder="you@email.com" autocomplete="email" />
 
-  if (!email || !email.includes("@")) {
-    return res.status(400).json({ error: "Valid email required" });
+      <div class="consent-wrap">
+        <input type="checkbox" id="consent" />
+        <label for="consent">
+          I agree to receive this free guide and occasional career tips from Mentorgram AI.
+          My data is handled per the <a href="https://mentorgramai.com/privacy" target="_blank">Privacy Policy</a>.
+          I can unsubscribe anytime.
+        </label>
+      </div>
+      <div id="consent-error" class="consent-error">Please tick the box above to receive your guide.</div>
+
+      <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">
+        <span id="btn-text">Send Me the Free Guide</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+
+      <div id="error-msg" class="error-msg"></div>
+      <p class="privacy-note"></p>
+    </div>
+
+    <div id="success-view" class="success">
+      <div class="success-icon">🎉</div>
+      <div class="email-sent-badge">✓ Guide sent to your inbox!</div>
+      <h3>Check your email</h3>
+      <p>We've emailed your copy of <strong>How to Land a UK Visa-Sponsored Role</strong>. Check your spam folder if you don't see it within a minute.</p>
+      <a href="/sponsorship-guide.pdf" class="dl-btn" target="_blank" rel="noopener">⬇ Download Directly</a>
+      <p class="jobs-link">Search <a href="https://mentorgramai.com/jobs">500+ live sponsored jobs</a> on Mentorgram AI.</p>
+    </div>
+  </div>
+</section>
+
+<section class="inside">
+  <div class="section-label">Inside the guide</div>
+  <h2>Everything You Need to Get Sponsored</h2>
+  <p class="sub">8 pages of actionable, no-fluff advice for international professionals</p>
+  <div class="chapters">
+    <div class="chapter"><div class="ch-num">1</div><div><div class="ch-title">How UK Sponsorship Works</div><div class="ch-desc">Skilled Worker visa explained — points, thresholds, CoS process</div></div></div>
+    <div class="chapter"><div class="ch-num">2</div><div><div class="ch-title">Where to Find Sponsored Jobs</div><div class="ch-desc">7 best sources including GOV.UK register and Mentorgram's jobs board</div></div></div>
+    <div class="chapter"><div class="ch-num">3</div><div><div class="ch-title">CV & Cover Letter Formula</div><div class="ch-desc">UK format, how to mention sponsorship, copy-paste template phrases</div></div></div>
+    <div class="chapter"><div class="ch-num">4</div><div><div class="ch-title">Interview & Visa Timeline</div><div class="ch-desc">What to expect at each stage and how long the full process takes</div></div></div>
+    <div class="chapter"><div class="ch-num">5</div><div><div class="ch-title">5 Costly Mistakes to Avoid</div><div class="ch-desc">The errors that waste months of applications — and how to avoid them</div></div></div>
+    <div class="chapter"><div class="ch-num">✓</div><div><div class="ch-title">7-Step Action Plan</div><div class="ch-desc">A concrete plan to start your sponsored job search today</div></div></div>
+  </div>
+</section>
+
+<section class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat"><div class="num">500+</div><div class="lbl">Visa Sponsors</div></div>
+    <div class="stat"><div class="num">5</div><div class="lbl">Countries</div></div>
+    <div class="stat"><div class="num">Free</div><div class="lbl">Always</div></div>
+    <div class="stat"><div class="num">Live</div><div class="lbl">Job Updates</div></div>
+  </div>
+</section>
+
+<footer>
+  © 2026 Mentorgram AI ·
+  <a href="https://mentorgramai.com">mentorgramai.com</a> ·
+  <a href="mailto:info@mentorgramai.com">info@mentorgramai.com</a> ·
+  <a href="https://mentorgramai.com/privacy">Privacy Policy</a> ·
+  <a href="https://mentorgramai.com/terms">Terms</a>
+</footer>
+
+<script>
+async function handleSubmit() {
+  const email = document.getElementById('email').value.trim();
+  const consent = document.getElementById('consent').checked;
+  const btn = document.getElementById('submit-btn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btn-text');
+  const errorMsg = document.getElementById('error-msg');
+  const consentError = document.getElementById('consent-error');
+
+  // Reset
+  document.getElementById('email').classList.remove('error');
+  errorMsg.style.display = 'none';
+  consentError.style.display = 'none';
+
+  // Validate email
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('email').classList.add('error');
+    document.getElementById('email').focus();
+    return;
   }
+
+  // Validate consent
   if (!consent) {
-    return res.status(400).json({ error: "Consent required" });
+    consentError.style.display = 'block';
+    return;
   }
+
+  // Loading state
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnText.textContent = 'Sending your guide...';
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.zoho.eu",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.ZOHO_EMAIL,
-        pass: process.env.ZOHO_PASSWORD,
-      },
+    const res = await fetch('/api/send-guide', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, consent: true }),
     });
+    const data = await res.json();
 
-    // Fetch the PDF from the public URL (more reliable in serverless than filesystem)
-    let pdfBuffer;
-    try {
-      // Try filesystem first (works locally and some Vercel configs)
-      const possiblePaths = [
-        path.join(process.cwd(), "public", "sponsorship-guide.pdf"),
-        path.join(process.cwd(), "dist", "sponsorship-guide.pdf"),
-        path.join("/var/task", "public", "sponsorship-guide.pdf"),
-        path.join("/var/task", "dist", "sponsorship-guide.pdf"),
-      ];
-      let loaded = false;
-      for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
-          pdfBuffer = fs.readFileSync(p);
-          loaded = true;
-          break;
-        }
-      }
-      if (!loaded) {
-        // Fallback: fetch from our own domain
-        const pdfRes = await fetch("https://mentorgramai.com/sponsorship-guide.pdf");
-        if (pdfRes.ok) {
-          pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
-        }
-      }
-    } catch (e) {
-      console.error("PDF load error:", e.message);
+    if (res.ok && data.success) {
+      document.getElementById('form-view').style.display = 'none';
+      document.getElementById('success-view').style.display = 'block';
+    } else {
+      throw new Error(data.error || 'Something went wrong. Please try again.');
     }
-
-    await transporter.sendMail({
-      from: `"Mentorgram AI" <${process.env.ZOHO_EMAIL}>`,
-      to: email,
-      subject: "Your Free Guide: How to Land a UK Visa-Sponsored Role 🇬🇧",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="UTF-8"/></head>
-        <body style="margin:0;padding:0;background:#f0f4ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-          <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(26,63,168,0.1);">
-
-            <!-- Header -->
-            <div style="background:linear-gradient(135deg,#1a3fa8,#0d2478);padding:40px 36px;text-align:center;">
-              <img src="https://mentorgramai.com/logo.png" alt="Mentorgram" width="56" height="56" style="border-radius:14px;display:block;margin:0 auto 16px;" />
-              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.02em;">Your Free Guide is Attached!</h1>
-              <p style="margin:10px 0 0;color:#b0c4f8;font-size:15px;">How to Land a UK Visa-Sponsored Role</p>
-            </div>
-
-            <!-- Body -->
-            <div style="padding:36px;">
-              <p style="margin:0 0 16px;color:#1a1a2e;font-size:16px;line-height:1.6;">Hi,</p>
-              <p style="margin:0 0 16px;color:#1a1a2e;font-size:15px;line-height:1.7;">
-                Thank you for downloading our free guide. Your PDF is attached to this email — simply open the attachment to start reading.
-              </p>
-
-              <!-- What's inside box -->
-              <div style="background:#f0f4ff;border-radius:12px;padding:20px 24px;margin:24px 0;">
-                <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#1a3fa8;text-transform:uppercase;letter-spacing:0.05em;">What's inside your guide:</p>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                  ${[
-                    "How the UK Skilled Worker visa & sponsorship system works",
-                    "7 best sources for finding sponsored jobs",
-                    "CV & cover letter formula with template phrases",
-                    "Interview prep + full visa timeline",
-                    "5 costly mistakes and how to avoid them",
-                    "Your 7-step action plan to start today",
-                  ].map(item => `
-                    <div style="display:flex;align-items:flex-start;gap:10px;">
-                      <span style="color:#1a3fa8;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>
-                      <span style="font-size:14px;color:#374151;line-height:1.5;">${item}</span>
-                    </div>`).join("")}
-                </div>
-              </div>
-
-              <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.7;">
-                While you're applying, search our live jobs board for UK roles that offer visa sponsorship:
-              </p>
-
-              <!-- CTA Button -->
-              <div style="text-align:center;margin:24px 0;">
-                <a href="https://mentorgramai.com/jobs"
-                   style="display:inline-block;padding:14px 32px;background:#1a3fa8;color:#ffffff;text-decoration:none;border-radius:10px;font-size:16px;font-weight:700;letter-spacing:-0.01em;">
-                  Search Sponsored Jobs →
-                </a>
-              </div>
-
-              <p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.6;">
-                Good luck with your job search! If you have any questions, reply to this email or reach us at
-                <a href="mailto:info@mentorgramai.com" style="color:#1a3fa8;">info@mentorgramai.com</a>
-              </p>
-            </div>
-
-            <!-- Footer -->
-            <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 36px;text-align:center;">
-              <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
-                © 2026 Mentorgram AI · <a href="https://mentorgramai.com" style="color:#1a3fa8;text-decoration:none;">mentorgramai.com</a><br/>
-                You received this because you requested our free guide.<br/>
-                <a href="https://mentorgramai.com/privacy" style="color:#94a3b8;">Privacy Policy</a> ·
-                <a href="https://mentorgramai.com/terms" style="color:#94a3b8;">Terms</a>
-              </p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-      attachments: pdfBuffer ? [
-        {
-          filename: "Mentorgram_UK_Sponsorship_Guide.pdf",
-          content: pdfBuffer,
-          contentType: "application/pdf",
-        },
-      ] : [],
-    });
-
-    // Also notify yourself as a lead
-    await transporter.sendMail({
-      from: `"Mentorgram AI" <${process.env.ZOHO_EMAIL}>`,
-      to: process.env.ZOHO_EMAIL,
-      subject: `🎯 New Lead: ${email} downloaded the sponsorship guide`,
-      html: `
-        <p><strong>New guide download lead!</strong></p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Time:</strong> ${new Date().toUTCString()}</p>
-        <p><strong>Consented to marketing:</strong> Yes</p>
-        <p><strong>Source:</strong> Instagram guide landing page</p>
-      `,
-    });
-
-    return res.status(200).json({ success: true });
-
   } catch (err) {
-    console.error("Email error:", err);
-    return res.status(500).json({ error: "Failed to send email. Please try again." });
+    errorMsg.innerHTML = (err.message || 'Could not send email.') +
+      ' <a href="/sponsorship-guide.pdf" target="_blank" style="color:#1a3fa8;font-weight:600;">Download directly →</a>';
+    errorMsg.style.display = 'block';
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = 'Try Again';
   }
 }
+
+document.getElementById('email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSubmit();
+});
+</script>
+</body>
+</html>
