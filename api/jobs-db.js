@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   const loc      = (url.searchParams.get("location") || "").trim();
   const sector   = (url.searchParams.get("sector")   || "");
   const visa     = (url.searchParams.get("visa")     || "");
-  const pageSize = Math.min(parseInt(url.searchParams.get("pageSize") || "500"), 1000);
+  const pageSize = Math.min(parseInt(url.searchParams.get("pageSize") || "500"), 5000);
 
   try {
     const now = new Date().toISOString();
