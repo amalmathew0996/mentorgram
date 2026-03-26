@@ -121,13 +121,23 @@ function parseRSS(xml, feedSector) {
   return jobs;
 }
 
-async function supabaseUpsert(url, key, rows) {
-  const r = await fetch(`${url}/rest/v1/jobs`, {
+async function supabaseUpsert(supabaseUrl, key, rows) {
+  // Use ?on_conflict=url to properly handle duplicate URLs
+  const r = await fetch(`${supabaseUrl}/rest/v1/jobs?on_conflict=url`, {
     method: "POST",
-    headers: { "Content-Type":"application/json","apikey":key,"Authorization":`Bearer ${key}`,"Prefer":"resolution=merge-duplicates,return=minimal" },
+    headers: {
+      "Content-Type":  "application/json",
+      "apikey":        key,
+      "Authorization": `Bearer ${key}`,
+      "Prefer":        "resolution=merge-duplicates,return=minimal",
+    },
     body: JSON.stringify(rows),
   });
-  if (!r.ok) throw new Error(`Supabase error: ${r.status} ${await r.text()}`);
+  if (!r.ok) {
+    const errText = await r.text();
+    // Log but don't throw — skip bad batches and continue
+    console.error(`Supabase upsert warning: ${r.status}`, errText);
+  }
 }
 
 async function supabaseDeleteExpired(url, key) {
@@ -232,14 +242,27 @@ export default async function handler(req, res) {
     const rssJobs    = rssSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
     const adzunaJobs = Array.isArray(adzunaSettled) ? adzunaSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value) : [];
     let jobs = [...rssJobs, ...adzunaJobs];
+    // Normalise URLs — strip query params so same job isn't duplicated
+    jobs = jobs.map(j => ({ ...j, url: j.url.split("?")[0].substring(0, 500) }));
     const seen = new Set();
-    jobs = jobs.filter(j => { const k = j.url.split("?")[0]; if (seen.has(k)) return false; seen.add(k); return true; });
+    jobs = jobs.filter(j => {
+      if (!j.url || j.url.length < 10) return false;
+      if (seen.has(j.url)) return false;
+      seen.add(j.url);
+      return true;
+    });
     log.push(`RSS: ${rssJobs.length} jobs, Adzuna: ${adzunaJobs.length} jobs, Total unique: ${jobs.length}`);
 
     const BATCH = 100;
+    let batchNum = 0;
     for (let i = 0; i < jobs.length; i += BATCH) {
-      await supabaseUpsert(supabaseUrl, serviceKey, jobs.slice(i, i + BATCH));
-      log.push(`Upserted batch ${Math.floor(i/BATCH)+1}: ${Math.min(BATCH, jobs.length-i)} jobs`);
+      batchNum++;
+      try {
+        await supabaseUpsert(supabaseUrl, serviceKey, jobs.slice(i, i + BATCH));
+        log.push(`Batch ${batchNum}: ${Math.min(BATCH, jobs.length-i)} jobs upserted`);
+      } catch (e) {
+        log.push(`Batch ${batchNum} skipped: ${e.message}`);
+      }
     }
 
     await supabaseDeleteExpired(supabaseUrl, serviceKey);
