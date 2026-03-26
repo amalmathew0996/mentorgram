@@ -88,7 +88,7 @@ export default async function handler(req, res) {
 
               <!-- CTA Button -->
               <div style="text-align:center;margin:24px 0;">
-                <a href="https://mentorgramai.com#jobs"
+                <a href="https://mentorgramai.com/jobs"
                    style="display:inline-block;padding:14px 32px;background:#1a3fa8;color:#ffffff;text-decoration:none;border-radius:10px;font-size:16px;font-weight:700;letter-spacing:-0.01em;">
                   Search Sponsored Jobs →
                 </a>
@@ -105,8 +105,8 @@ export default async function handler(req, res) {
               <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
                 © 2026 Mentorgram AI · <a href="https://mentorgramai.com" style="color:#1a3fa8;text-decoration:none;">mentorgramai.com</a><br/>
                 You received this because you requested our free guide.<br/>
-                <a href="https://mentorgramai.com#privacy" style="color:#94a3b8;">Privacy Policy</a> ·
-                <a href="https://mentorgramai.com#terms" style="color:#94a3b8;">Terms</a>
+                <a href="https://mentorgramai.com/privacy" style="color:#94a3b8;">Privacy Policy</a> ·
+                <a href="https://mentorgramai.com/terms" style="color:#94a3b8;">Terms</a>
               </p>
             </div>
           </div>
