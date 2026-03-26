@@ -296,7 +296,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
     <div style={S.section}>
       <div ref={topRef}>
         <h2 style={S.sectionTitle}>Sponsorship jobs</h2>
-        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — sourced live from Indeed, Reed, Adzuna & jobs.ac.uk.</p>
+        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — updated live.</p>
       </div>
 
       {/* Search box */}
@@ -431,7 +431,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
               {/* Tags + location */}
               <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", alignItems: "center", marginBottom: "8px" }}>
                 {j.sector && <span style={{ padding: "2px 7px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "#1A3FA8" }}>{j.sector}</span>}
-                {j.source === "jobs.ac.uk" && <span style={{ padding: "2px 7px", borderRadius: "var(--border-radius-md)", fontSize: "11px", background: "rgba(26,63,168,0.08)", color: "#1A3FA8" }}>🎓 jobs.ac.uk</span>}
+
                 <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
                 {j.posted && <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>📅 {j.posted}</span>}
               </div>
@@ -818,7 +818,7 @@ export default function Mentorgram() {
                 <button className="hero-btn-outline" style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1rem", margin: "3rem 0 0" }}>
-                {[["50+","Countries Supported","🌍"],["100K+","Students Guided","🎓"],["500+","UK Employers","🏢"],[FALLBACK_JOBS.length+"+","Job Listings","💼"]].map(([n,l,icon]) => (
+                {[["5","Countries Covered","🌍"],["Free","To Use","✨"],["500+","Visa Sponsors","🏢"],[FALLBACK_JOBS.length+"+","Live Jobs","💼"]].map(([n,l,icon]) => (
                   <div key={l} className="stat-card" style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)" }}>
                     <div style={{ fontSize: "22px", marginBottom: "6px" }}>{icon}</div>
                     <p style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px" }}>{n}</p>
