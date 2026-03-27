@@ -379,17 +379,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
           ? "🔍 Fetching live jobs from Indeed, Reed & Adzuna..."
           : <>
               Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs{sourceFilter !== "All" ? ` from ${sourceFilter}` : ""}
-              {" · "}
-              <span style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
-                {[...new Set(allJobs.map(j => j.source).filter(Boolean))].map((src, i) => (
-                  <span key={src} style={{ marginLeft: i > 0 ? "6px" : 0 }}>
-                    <span style={{ display:"inline-block", padding:"1px 7px", borderRadius:"10px", fontSize:"11px", fontWeight:500,
-                      background: src==="Reed" ? "#FFF3E0" : src==="Adzuna" ? "#E3F2FD" : "#F3F2FF",
-                      color: src==="Reed" ? "#E65100" : src==="Adzuna" ? "#0D47A1" : "#1A3FA8"
-                    }}>{src}</span>
-                  </span>
-                ))}
-              </span>
+              
               {allJobs.length <= 40 && <span style={{ color: "#1A3FA8", cursor: "pointer", marginLeft: "8px", fontSize: "12px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
             </>
         }
