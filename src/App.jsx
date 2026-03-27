@@ -371,32 +371,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         ))}
       </div>
 
-      {/* Source filter row */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-        <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Source:</span>
-        {[
-          { key: "All",          label: "🌐 All",         color: "#1A3FA8" },
-          { key: "Adzuna",       label: "🔵 Adzuna",      color: "#1A3FA8" },
-          { key: "Reed",         label: "🟠 Reed",         color: "#E05C00" },
-          { key: "jobs.ac.uk",   label: "🎓 jobs.ac.uk",  color: "#1A3FA8" },
-          { key: "Guardian Jobs",label: "📰 Guardian",     color: "#1A3FA8" },
-          { key: "indeed",       label: "💼 Indeed",       color: "#1A3FA8" },
-        ].map(({ key, label, color }) => {
-          const count = key === "All" ? allJobs.length : allJobs.filter(j => (j.source||"").toLowerCase().includes(key.toLowerCase())).length;
-          const active = sourceFilter === key;
-          return (
-            <button key={key}
-              style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, border: "0.5px solid", cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-                background: active ? color : "var(--color-background-primary)",
-                color: active ? "#fff" : "var(--color-text-secondary)",
-                borderColor: active ? color : "var(--color-border-tertiary)",
-              }}
-              onClick={() => { setSourceFilter(key); setPage(1); }}>
-              {label} {count > 0 ? <span style={{ opacity: 0.7, fontSize: "11px" }}>({count})</span> : null}
-            </button>
-          );
-        })}
-      </div>
+
 
       {/* Results count */}
       <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
