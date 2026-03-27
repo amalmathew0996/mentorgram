@@ -376,7 +376,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
       {/* Results count */}
       <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
         {jobsLoading
-          ? "🔍 Fetching live jobs from Indeed, Reed & Adzuna..."
+          ? "🔍 Refreshing jobs..."
           : <>
               Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs{sourceFilter !== "All" ? ` from ${sourceFilter}` : ""}
               
