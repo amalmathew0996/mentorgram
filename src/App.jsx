@@ -284,11 +284,11 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
       || (sf === "guardian jobs" && src.includes("guardian"))
       || (sf === "indeed" && (src === "indeed" || src === "fallback"))
       || src.includes(sf);
-    const empText = `${j.title} ${j.company}`.toLowerCase();
+    const empText = `${j.title} ${j.company} ${j.source || ""}`.toLowerCase();
     const matchEmployer = employerType === "All"
-      || (employerType === "NHS"        && (empText.includes("nhs") || empText.includes("national health") || empText.includes(" trust") || empText.includes("hospital") || empText.includes("clinical commissioning")))
-      || (employerType === "University" && (empText.includes("universit") || empText.includes(" college") || empText.includes("institute of") || empText.includes("academy") || empText.includes("school of") || empText.includes("research centre")))
-      || (employerType === "Council"    && (empText.includes("council") || empText.includes("local authority") || empText.includes("borough") || empText.includes("county") || empText.includes("district council") || empText.includes("city of")));
+      || (employerType === "NHS"        && (empText.includes("nhs") || empText.includes("national health") || empText.includes(" trust") || empText.includes("hospital") || empText.includes("clinical")))
+      || (employerType === "University" && (empText.includes("universit") || empText.includes("college") || empText.includes("institute") || empText.includes("academy") || empText.includes("research") || empText.includes("jobs.ac.uk") || j.source === "jobs.ac.uk"))
+      || (employerType === "Council"    && (empText.includes("council") || empText.includes("local authority") || empText.includes("borough") || empText.includes("county") || empText.includes("district") || empText.includes("city of") || empText.includes("metropolitan")));
     const q = titleQuery.toLowerCase().trim();
     const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
     const loc = locationQuery.toLowerCase().trim();
@@ -390,10 +390,10 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         ].map(({ key, label }) => {
           const active = employerType === key;
           const count = key === "All" ? null : allJobs.filter(j => {
-            const t = `${j.title} ${j.company}`.toLowerCase();
-            if (key === "NHS")        return t.includes("nhs") || t.includes("national health") || t.includes(" trust") || t.includes("hospital");
-            if (key === "University") return t.includes("universit") || t.includes(" college") || t.includes("institute of") || t.includes("research");
-            if (key === "Council")    return t.includes("council") || t.includes("borough") || t.includes("local authority");
+            const t = `${j.title} ${j.company} ${j.source || ""}`.toLowerCase();
+            if (key === "NHS")        return t.includes("nhs") || t.includes("national health") || t.includes(" trust") || t.includes("hospital") || t.includes("clinical");
+            if (key === "University") return t.includes("universit") || t.includes("college") || t.includes("institute") || t.includes("research") || t.includes("jobs.ac.uk") || j.source === "jobs.ac.uk";
+            if (key === "Council")    return t.includes("council") || t.includes("borough") || t.includes("local authority") || t.includes("district") || t.includes("metropolitan");
             return false;
           }).length;
           return (
