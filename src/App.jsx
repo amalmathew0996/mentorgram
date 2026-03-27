@@ -233,6 +233,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   const [sector, setSector] = useState("All");
   const [visaType, setVisaType] = useState("All Jobs");
   const [sourceFilter, setSourceFilter] = useState("All");
+  const [employerType, setEmployerType] = useState("All");
   const [titleQuery, setTitleQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -283,11 +284,16 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
       || (sf === "guardian jobs" && src.includes("guardian"))
       || (sf === "indeed" && (src === "indeed" || src === "fallback"))
       || src.includes(sf);
+    const empText = `${j.title} ${j.company}`.toLowerCase();
+    const matchEmployer = employerType === "All"
+      || (employerType === "NHS"        && (empText.includes("nhs") || empText.includes("national health") || empText.includes(" trust") || empText.includes("hospital") || empText.includes("clinical commissioning")))
+      || (employerType === "University" && (empText.includes("universit") || empText.includes(" college") || empText.includes("institute of") || empText.includes("academy") || empText.includes("school of") || empText.includes("research centre")))
+      || (employerType === "Council"    && (empText.includes("council") || empText.includes("local authority") || empText.includes("borough") || empText.includes("county") || empText.includes("district council") || empText.includes("city of")));
     const q = titleQuery.toLowerCase().trim();
     const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
     const loc = locationQuery.toLowerCase().trim();
     const matchLoc = !loc || j.location.toLowerCase().includes(loc);
-    return matchSector && matchVisa && matchSource && matchTitle && matchLoc;
+    return matchSector && matchVisa && matchSource && matchEmployer && matchTitle && matchLoc;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
@@ -373,12 +379,44 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
 
 
 
+      {/* Employer type filter */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+        <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Employer:</span>
+        {[
+          { key: "All",        label: "All" },
+          { key: "NHS",        label: "🏥 NHS" },
+          { key: "University", label: "🎓 University" },
+          { key: "Council",    label: "🏛 Council" },
+        ].map(({ key, label }) => {
+          const active = employerType === key;
+          const count = key === "All" ? null : allJobs.filter(j => {
+            const t = `${j.title} ${j.company}`.toLowerCase();
+            if (key === "NHS")        return t.includes("nhs") || t.includes("national health") || t.includes(" trust") || t.includes("hospital");
+            if (key === "University") return t.includes("universit") || t.includes(" college") || t.includes("institute of") || t.includes("research");
+            if (key === "Council")    return t.includes("council") || t.includes("borough") || t.includes("local authority");
+            return false;
+          }).length;
+          return (
+            <button key={key}
+              style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500,
+                border: `0.5px solid ${active ? "#1A3FA8" : "var(--color-border-tertiary)"}`,
+                background: active ? "#1A3FA8" : "var(--color-background-primary)",
+                color: active ? "#fff" : "var(--color-text-secondary)",
+                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+              }}
+              onClick={() => { setEmployerType(key); setPage(1); }}>
+              {label}{count !== null && count > 0 ? <span style={{ opacity: 0.7, fontSize: "11px", marginLeft: "4px" }}>({count})</span> : null}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Results count */}
       <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
         {jobsLoading
-          ? "🔍 Refreshing jobs..."
+          ? `🔍 Refreshing jobs... (${allJobs.length > 0 ? allJobs.length.toLocaleString() + " total" : "loading"})`
           : <>
-              Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs{sourceFilter !== "All" ? ` from ${sourceFilter}` : ""}
+              Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs · <strong>{allJobs.length.toLocaleString()}</strong> total in database
               
               {allJobs.length <= 40 && <span style={{ color: "#1A3FA8", cursor: "pointer", marginLeft: "8px", fontSize: "12px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
             </>
@@ -460,7 +498,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
           <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
           <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No jobs found</p>
           <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>Try searching for a specific role above</p>
-          <button style={S.btnPrimary} onClick={() => { setTitleQuery(""); setLocationQuery(""); setSector("All"); setVisaType("All Jobs"); setSourceFilter("All"); setPage(1); onFetchJobs("", ""); }}>Show all jobs</button>
+          <button style={S.btnPrimary} onClick={() => { setTitleQuery(""); setLocationQuery(""); setSector("All"); setVisaType("All Jobs"); setSourceFilter("All"); setEmployerType("All"); setPage(1); onFetchJobs("", ""); }}>Show all jobs</button>
         </div>
       )}
 
