@@ -157,37 +157,52 @@ async function supabaseCount(url, key) {
 
 // ── Adzuna API — up to 1000 jobs with real sponsorship data ──────────────
 const ADZUNA_SEARCHES = [
-  // Broad terms get 50 results each — no "sponsorship" keyword (reduces results on Adzuna)
+  // Technology
   { q: "software engineer", sector: "Technology" },
   { q: "software developer", sector: "Technology" },
   { q: "data scientist", sector: "AI & Data" },
   { q: "data engineer", sector: "AI & Data" },
   { q: "machine learning engineer", sector: "AI & Data" },
+  { q: "DevOps engineer", sector: "Technology" },
+  { q: "web developer", sector: "Technology" },
+  { q: "cybersecurity analyst", sector: "Technology" },
+  { q: "network engineer", sector: "Technology" },
+  // Healthcare & NHS
+  { q: "NHS nurse", sector: "Healthcare" },
   { q: "registered nurse", sector: "Healthcare" },
-  { q: "healthcare assistant", sector: "Healthcare" },
-  { q: "pharmacist", sector: "Healthcare" },
+  { q: "staff nurse", sector: "Healthcare" },
+  { q: "NHS healthcare assistant", sector: "Healthcare" },
+  { q: "NHS doctor", sector: "Healthcare" },
+  { q: "NHS pharmacist", sector: "Healthcare" },
+  { q: "NHS physiotherapist", sector: "Healthcare" },
+  { q: "NHS occupational therapist", sector: "Healthcare" },
+  { q: "NHS radiographer", sector: "Healthcare" },
+  { q: "NHS social worker", sector: "Healthcare" },
+  { q: "NHS mental health nurse", sector: "Healthcare" },
+  { q: "care worker", sector: "Healthcare" },
+  { q: "midwife", sector: "Healthcare" },
+  { q: "paramedic", sector: "Healthcare" },
+  { q: "dental nurse", sector: "Healthcare" },
+  // Finance
   { q: "financial analyst", sector: "Finance" },
   { q: "accountant", sector: "Finance" },
+  // Engineering
   { q: "mechanical engineer", sector: "Engineering" },
   { q: "civil engineer", sector: "Engineering" },
   { q: "electrical engineer", sector: "Engineering" },
+  { q: "architect", sector: "Engineering" },
+  // Business
   { q: "project manager", sector: "Business" },
   { q: "marketing manager", sector: "Business" },
   { q: "business analyst", sector: "Business" },
-  { q: "social worker", sector: "Public Sector" },
-  { q: "teacher", sector: "Education" },
-  { q: "chef", sector: "Hospitality" },
-  { q: "DevOps engineer", sector: "Technology" },
   { q: "product manager", sector: "Business" },
   { q: "HR manager", sector: "Business" },
-  { q: "care worker", sector: "Healthcare" },
-  { q: "architect", sector: "Engineering" },
-  { q: "web developer", sector: "Technology" },
-  { q: "cybersecurity analyst", sector: "Technology" },
   { q: "operations manager", sector: "Business" },
-  { q: "supply chain manager", sector: "Business" },
-  { q: "network engineer", sector: "Technology" },
-  { q: "physiotherapist", sector: "Healthcare" },
+  // Public Sector
+  { q: "social worker", sector: "Public Sector" },
+  // Education & Hospitality
+  { q: "teacher", sector: "Education" },
+  { q: "chef", sector: "Hospitality" },
 ];
 
 async function fetchAdzuna(appId, appKey, q, sector) {
@@ -224,12 +239,19 @@ async function fetchAdzuna(appId, appKey, q, sector) {
 
 // ── Reed API — up to 2,500 UK jobs ────────────────────────────────────────
 const REED_SEARCHES = [
+  // Technology
   "software engineer", "software developer", "data scientist", "data analyst",
   "machine learning engineer", "DevOps engineer", "web developer", "cybersecurity",
+  // NHS & Healthcare
+  "NHS nurse", "NHS registered nurse", "NHS staff nurse", "NHS healthcare assistant",
+  "NHS doctor", "NHS pharmacist", "NHS physiotherapist", "NHS occupational therapist",
+  "NHS radiographer", "NHS mental health nurse", "NHS social worker",
   "registered nurse", "healthcare assistant", "pharmacist", "physiotherapist",
-  "doctor", "care worker", "dental nurse", "radiographer",
+  "doctor", "care worker", "dental nurse", "radiographer", "midwife", "paramedic",
+  // Finance & Engineering
   "financial analyst", "accountant", "investment banker", "risk analyst",
   "mechanical engineer", "civil engineer", "electrical engineer", "structural engineer",
+  // Business & Other
   "project manager", "business analyst", "marketing manager", "HR manager",
   "operations manager", "product manager", "social worker", "teacher",
   "chef", "hotel manager", "quantity surveyor", "architect",
