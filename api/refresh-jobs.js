@@ -215,7 +215,7 @@ async function fetchAdzuna(appId, appKey, q, sector) {
       salary:      j.salary_min ? `£${Math.round(j.salary_min).toLocaleString()}–£${Math.round(j.salary_max||j.salary_min).toLocaleString()}/yr` : "Competitive",
       sector:      getSector(j.title || "", sector),
       posted:      j.created ? new Date(j.created).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
-      url:         (j.redirect_url || "").split("?")[0],
+      url:         `https://www.adzuna.co.uk/search?q=${encodeURIComponent((j.title || q).replace(/\s+/g, "+"))}&w=United+Kingdom`,
       source:      "Adzuna",
       sponsorship: detectSponsorship(j.title||"", j.description||""),
       expires_at:  expiresAt,
