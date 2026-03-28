@@ -223,29 +223,27 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
         {job.url && (() => {
           const src = (job.source || "").toLowerCase();
-          const title = encodeURIComponent(job.title || "");
-          const company = encodeURIComponent(job.company || "");
-          // Build a reliable fallback URL per source
-          const fallbackUrl =
-            src === "reed"         ? `https://www.reed.co.uk/jobs?keywords=${title}&locationName=United+Kingdom`
-            : src === "adzuna"     ? `https://www.adzuna.co.uk/search?q=${title}&w=United+Kingdom`
-            : src === "jobs.ac.uk" ? `https://www.jobs.ac.uk/search#/?keywords=${title}`
-            : src === "guardian jobs" ? `https://jobs.theguardian.com/jobs/?k=${title}`
-            : `https://www.google.com/search?q=${title}+${company}+UK+job+visa+sponsorship`;
-
-          const handleApply = (e) => {
-            e.preventDefault();
-            // Always use fallback search URL — guaranteed to work
-            window.open(fallbackUrl, "_blank");
-          };
-
+          const rawTitle = job.title || "";
+          const rawCompany = job.company || "";
+          const t = encodeURIComponent(rawTitle);
+          const c = encodeURIComponent(rawCompany);
+          // Build most targeted URL per source so user lands on relevant results
+          const targetUrl =
+            src === "reed"
+              ? `https://www.reed.co.uk/jobs/${rawTitle.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}-jobs?keywords=${t}&locationName=United+Kingdom`
+            : src === "adzuna"
+              ? `https://www.adzuna.co.uk/search?q=${t}&w=United+Kingdom`
+            : src === "jobs.ac.uk"
+              ? `https://www.jobs.ac.uk/search#/?keywords=${t}`
+            : src === "guardian jobs"
+              ? `https://jobs.theguardian.com/jobs/?k=${t}`
+            : `https://www.google.com/search?q=${t}+${c}+site%3Areed.co.uk+OR+site%3Aadzuna.co.uk`;
           return (
             <a
-              href={fallbackUrl}
+              href={targetUrl}
               target="_blank"
               rel="noopener noreferrer"
               style={{ ...S.btnPrimary, textDecoration: "none" }}
-              onClick={handleApply}
             >Apply for this job ↗</a>
           );
         })()}
