@@ -135,7 +135,6 @@ function ShareButton({ job }) {
       </button>
       {open && (
         <>
-          {/* Backdrop to catch outside clicks on mobile */}
           <div style={{ position: "fixed", inset: 0, zIndex: 49 }} onClick={() => setOpen(false)} />
           <div style={{ position: "fixed", bottom: "auto", right: "1rem", left: "auto", top: "auto", marginTop: "8px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "6px", zIndex: 200, minWidth: "165px", boxShadow: "0 8px 30px rgba(0,0,0,0.2)" }}
             ref={node => { if (node && ref.current) { const btn = ref.current.getBoundingClientRect(); node.style.top = (btn.bottom + 8) + "px"; node.style.left = Math.min(btn.left, window.innerWidth - 175) + "px"; } }}>
@@ -227,7 +226,6 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
           const rawCompany = job.company || "";
           const t = encodeURIComponent(rawTitle);
           const c = encodeURIComponent(rawCompany);
-          // Build most targeted URL per source so user lands on relevant results
           const targetUrl =
             src === "reed"
               ? `https://www.reed.co.uk/jobs/${rawTitle.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}-jobs?keywords=${t}&locationName=United+Kingdom`
@@ -265,7 +263,6 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   const [clickedJob, setClickedJob] = useState(null);
   const topRef = useRef(null);
 
-  // Auto-apply profile filter when passed in
   useEffect(() => {
     if (profileFilter) {
       if (profileFilter.sectors?.length > 0) setSector(profileFilter.sectors[0]);
@@ -402,8 +399,6 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         ))}
       </div>
 
-
-
       {/* Employer type filter */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
         <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Employer:</span>
@@ -442,7 +437,6 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
           ? `🔍 Refreshing jobs... (${allJobs.length > 0 ? allJobs.length.toLocaleString() + " total" : "loading"})`
           : <>
               Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs · <strong>{allJobs.length.toLocaleString()}</strong> total in database
-              
               {allJobs.length <= 40 && <span style={{ color: "#1A3FA8", cursor: "pointer", marginLeft: "8px", fontSize: "12px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
             </>
         }
@@ -492,12 +486,21 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
                 </span>
               </div>
 
-              {/* Tags + location */}
+              {/* Tags + location + posted date */}
               <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", alignItems: "center", marginBottom: "8px" }}>
                 {j.sector && <span style={{ padding: "2px 7px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "#1A3FA8" }}>{j.sector}</span>}
-
                 <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
-                {j.posted && <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>📅 {j.posted}</span>}
+                {/* ── POSTED DATE PILL ── */}
+                <span style={{
+                  fontSize: "11px",
+                  color: "var(--color-text-secondary)",
+                  background: "var(--color-background-secondary)",
+                  padding: "2px 7px",
+                  borderRadius: "var(--border-radius-md)",
+                  border: "0.5px solid var(--color-border-tertiary)",
+                }}>
+                  📅 {j.posted || "Recently"}
+                </span>
               </div>
 
               {/* Salary + buttons — pinned to bottom */}
@@ -590,15 +593,12 @@ function ContactPage() {
               @keyframes popIn { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.2) rotate(5deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
               @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
               @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(220px) rotate(720deg); opacity: 0; } }
-              @keyframes pulse2 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
               .success-icon { animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; display: inline-block; }
               .success-title { animation: fadeSlideUp 0.5s ease 0.3s both; }
               .success-sub { animation: fadeSlideUp 0.5s ease 0.45s both; }
               .success-btn { animation: fadeSlideUp 0.5s ease 0.6s both; }
               .confetti-piece { position: absolute; width: 8px; height: 8px; border-radius: 2px; animation: confettiFall linear forwards; }
             `}</style>
-
-            {/* Confetti pieces */}
             {[
               { left: "10%", delay: "0s",   color: "#1A3FA8", size: "8px",  duration: "1.2s" },
               { left: "20%", delay: "0.1s", color: "#FF4500", size: "6px",  duration: "1.5s" },
@@ -613,15 +613,8 @@ function ContactPage() {
             ].map((c, i) => (
               <div key={i} className="confetti-piece" style={{ left: c.left, top: "-10px", background: c.color, width: c.size, height: c.size, animationDuration: c.duration, animationDelay: c.delay }} />
             ))}
-
-            {/* Animated envelope icon */}
-            <div className="success-icon" style={{ fontSize: "64px", marginBottom: "1rem", display: "block" }}>
-              📨
-            </div>
-
-            <h3 className="success-title" style={{ fontSize: "1.4rem", fontWeight: 500, margin: "0 0 0.5rem", color: "var(--color-text-primary)" }}>
-              Message sent! 🎉
-            </h3>
+            <div className="success-icon" style={{ fontSize: "64px", marginBottom: "1rem", display: "block" }}>📨</div>
+            <h3 className="success-title" style={{ fontSize: "1.4rem", fontWeight: 500, margin: "0 0 0.5rem", color: "var(--color-text-primary)" }}>Message sent! 🎉</h3>
             <p className="success-sub" style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
               Thanks <strong>{name}</strong>! We'll get back to you at <strong>{email}</strong> shortly.
             </p>
@@ -664,8 +657,7 @@ function ContactPage() {
   );
 }
 
-// ─── Main component ────────────────────────────────────────────────────────
-// ── Instagram Lead Capture / Guide Page ─────────────────────────────────────
+// ─── Guide Page ───────────────────────────────────────────────────────────
 function GuidePage({ navTo }) {
   const [emailVal, setEmailVal] = useState("");
   const [done, setDone] = useState(false);
@@ -674,7 +666,6 @@ function GuidePage({ navTo }) {
   function handleSubmit() {
     if (!emailVal.trim() || !emailVal.includes("@")) { setErr(true); return; }
     setErr(false);
-    // Try to save email
     fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -694,7 +685,6 @@ function GuidePage({ navTo }) {
 
   return (
     <div style={{ fontFamily: "var(--font-sans)", color: "var(--color-text-primary)", minHeight: "100vh" }}>
-      {/* Hero */}
       <div style={{ background: "linear-gradient(160deg, #0d2478 0%, #1a3fa8 50%, #0f1535 100%)", padding: "60px 20px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ display: "inline-block", background: "rgba(255,69,0,0.2)", color: "#ff6b35", border: "1px solid rgba(255,69,0,0.3)", padding: "6px 16px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "20px" }}>
           🎁 Free Download
@@ -705,8 +695,6 @@ function GuidePage({ navTo }) {
         <p style={{ fontSize: "16px", color: "#94a3c8", maxWidth: "520px", margin: "0 auto 36px", lineHeight: 1.7 }}>
           The step-by-step guide to finding, applying and getting sponsored to work in the UK — completely free.
         </p>
-
-        {/* Lead capture card */}
         <div style={{ background: "#fff", color: "#1a1a2e", borderRadius: "20px", padding: "32px 28px", maxWidth: "440px", margin: "0 auto", boxShadow: "0 32px 80px rgba(0,0,0,0.4)" }}>
           {!done ? (
             <>
@@ -722,9 +710,7 @@ function GuidePage({ navTo }) {
                 style={{ width: "100%", padding: "12px 14px", border: err ? "1.5px solid #ef4444" : "1.5px solid #e2e8f0", borderRadius: "10px", fontSize: "14px", outline: "none", marginBottom: "12px", boxSizing: "border-box", fontFamily: "inherit", color: "#1a1a2e" }}
               />
               {err && <p style={{ color: "#ef4444", fontSize: "12px", margin: "-8px 0 10px" }}>Please enter a valid email address</p>}
-              <button
-                onClick={handleSubmit}
-                style={{ width: "100%", padding: "13px", background: "#1A3FA8", color: "#fff", border: "none", borderRadius: "10px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+              <button onClick={handleSubmit} style={{ width: "100%", padding: "13px", background: "#1A3FA8", color: "#fff", border: "none", borderRadius: "10px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                 Send Me the Free Guide →
               </button>
               <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", marginTop: "10px" }}>🔒 No spam. Unsubscribe anytime.</p>
@@ -748,8 +734,6 @@ function GuidePage({ navTo }) {
           )}
         </div>
       </div>
-
-      {/* What's inside */}
       <div style={{ padding: "60px 20px", maxWidth: "700px", margin: "0 auto" }}>
         <h2 style={{ fontSize: "24px", fontWeight: 700, textAlign: "center", margin: "0 0 8px" }}>What's Inside the Guide</h2>
         <p style={{ textAlign: "center", color: "var(--color-text-secondary)", marginBottom: "36px" }}>8 pages of actionable, no-fluff advice</p>
@@ -765,8 +749,6 @@ function GuidePage({ navTo }) {
           ))}
         </div>
       </div>
-
-      {/* CTA bar */}
       <div style={{ background: "#1A3FA8", padding: "40px 20px", textAlign: "center" }}>
         <p style={{ fontSize: "13px", color: "#b0c4f8", marginBottom: "4px" }}>While you're here</p>
         <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#fff", marginBottom: "16px" }}>Search 500+ Live Visa-Sponsored Jobs</h3>
@@ -779,8 +761,8 @@ function GuidePage({ navTo }) {
   );
 }
 
+// ─── Main component ────────────────────────────────────────────────────────
 export default function Mentorgram() {
-  // Hash-based routing — maps page names to URL hashes
   const PAGE_SLUGS = {
     "Home": "",
     "AI Mentor": "ai-mentor",
@@ -822,11 +804,9 @@ export default function Mentorgram() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // Handle shared job URLs
   useEffect(() => {
     function checkHash() {
       try {
-        // Handle deep-linked job
         const hash = window.location.hash;
         if (hash.startsWith("#job=")) {
           const encoded = decodeURIComponent(hash.replace("#job=", ""));
@@ -835,7 +815,6 @@ export default function Mentorgram() {
           setActivePage("Sponsorship Jobs");
           return;
         }
-        // Handle clean path navigation (back/forward buttons)
         const path = window.location.pathname.replace("/", "").split("?")[0];
         const page = SLUG_TO_PAGE[path];
         if (page) setActivePage(page);
@@ -860,7 +839,6 @@ export default function Mentorgram() {
       if (loc) params.set("location", loc);
       params.set("pageSize", "3000");
 
-      // Try database first (fast, 500+ jobs), fall back to live RSS
       let dbJobs = [];
       let rssJobs = [];
 
@@ -874,10 +852,8 @@ export default function Mentorgram() {
       rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
       const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
 
-      // Merge: FALLBACK (always has sponsorship data) + Indeed + DB + RSS
       const allSources = [...FALLBACK_JOBS, ...indeedJobs, ...dbJobs, ...rssJobs];
 
-      // Deduplicate by URL
       const seen = new Set();
       const combined = allSources.filter(j => {
         if (!j.url || seen.has(j.url)) return false;
@@ -885,7 +861,6 @@ export default function Mentorgram() {
         return true;
       });
 
-      // Apply local filter if query given
       const filtered = (q || loc) ? combined.filter(j => {
         const matchQ = !q || j.title.toLowerCase().includes(q.toLowerCase()) ||
           j.company.toLowerCase().includes(q.toLowerCase()) ||
@@ -931,7 +906,6 @@ export default function Mentorgram() {
       setSelectedJob(null);
       setPageTransition(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
-      // Update URL hash so refresh works + back button works
       const slug = PAGE_SLUGS[page] || "";
       window.history.pushState(null, "", slug ? `/${slug}` : "/");
     }, 220);
@@ -1094,7 +1068,6 @@ export default function Mentorgram() {
         </div>
       );
 
-      
       case "Education Paths": return (
         <div style={S.section}>
           <h2 style={S.sectionTitle}>Education pathways</h2>
@@ -1150,7 +1123,6 @@ export default function Mentorgram() {
       case "Visa Sponsors": return <SponsorsPage />;
       case "Privacy Policy": return <PrivacyPage />;
       case "Terms & Conditions": return <TermsPage />;
-
       case "Guide": return <GuidePage navTo={navTo} />;
 
       case "My Profile": return user ? (
@@ -1219,7 +1191,6 @@ export default function Mentorgram() {
             </button>
           );
         })}
-        {/* Sign In / Dashboard in mobile menu */}
         <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "4px", paddingTop: "8px" }}>
           {user ? (
             <button onClick={() => { navTo("My Profile"); setMobileMenu(false); }}
@@ -1253,7 +1224,6 @@ export default function Mentorgram() {
         </div>
       </main>
       <footer style={S.footer}>
-        {/* Social links */}
         <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginBottom: "14px" }}>
           <a href="https://www.linkedin.com/company/mentorgramai" target="_blank" rel="noopener noreferrer"
             style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-text-secondary)", textDecoration: "none", fontSize: "13px", fontWeight: 500, transition: "color 0.15s" }}
@@ -1281,7 +1251,6 @@ export default function Mentorgram() {
         </div>
       </footer>
 
-      {/* Cookie Banner */}
       {!cookieConsent && (
         <CookieBanner
           onAccept={() => { localStorage.setItem("mg_cookies", "all"); setCookieConsent("all"); }}
