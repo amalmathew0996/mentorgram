@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/admin",
-      "destination": "/admin.html"
-    },
-    {
       "source": "/api/admin-stats",
       "destination": "/api/admin-stats"
     },
@@ -15,6 +11,13 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/admin",
+      "destination": "/admin.html",
+      "permanent": false
     }
   ],
   "crons": [
