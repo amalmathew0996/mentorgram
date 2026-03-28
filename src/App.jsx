@@ -221,7 +221,34 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
         </button>
       </div>
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        {job.url && <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ ...S.btnPrimary, textDecoration: "none" }}>Apply for this job ↗</a>}
+        {job.url && (() => {
+          const src = (job.source || "").toLowerCase();
+          const title = encodeURIComponent(job.title || "");
+          const company = encodeURIComponent(job.company || "");
+          // Build a reliable fallback URL per source
+          const fallbackUrl =
+            src === "reed"         ? `https://www.reed.co.uk/jobs?keywords=${title}&locationName=United+Kingdom`
+            : src === "adzuna"     ? `https://www.adzuna.co.uk/search?q=${title}&w=United+Kingdom`
+            : src === "jobs.ac.uk" ? `https://www.jobs.ac.uk/search#/?keywords=${title}`
+            : src === "guardian jobs" ? `https://jobs.theguardian.com/jobs/?k=${title}`
+            : `https://www.google.com/search?q=${title}+${company}+UK+job+visa+sponsorship`;
+
+          const handleApply = (e) => {
+            e.preventDefault();
+            // Always use fallback search URL — guaranteed to work
+            window.open(fallbackUrl, "_blank");
+          };
+
+          return (
+            <a
+              href={fallbackUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ ...S.btnPrimary, textDecoration: "none" }}
+              onClick={handleApply}
+            >Apply for this job ↗</a>
+          );
+        })()}
         <button style={S.btnOutline} onClick={onBack}>← Back to jobs</button>
       </div>
     </div>
