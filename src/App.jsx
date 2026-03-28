@@ -707,23 +707,25 @@ function GuidePage({ navTo }) {
 }
 
 // ─── Main component ────────────────────────────────────────────────────────
-export default function Mentorgram() {
-  const PAGE_SLUGS = {
-    "Home": "",
-    "AI Mentor": "ai-mentor",
-    "Education Paths": "education",
-    "UK Universities": "universities",
-    "Sponsorship Jobs": "jobs",
-    "Visa Sponsors": "visa-sponsors",
-    "Contact": "contact",
-    "My Profile": "profile",
-    "Privacy Policy": "privacy",
-    "Terms & Conditions": "terms",
-    "Guide": "guide",
-    "Admin": "admin",
-  };
-  const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([k,v]) => [v, k]));
+// ─── Page routing (outside component so getInitialPage works on mount) ──────
+const PAGE_SLUGS = {
+  "Home": "",
+  "AI Mentor": "ai-mentor",
+  "Education Paths": "education",
+  "UK Universities": "universities",
+  "Sponsorship Jobs": "jobs",
+  "Visa Sponsors": "visa-sponsors",
+  "Contact": "contact",
+  "My Profile": "profile",
+  "Privacy Policy": "privacy",
+  "Terms & Conditions": "terms",
+  "Guide": "guide",
+  "Admin": "admin",
+};
+const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([k,v]) => [v, k]));
 
+export default function Mentorgram() {
+  // PAGE_SLUGS moved outside component — see top of file
   function getInitialPage() {
     const path = window.location.pathname.replace("/", "").split("?")[0];
     return SLUG_TO_PAGE[path] || "Home";
