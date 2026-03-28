@@ -291,8 +291,19 @@ async function fetchReed(reedKey, q) {
       location:    j.locationName || "United Kingdom",
       salary:      j.minimumSalary ? `£${Math.round(j.minimumSalary).toLocaleString()}–£${Math.round(j.maximumSalary||j.minimumSalary).toLocaleString()}/yr` : "Competitive",
       sector:      getSector(j.jobTitle||"", "Other"),
-      posted:      j.date ? new Date(j.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
-      url:         `https://www.reed.co.uk/jobs/${j.jobId}`,
+      posted:      (() => {
+        if (!j.date) return '';
+        try {
+          const d = new Date(j.date);
+          // Reject future dates — Reed sometimes returns expiry not posted date
+          if (d > new Date()) return '';
+          return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+        } catch { return ''; }
+      })(),
+      url:         (() => {
+        const slug = (j.jobTitle || 'job').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        return `https://www.reed.co.uk/jobs/${slug}/${j.jobId}`;
+      })(),
       source:      "Reed",
       sponsorship: detectSponsorship(j.jobTitle||"", j.jobDescription||""),
       expires_at:  expiresAt,
