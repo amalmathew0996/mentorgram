@@ -57,10 +57,15 @@ export default async function handler(req, res) {
     const totalMatch = contentRange.match(/\/(\d+)/);
     const total = totalMatch ? parseInt(totalMatch[1]) : jobs.length;
 
-    // Fix any expired Adzuna redirect URLs still in database
+    // Fix any expired/broken job URLs before returning
     const cleanedJobs = (Array.isArray(jobs) ? jobs : []).map(j => {
-      if (j.source === "Adzuna" && j.url && (j.url.includes("clicks.adzuna") || j.url.includes("redirect"))) {
+      // Fix expired Adzuna redirect URLs
+      if (j.source === "Adzuna" && j.url && !j.url.includes("adzuna.co.uk/search")) {
         j.url = `https://www.adzuna.co.uk/search?q=${encodeURIComponent(j.title || "")}&w=United+Kingdom`;
+      }
+      // Fix expired Reed job ID URLs (reed.co.uk/jobs/12345 format expires when job is filled)
+      if (j.source === "Reed" && j.url && /reed\.co\.uk\/jobs\/[0-9]+/.test(j.url)) {
+        j.url = `https://www.reed.co.uk/jobs?keywords=${encodeURIComponent(j.title || "")}&locationName=United+Kingdom&ref=${j.id || ""}`;
       }
       return j;
     });
