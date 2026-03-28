@@ -215,7 +215,11 @@ async function fetchAdzuna(appId, appKey, q, sector) {
       salary:      j.salary_min ? `£${Math.round(j.salary_min).toLocaleString()}–£${Math.round(j.salary_max||j.salary_min).toLocaleString()}/yr` : "Competitive",
       sector:      getSector(j.title || "", sector),
       posted:      j.created ? new Date(j.created).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
-      url:         `https://www.adzuna.co.uk/search?q=${encodeURIComponent((j.title || q).replace(/\s+/g, "+"))}&w=United+Kingdom`,
+      url:         (() => {
+        const base = encodeURIComponent(j.title || q);
+        const loc  = encodeURIComponent(j.location?.split(",")[0] || "");
+        return `https://www.adzuna.co.uk/search?q=${base}&w=${loc || "United+Kingdom"}`;
+      })(),
       source:      "Adzuna",
       sponsorship: detectSponsorship(j.title||"", j.description||""),
       expires_at:  expiresAt,
@@ -274,7 +278,7 @@ async function fetchReed(reedKey, q) {
       salary:      j.minimumSalary ? `£${Math.round(j.minimumSalary).toLocaleString()}–£${Math.round(j.maximumSalary||j.minimumSalary).toLocaleString()}/yr` : "Competitive",
       sector:      getSector(j.jobTitle||"", "Other"),
       posted:      j.date ? new Date(j.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
-      url:         `https://www.reed.co.uk/jobs/${j.jobId}`,
+      url:         `https://www.reed.co.uk/jobs?keywords=${encodeURIComponent(j.jobTitle||"")}&locationName=United+Kingdom&jobId=${j.jobId||""}` ,
       source:      "Reed",
       sponsorship: detectSponsorship(j.jobTitle||"", j.jobDescription||""),
       expires_at:  expiresAt,
