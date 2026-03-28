@@ -278,7 +278,7 @@ async function fetchReed(reedKey, q) {
       salary:      j.minimumSalary ? `£${Math.round(j.minimumSalary).toLocaleString()}–£${Math.round(j.maximumSalary||j.minimumSalary).toLocaleString()}/yr` : "Competitive",
       sector:      getSector(j.jobTitle||"", "Other"),
       posted:      j.date ? new Date(j.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
-      url:         `https://www.reed.co.uk/jobs?keywords=${encodeURIComponent(j.jobTitle||"")}&locationName=United+Kingdom&jobId=${j.jobId||""}` ,
+      url:         `https://www.reed.co.uk/jobs/${j.jobId}`,
       source:      "Reed",
       sponsorship: detectSponsorship(j.jobTitle||"", j.jobDescription||""),
       expires_at:  expiresAt,
