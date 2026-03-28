@@ -7,8 +7,3 @@
     { "path": "/api/refresh-jobs", "schedule": "0 */2 * * *" }
   ]
 }
-```
-
-Once deployed, your dashboard is at:
-```
-mentorgramai.com/api/admin
