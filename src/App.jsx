@@ -181,31 +181,14 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
         </button>
       </div>
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        {job.url && (() => {
-          const src = (job.source || "").toLowerCase();
-          const rawTitle = job.title || "";
-          const rawCompany = job.company || "";
-          const t = encodeURIComponent(rawTitle);
-          const c = encodeURIComponent(rawCompany);
-          const targetUrl =
-            src === "reed"
-              ? `https://www.reed.co.uk/jobs/${rawTitle.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}-jobs?keywords=${t}&locationName=United+Kingdom`
-            : src === "adzuna"
-              ? `https://www.adzuna.co.uk/search?q=${t}&w=United+Kingdom`
-            : src === "jobs.ac.uk"
-              ? `https://www.jobs.ac.uk/search#/?keywords=${t}`
-            : src === "guardian jobs"
-              ? `https://jobs.theguardian.com/jobs/?k=${t}`
-            : `https://www.google.com/search?q=${t}+${c}+site%3Areed.co.uk+OR+site%3Aadzuna.co.uk`;
-          return (
-            <a
-              href={targetUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ ...S.btnPrimary, textDecoration: "none" }}
-            >Apply for this job ↗</a>
-          );
-        })()}
+        {job.url && (
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...S.btnPrimary, textDecoration: "none" }}
+          >Apply for this job ↗</a>
+        )}
         <button style={S.btnOutline} onClick={onBack}>← Back to jobs</button>
       </div>
     </div>
