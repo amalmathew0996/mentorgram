@@ -1,25 +1,4 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/admin-stats",
-      "destination": "/api/admin-stats"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/admin",
-      "destination": "/admin.html",
-      "permanent": false
-    }
-  ],
   "crons": [
     {
       "path": "/api/refresh-jobs",
