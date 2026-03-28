@@ -57,8 +57,16 @@ export default async function handler(req, res) {
     const totalMatch = contentRange.match(/\/(\d+)/);
     const total = totalMatch ? parseInt(totalMatch[1]) : jobs.length;
 
+    // Fix any expired Adzuna redirect URLs still in database
+    const cleanedJobs = (Array.isArray(jobs) ? jobs : []).map(j => {
+      if (j.source === "Adzuna" && j.url && (j.url.includes("clicks.adzuna") || j.url.includes("redirect"))) {
+        j.url = `https://www.adzuna.co.uk/search?q=${encodeURIComponent(j.title || "")}&w=United+Kingdom`;
+      }
+      return j;
+    });
+
     return res.status(200).json({
-      jobs:      Array.isArray(jobs) ? jobs : [],
+      jobs:      cleanedJobs,
       total,
       pages:     Math.ceil(total / 15),
       updatedAt: new Date().toISOString(),
