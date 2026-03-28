@@ -216,9 +216,11 @@ async function fetchAdzuna(appId, appKey, q, sector) {
       sector:      getSector(j.title || "", sector),
       posted:      j.created ? new Date(j.created).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
       url:         (() => {
+        // Use redirect_url (direct job link) — best option
+        // Fall back to search URL if not available
+        if (j.redirect_url) return j.redirect_url;
         const base = encodeURIComponent(j.title || q);
-        const loc  = encodeURIComponent(j.location?.split(",")[0] || "");
-        return `https://www.adzuna.co.uk/search?q=${base}&w=${loc || "United+Kingdom"}`;
+        return `https://www.adzuna.co.uk/search?q=${base}&w=United+Kingdom`;
       })(),
       source:      "Adzuna",
       sponsorship: detectSponsorship(j.title||"", j.description||""),
