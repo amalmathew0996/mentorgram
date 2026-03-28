@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Mentorgram</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f11;
+      --bg2: #1a1a1f;
+      --bg3: #242429;
+      --border: rgba(255,255,255,0.08);
+      --text: #f0eff4;
+      --muted: #8b8a94;
+      --blue: #1A3FA8;
+      --green: #16A34A;
+      --red: #E24B4A;
+      --amber: #F59E0B;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem 2rem; width: 100%; max-width: 360px; }
+    .login-card h1 { font-size: 1.2rem; font-weight: 600; margin-bottom: 6px; }
+    .login-card p { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
+    label { font-size: 12px; font-weight: 500; color: var(--muted); display: block; margin-bottom: 6px; }
+    input[type=password], input[type=text] { width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-size: 14px; outline: none; font-family: inherit; margin-bottom: 12px; }
+    input:focus { border-color: var(--blue); }
+    .btn { padding: 11px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--blue); color: #fff; width: 100%; }
+    .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: rgba(226,75,74,0.15); color: var(--red); border: 1px solid rgba(226,75,74,0.3); }
+    .btn-green { background: var(--green); color: #fff; }
+    #dashboard { display: none; }
+    .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 1.5rem; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-left h1 { font-size: 15px; font-weight: 600; }
+    .badge { font-size: 11px; background: rgba(26,63,168,0.2); color: #6b8cef; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+    .topbar-right { display: flex; gap: 8px; }
+    .content { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .alert { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 1.5rem; }
+    .alert-success { background: rgba(22,163,74,0.15); color: #4ade80; border: 1px solid rgba(22,163,74,0.3); }
+    .alert-error { background: rgba(226,75,74,0.15); color: #f87171; border: 1px solid rgba(226,75,74,0.3); }
+    .timing-bar { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 2rem; flex-wrap: wrap; align-items: center; }
+    .timing-item p:first-child { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .timing-item .val { font-size: 16px; font-weight: 600; }
+    .timing-item .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .divider { width: 1px; height: 40px; background: var(--border); }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .stat-card .s-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
+    .stat-card .s-value { font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+    .stat-card .s-sub { font-size: 12px; color: var(--muted); }
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.25rem; }
+    .source-row { margin-bottom: 14px; }
+    .source-row-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+    .source-row-top span:first-child { font-weight: 500; }
+    .source-row-top span:last-child { color: var(--muted); }
+    .bar-track { height: 6px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+    .today-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .today-item p { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .today-item .big { font-size: 28px; font-weight: 700; }
+    .today-item .bar-track { margin-bottom: 0; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .confirm-row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(226,75,74,0.08); border: 1px solid rgba(226,75,74,0.25); border-radius: 8px; flex-wrap: wrap; }
+    .confirm-row span { font-size: 13px; color: var(--red); font-weight: 500; }
+    .footer-note { font-size: 12px; color: var(--muted); margin-top: 1rem; line-height: 1.6; }
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .err-msg { color: var(--red); font-size: 12px; margin-top: -8px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="font-size:36px;margin-bottom:10px">🔐</div>
+      <h1>Admin Dashboard</h1>
+      <p>Mentorgram AI · Internal only</p>
+    </div>
+    <label for="pw-input">Password</label>
+    <input type="password" id="pw-input" placeholder="Enter admin password" autocomplete="current-password" />
+    <p class="err-msg" id="pw-err" style="display:none">Incorrect password</p>
+    <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Sign in →</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:20px">⚙️</span>
+      <h1>Admin Dashboard</h1>
+      <span class="badge">Mentorgram AI</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-secondary" onclick="loadStats()">↻ Refresh</button>
+      <button class="btn btn-secondary" onclick="signOut()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="action-msg" style="display:none"></div>
+
+    <!-- Timing bar -->
+    <div class="timing-bar">
+      <div class="timing-item">
+        <p>Last refresh</p>
+        <p class="val" id="last-refresh" style="color:#4ade80">—</p>
+        <p class="sub" id="last-refresh-full">—</p>
+      </div>
+      <div class="divider"></div>
+      <div class="timing-item">
+        <p>Next scheduled</p>
+        <p class="val" id="next-refresh" style="color:#6b8cef">—</p>
+        <p class="sub">Every 2 hours automatically</p>
+      </div>
+      <div class="divider"></div>
+      <div class="timing-item">
+        <p>Server time</p>
+        <p class="val" id="server-time">—</p>
+        <p class="sub">UTC</p>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <p style="font-size:11px;color:var(--muted)">Expiring in 3 days</p>
+        <p id="expiring-soon" style="font-size:18px;font-weight:700">—</p>
+      </div>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="s-label">💼 Total jobs</div>
+        <div class="s-value" id="s-total" style="color:#6b8cef">—</div>
+        <div class="s-sub">In Supabase right now</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">📅 Added today</div>
+        <div class="s-value" id="s-today" style="color:#4ade80">—</div>
+        <div class="s-sub" id="s-today-sub">Yesterday: —</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">🔴 Reed</div>
+        <div class="s-value" id="s-reed" style="color:#f472b6">—</div>
+        <div class="s-sub" id="s-reed-pct">—% of total</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">🟢 Adzuna</div>
+        <div class="s-value" id="s-adzuna" style="color:#4ade80">—</div>
+        <div class="s-sub" id="s-adzuna-pct">—% of total</div>
+      </div>
+      <div class="stat-card">
+        <div class="s-label">📡 RSS feeds</div>
+        <div class="s-value" id="s-rss" style="color:#fbbf24">—</div>
+        <div class="s-sub">jobs.ac.uk + Guardian</div>
+      </div>
+    </div>
+
+    <!-- Source bars -->
+    <div class="card">
+      <h2>Jobs by source</h2>
+      <div class="source-row">
+        <div class="source-row-top"><span>Reed</span><span id="b-reed">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-reed" style="width:0%;background:#f472b6"></div></div>
+      </div>
+      <div class="source-row">
+        <div class="source-row-top"><span>Adzuna</span><span id="b-adzuna">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-adzuna" style="width:0%;background:#4ade80"></div></div>
+      </div>
+      <div class="source-row">
+        <div class="source-row-top"><span>jobs.ac.uk</span><span id="b-jobsac">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-jobsac" style="width:0%;background:#6b8cef"></div></div>
+      </div>
+      <div class="source-row">
+        <div class="source-row-top"><span>Guardian Jobs</span><span id="b-guardian">—</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-guardian" style="width:0%;background:#fbbf24"></div></div>
+      </div>
+    </div>
+
+    <!-- Today vs Yesterday -->
+    <div class="card">
+      <h2>Jobs added</h2>
+      <div class="today-grid">
+        <div class="today-item">
+          <p>Today</p>
+          <div class="bar-track" style="margin-bottom:8px"><div class="bar-fill" id="bar-today" style="width:0%;background:#4ade80"></div></div>
+          <div class="big" id="big-today" style="color:#4ade80">—</div>
+        </div>
+        <div class="today-item">
+          <p>Yesterday</p>
+          <div class="bar-track" style="margin-bottom:8px"><div class="bar-fill" id="bar-yesterday" style="width:0%;background:#6b8cef"></div></div>
+          <div class="big" id="big-yesterday" style="color:#6b8cef">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card">
+      <h2>Actions</h2>
+      <div class="actions" id="actions-row">
+        <button class="btn btn-green" id="refresh-btn" onclick="triggerRefresh()">↻ Trigger refresh now</button>
+        <button class="btn btn-danger" onclick="showConfirmDelete()">🗑 Delete all jobs</button>
+      </div>
+      <div id="confirm-delete" style="display:none;margin-top:12px">
+        <div class="confirm-row">
+          <span id="confirm-text">Are you sure? This deletes all jobs.</span>
+          <button class="btn btn-danger" id="confirm-btn" onclick="deleteAllJobs()">Yes, delete all</button>
+          <button class="btn btn-secondary" onclick="hideConfirmDelete()">Cancel</button>
+        </div>
+      </div>
+      <p class="footer-note">
+        Manual refresh runs the current rotation group (~20 Adzuna calls).<br>
+        Auto-refresh runs every 2 hours via Vercel cron. Daily budget: ~120 Adzuna calls (limit: 250).
+      </p>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:1rem">
+      Stats auto-refresh every 30 seconds · Mentorgram Admin
+    </p>
+  </div>
+</div>
+
+<script>
+  const PW_KEY = 'mg_admin_pw';
+  let adminPw = sessionStorage.getItem(PW_KEY) || '';
+  let statsInterval = null;
+
+  // Auto-login if password saved
+  if (adminPw) attemptLogin(adminPw);
+
+  document.getElementById('pw-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  function doLogin() {
+    const pw = document.getElementById('pw-input').value.trim();
+    if (!pw) return;
+    attemptLogin(pw);
+  }
+
+  async function attemptLogin(pw) {
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+    try {
+      const r = await fetch('/api/admin-stats', { headers: { 'x-admin-password': pw } });
+      if (r.status === 401) {
+        document.getElementById('pw-err').style.display = 'block';
+        sessionStorage.removeItem(PW_KEY);
+        adminPw = '';
+        btn.disabled = false;
+        btn.textContent = 'Sign in →';
+        return;
+      }
+      const data = await r.json();
+      adminPw = pw;
+      sessionStorage.setItem(PW_KEY, pw);
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      renderStats(data);
+      statsInterval = setInterval(loadStats, 30000);
+    } catch {
+      btn.disabled = false;
+      btn.textContent = 'Sign in →';
+    }
+  }
+
+  async function loadStats() {
+    try {
+      const r = await fetch('/api/admin-stats', { headers: { 'x-admin-password': adminPw } });
+      if (r.status === 401) { signOut(); return; }
+      const data = await r.json();
+      renderStats(data);
+    } catch {}
+  }
+
+  function fmt(n) { return (n || 0).toLocaleString(); }
+
+  function timeAgo(iso) {
+    if (!iso) return 'Never';
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    if (hours < 24) return hours + 'h ago';
+    return Math.floor(hours/24) + 'd ago';
+  }
+
+  function timeUntil(iso) {
+    if (!iso) return 'Unknown';
+    const diff = new Date(iso).getTime() - Date.now();
+    if (diff < 0) return 'Overdue';
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    if (mins < 60) return 'in ' + mins + 'm';
+    return 'in ' + hours + 'h ' + Math.floor((diff % 3600000) / 60000) + 'm';
+  }
+
+  function pct(n, total) {
+    return total > 0 ? Math.round((n / total) * 100) : 0;
+  }
+
+  function renderStats(s) {
+    const total = s.total || 0;
+    const reed = s.bySource?.reed || 0;
+    const adzuna = s.bySource?.adzuna || 0;
+    const jobsac = s.bySource?.jobsac || 0;
+    const guardian = s.bySource?.guardian || 0;
+    const rss = jobsac + guardian;
+    const today = s.addedToday || 0;
+    const yesterday = s.addedYesterday || 0;
+    const maxDay = Math.max(today, yesterday, 1);
+
+    // Timing
+    document.getElementById('last-refresh').textContent = timeAgo(s.lastRefresh);
+    document.getElementById('last-refresh-full').textContent = s.lastRefresh ? new Date(s.lastRefresh).toLocaleString('en-GB') : '—';
+    document.getElementById('next-refresh').textContent = timeUntil(s.nextRefresh);
+    document.getElementById('server-time').textContent = s.serverTime ? new Date(s.serverTime).toLocaleTimeString('en-GB') : '—';
+    document.getElementById('expiring-soon').textContent = fmt(s.expiringSoon);
+
+    // Stat cards
+    document.getElementById('s-total').textContent = fmt(total);
+    document.getElementById('s-today').textContent = fmt(today);
+    document.getElementById('s-today-sub').textContent = 'Yesterday: ' + fmt(yesterday);
+    document.getElementById('s-reed').textContent = fmt(reed);
+    document.getElementById('s-reed-pct').textContent = pct(reed, total) + '% of total';
+    document.getElementById('s-adzuna').textContent = fmt(adzuna);
+    document.getElementById('s-adzuna-pct').textContent = pct(adzuna, total) + '% of total';
+    document.getElementById('s-rss').textContent = fmt(rss);
+
+    // Source bars
+    document.getElementById('b-reed').textContent = fmt(reed) + ' (' + pct(reed, total) + '%)';
+    document.getElementById('b-adzuna').textContent = fmt(adzuna) + ' (' + pct(adzuna, total) + '%)';
+    document.getElementById('b-jobsac').textContent = fmt(jobsac) + ' (' + pct(jobsac, total) + '%)';
+    document.getElementById('b-guardian').textContent = fmt(guardian) + ' (' + pct(guardian, total) + '%)';
+    document.getElementById('bar-reed').style.width = pct(reed, total) + '%';
+    document.getElementById('bar-adzuna').style.width = pct(adzuna, total) + '%';
+    document.getElementById('bar-jobsac').style.width = pct(jobsac, total) + '%';
+    document.getElementById('bar-guardian').style.width = pct(guardian, total) + '%';
+
+    // Today vs Yesterday
+    document.getElementById('big-today').textContent = fmt(today);
+    document.getElementById('big-yesterday').textContent = fmt(yesterday);
+    document.getElementById('bar-today').style.width = pct(today, maxDay) + '%';
+    document.getElementById('bar-yesterday').style.width = pct(yesterday, maxDay) + '%';
+
+    // Confirm delete text
+    document.getElementById('confirm-text').textContent = 'Are you sure? This deletes all ' + fmt(total) + ' jobs.';
+  }
+
+  async function triggerRefresh() {
+    const btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin">⟳</span> Refreshing...';
+    showMsg('', '');
+    try {
+      const r = await fetch('/api/refresh-jobs', {
+        headers: { 'Authorization': 'Bearer mg_cron_2026' }
+      });
+      const data = await r.json();
+      if (data.success) {
+        showMsg('success', '✅ Refresh complete — ' + data.inserted + ' jobs inserted, ' + data.total + ' total');
+        loadStats();
+      } else {
+        showMsg('error', '❌ Refresh failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (e) {
+      showMsg('error', '❌ Request failed: ' + e.message);
+    }
+    btn.disabled = false;
+    btn.textContent = '↻ Trigger refresh now';
+  }
+
+  function showConfirmDelete() {
+    document.getElementById('confirm-delete').style.display = 'block';
+  }
+
+  function hideConfirmDelete() {
+    document.getElementById('confirm-delete').style.display = 'none';
+  }
+
+  async function deleteAllJobs() {
+    const btn = document.getElementById('confirm-btn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+    try {
+      const r = await fetch('/api/admin-stats', {
+        method: 'DELETE',
+        headers: { 'x-admin-password': adminPw }
+      });
+      const data = await r.json();
+      if (data.success) {
+        showMsg('success', '✅ All jobs deleted successfully');
+        hideConfirmDelete();
+        loadStats();
+      } else {
+        showMsg('error', '❌ Delete failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (e) {
+      showMsg('error', '❌ Request failed: ' + e.message);
+    }
+    btn.disabled = false;
+    btn.textContent = 'Yes, delete all';
+  }
+
+  function showMsg(type, text) {
+    const el = document.getElementById('action-msg');
+    if (!text) { el.style.display = 'none'; return; }
+    el.className = 'alert alert-' + type;
+    el.textContent = text;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 6000);
+  }
+
+  function signOut() {
+    sessionStorage.removeItem(PW_KEY);
+    adminPw = '';
+    clearInterval(statsInterval);
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('pw-input').value = '';
+  }
+</script>
+</body>
+</html>
