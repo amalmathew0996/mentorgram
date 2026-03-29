@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { inject } from "@vercel/analytics";
 import AuthPage from "./Auth.jsx";
 import SponsorsPage from "./Sponsors.jsx";
 import Dashboard from "./Dashboard.jsx";
 import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
+
+inject();
 
 const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
@@ -876,6 +879,7 @@ export default function Mentorgram() {
       window.scrollTo({ top: 0, behavior: "smooth" });
       const slug = PAGE_SLUGS[page] || "";
       window.history.pushState(null, "", slug ? `/${slug}` : "/");
+      if (window.va) window.va("pageview", { path: slug ? `/${slug}` : "/" });
     }, 220);
   }
 
