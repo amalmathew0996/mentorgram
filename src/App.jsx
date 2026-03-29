@@ -254,7 +254,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
     const matchEmployer = employerType === "All"
       || (employerType === "NHS"        && (empText.includes("nhs") || empText.includes("national health") || empText.includes(" trust") || empText.includes("hospital") || empText.includes("clinical")))
       || (employerType === "University" && (empText.includes("universit") || empText.includes("college") || empText.includes("institute") || empText.includes("academy") || empText.includes("research") || empText.includes("jobs.ac.uk") || j.source === "jobs.ac.uk"))
-      || (employerType === "Council"    && (empText.includes("council") || empText.includes("local authority") || empText.includes("borough") || empText.includes("county") || empText.includes("district") || empText.includes("city of") || empText.includes("metropolitan")));
+      || (employerType === "Council"    && (empText.includes("council") || empText.includes("local authority") || empText.includes("borough") || empText.includes("county") || empText.includes("district") || empText.includes("city of") || empText.includes("metropolitan") || j.source === "LG Jobs" || j.source === "Civil Service"));
     const q = titleQuery.toLowerCase().trim();
     const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
     const loc = locationQuery.toLowerCase().trim();
