@@ -380,7 +380,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         {jobsLoading
           ? `🔍 Refreshing jobs... (${allJobs.length > 0 ? allJobs.length.toLocaleString() + " total" : "loading"})`
           : <>
-              Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs · <strong>{allJobs.length.toLocaleString()}</strong> total in database
+              Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs
               {allJobs.length <= 40 && <span style={{ color: "#1A3FA8", cursor: "pointer", marginLeft: "8px", fontSize: "12px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
             </>
         }
