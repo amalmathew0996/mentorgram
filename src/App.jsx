@@ -6,7 +6,7 @@ import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
 
 const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
-const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship", "No Info"];
+const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
 const JOBS_PER_PAGE = 20;
 
 const EDUCATION_SYSTEMS = [
@@ -330,17 +330,33 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
       )}
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "0.75rem" }}>
-        {SECTORS.map(s => <button key={s} style={{ ...S.filterBtn(sector === s), fontSize: "12px", padding: "5px 12px" }} onClick={() => setSector(s)}>{s}</button>)}
-      </div>
-      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-        <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Filter:</span>
-        {VISA_TYPES.map(v => (
-          <button key={v} style={{ ...S.filterBtn(visaType === v), background: visaType === v
-            ? (v === "✓ Visa Sponsorship" ? "#16A34A" : v === "No Info" ? "#888" : "#1A3FA8")
-            : "var(--color-background-primary)" }}
-            onClick={() => { setVisaType(v); setPage(1); }}>{v}</button>
-        ))}
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }}>
+        {/* Sector dropdown */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Sector:</span>
+          <select
+            value={sector}
+            onChange={e => { setSector(e.target.value); setPage(1); }}
+            style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: sector !== "All" ? "#1A3FA8" : "var(--color-background-primary)", color: sector !== "All" ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", outline: "none" }}>
+            {SECTORS.map(s => <option key={s} value={s} style={{ background: "var(--color-background-primary)", color: "var(--color-text-primary)" }}>{s}</option>)}
+          </select>
+        </div>
+        {/* Visa filter */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Visa:</span>
+          {VISA_TYPES.map(v => (
+            <button key={v} style={{ ...S.filterBtn(visaType === v), fontSize: "12px", padding: "5px 12px", background: visaType === v ? (v === "✓ Visa Sponsorship" ? "#16A34A" : "#1A3FA8") : "var(--color-background-primary)" }}
+              onClick={() => { setVisaType(v); setPage(1); }}>{v}</button>
+          ))}
+        </div>
+        {/* Clear all filters */}
+        {(sector !== "All" || visaType !== "All Jobs" || employerType !== "All" || titleQuery || locationQuery) && (
+          <button
+            onClick={() => { setSector("All"); setVisaType("All Jobs"); setEmployerType("All"); setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", ""); }}
+            style={{ padding: "5px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
+            ✕ Clear all filters
+          </button>
+        )}
       </div>
 
       {/* Employer type filter */}
@@ -381,7 +397,6 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
           ? `🔍 Refreshing jobs... (${allJobs.length > 0 ? allJobs.length.toLocaleString() + " total" : "loading"})`
           : <>
               Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs
-              {allJobs.length <= 40 && <span style={{ color: "#1A3FA8", cursor: "pointer", marginLeft: "8px", fontSize: "12px" }} onClick={() => fetchJobs(titleQuery, locationQuery)}>↻ Load live jobs</span>}
             </>
         }
         {!jobsLoading && titleQuery && ` · matching "${titleQuery}"`}
