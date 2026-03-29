@@ -183,6 +183,12 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
           Ask AI Mentor ↗
         </button>
       </div>
+      {/* Expiry warning */}
+      <div style={{ background: "rgba(245,158,11,0.08)", border: "0.5px solid rgba(245,158,11,0.3)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
+        <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
+          ⚠️ <strong style={{ color: "var(--color-text-primary)" }}>Job listings can close at any time.</strong> If the link shows "page not found", the role has been filled. Try searching for similar roles on Reed or Adzuna directly.
+        </p>
+      </div>
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
         {job.url && (
           <a
@@ -191,6 +197,22 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
             rel="noopener noreferrer"
             style={{ ...S.btnPrimary, textDecoration: "none" }}
           >Apply for this job ↗</a>
+        )}
+        {job.source === "Reed" && (
+          <a
+            href={"https://www.reed.co.uk/jobs/" + encodeURIComponent(job.title || "").replace(/%20/g, "-").toLowerCase() + "-jobs?keywords=" + encodeURIComponent(job.title || "")}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...S.btnOutline, textDecoration: "none", fontSize: "14px" }}
+          >Search similar on Reed ↗</a>
+        )}
+        {job.source === "Adzuna" && (
+          <a
+            href={"https://www.adzuna.co.uk/search?q=" + encodeURIComponent(job.title || "") + "&w=United+Kingdom"}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...S.btnOutline, textDecoration: "none", fontSize: "14px" }}
+          >Search similar on Adzuna ↗</a>
         )}
         <button style={S.btnOutline} onClick={onBack}>← Back to jobs</button>
       </div>
