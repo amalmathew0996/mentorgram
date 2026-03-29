@@ -610,10 +610,10 @@ function GuidePage({ navTo }) {
   function handleSubmit() {
     if (!emailVal.trim() || !emailVal.includes("@")) { setErr(true); return; }
     setErr(false);
-    fetch("/api/contact", {
+    fetch("/api/send-guide", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Guide Download", email: emailVal, subject: "Guide Request", message: "Requested sponsorship guide via Instagram landing page." }),
+      body: JSON.stringify({ email: emailVal }),
     }).catch(() => {});
     setDone(true);
   }
