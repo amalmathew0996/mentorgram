@@ -54,6 +54,28 @@ const ALL_FEEDS = [
   { url: "https://jobs.theguardian.com/jobs/data/?format=rss",                      sector: "AI & Data", source: "Guardian Jobs" },
   { url: "https://jobs.theguardian.com/jobs/science/?format=rss",                   sector: "Healthcare", source: "Guardian Jobs" },
   { url: "https://jobs.theguardian.com/jobs/environment/?format=rss",               sector: "Engineering", source: "Guardian Jobs" },
+  // Totaljobs RSS
+  { url: "https://www.totaljobs.com/jobs/healthcare/rss",                             sector: "Healthcare",   source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/it-jobs/rss",                                sector: "Technology",   source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/engineering/rss",                            sector: "Engineering",  source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/finance/rss",                               sector: "Finance",      source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/education/rss",                             sector: "Education",    source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/social-care/rss",                           sector: "Public Sector",source: "Totaljobs" },
+  // CWJobs RSS — UK tech specialist
+  { url: "https://www.cwjobs.co.uk/jobs/it/rss",                                     sector: "Technology",   source: "CWJobs" },
+  { url: "https://www.cwjobs.co.uk/jobs/data-science/rss",                           sector: "AI & Data",    source: "CWJobs" },
+  { url: "https://www.cwjobs.co.uk/jobs/software-engineering/rss",                   sector: "Technology",   source: "CWJobs" },
+  // NHS Jobs RSS — official NHS vacancies
+  { url: "https://www.jobs.nhs.uk/xi/vacancy_feed/?pincode=&distance=50&vacancy_type=JOB&specialty=&job_type_code=&employer_type=1&hours=&pay_band=&orderby=publicationdate&pagenum=1", sector: "Healthcare", source: "NHS Jobs" },
+  // LG Jobs RSS — official UK local government jobs
+  { url: "https://www.lgjobs.com/vacancies/rss",                                     sector: "Public Sector", source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=social+worker",               sector: "Public Sector", source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=housing",                     sector: "Public Sector", source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=planning",                    sector: "Public Sector", source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=finance",                     sector: "Finance",       source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=IT",                          sector: "Technology",    source: "LG Jobs" },
+  // Civil Service Jobs RSS
+  { url: "https://www.civilservicejobs.service.gov.uk/csr/index.cgi?SID=b3duZXI9NTA3MDAwMCZvd25lcnR5cGU9ZmFpcg==&format=rss", sector: "Public Sector", source: "Civil Service" },
 ];
 
 // 39 searches split into 4 groups — only one group runs per cron job
@@ -103,6 +125,13 @@ const ADZUNA_SEARCHES = [
   { q: "social worker",             sector: "Public Sector", group: 3 },
   { q: "teacher",                   sector: "Education",     group: 3 },
   { q: "chef",                      sector: "Hospitality",   group: 3 },
+  // Council / Public Sector
+  { q: "council social worker",      sector: "Public Sector",  group: 0 },
+  { q: "local authority planner",    sector: "Public Sector",  group: 1 },
+  { q: "council housing officer",    sector: "Public Sector",  group: 2 },
+  { q: "environmental health officer",sector: "Public Sector", group: 3 },
+  { q: "council finance officer",    sector: "Finance",        group: 0 },
+  { q: "council IT officer",         sector: "Technology",     group: 1 },
 ];
 
 // Reed searches also split into 4 groups
