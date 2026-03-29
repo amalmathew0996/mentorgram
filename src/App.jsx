@@ -435,16 +435,23 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
                 {j.sector && <span style={{ padding: "2px 7px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "#1A3FA8" }}>{j.sector}</span>}
                 <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
                 {/* ── POSTED DATE PILL ── */}
-                <span style={{
-                  fontSize: "11px",
-                  color: "var(--color-text-secondary)",
-                  background: "var(--color-background-secondary)",
-                  padding: "2px 7px",
-                  borderRadius: "var(--border-radius-md)",
-                  border: "0.5px solid var(--color-border-tertiary)",
-                }}>
-                  📅 {j.posted || "Recently"}
-                </span>
+                {(() => {
+                  const raw = j.posted || "";
+                  const isInvalid = !raw || raw.toLowerCase().includes("invalid") || raw.includes("NaN");
+                  const label = isInvalid ? "Recently" : raw;
+                  return (
+                    <span style={{
+                      fontSize: "11px",
+                      color: "var(--color-text-secondary)",
+                      background: "var(--color-background-secondary)",
+                      padding: "2px 7px",
+                      borderRadius: "var(--border-radius-md)",
+                      border: "0.5px solid var(--color-border-tertiary)",
+                    }}>
+                      📅 {label}
+                    </span>
+                  );
+                })()}
               </div>
 
               {/* Salary + buttons — pinned to bottom */}
@@ -783,7 +790,7 @@ export default function Mentorgram() {
       const params = new URLSearchParams();
       if (q) params.set("q", q);
       if (loc) params.set("location", loc);
-      params.set("pageSize", "3000");
+      params.set("pageSize", "5000");
 
       let dbJobs = [];
       let rssJobs = [];
