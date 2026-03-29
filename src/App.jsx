@@ -3,7 +3,6 @@ import AuthPage from "./Auth.jsx";
 import SponsorsPage from "./Sponsors.jsx";
 import Dashboard from "./Dashboard.jsx";
 import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
-import AdminDashboard from "./AdminDashboard.jsx";
 
 const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
@@ -720,7 +719,6 @@ const PAGE_SLUGS = {
   "Privacy Policy": "privacy",
   "Terms & Conditions": "terms",
   "Guide": "guide",
-  "Admin": "admin",
 };
 const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([k,v]) => [v, k]));
 
@@ -1072,7 +1070,6 @@ export default function Mentorgram() {
       case "Privacy Policy": return <PrivacyPage />;
       case "Terms & Conditions": return <TermsPage />;
       case "Guide": return <GuidePage navTo={navTo} />;
-      case "Admin": return <AdminDashboard />;
 
       case "My Profile": return user ? (
         <Dashboard
