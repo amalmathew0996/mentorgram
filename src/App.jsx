@@ -613,7 +613,7 @@ function GuidePage({ navTo }) {
     fetch("/api/send-guide", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: emailVal }),
+      body: JSON.stringify({ email: emailVal, consent: true, source: "guide-page" }),
     }).catch(() => {});
     setDone(true);
   }
