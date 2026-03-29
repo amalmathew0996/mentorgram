@@ -11,13 +11,11 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Missing Supabase env vars", jobs: [] });
   }
 
-  const url      = new URL(req.url, "https://mentorgramai.com");
-  const q        = (url.searchParams.get("q")        || "").trim();
-  const loc      = (url.searchParams.get("location") || "").trim();
-  const sector   = (url.searchParams.get("sector")   || "");
-  const visa     = (url.searchParams.get("visa")     || "");
-  // Default to 5000 so all jobs come back in one request
-  const pageSize = Math.min(parseInt(url.searchParams.get("pageSize") || "5000"), 5000);
+  const url    = new URL(req.url, "https://mentorgramai.com");
+  const q      = (url.searchParams.get("q")        || "").trim();
+  const loc    = (url.searchParams.get("location") || "").trim();
+  const sector = (url.searchParams.get("sector")   || "");
+  const visa   = (url.searchParams.get("visa")     || "");
 
   try {
     const now = new Date().toISOString();
@@ -36,29 +34,39 @@ export default async function handler(req, res) {
     if (visa === "false") filters.push("sponsorship=eq.false");
 
     const queryStr = filters.join("&");
-    const endpoint = `${supabaseUrl}/rest/v1/jobs?${queryStr}&order=sponsorship.desc.nullslast,created_at.desc&limit=${pageSize}&select=*`;
+    const PAGE = 1000;
+    const headers = {
+      "apikey":        anonKey,
+      "Authorization": `Bearer ${anonKey}`,
+      "Prefer":        "count=exact",
+    };
 
-    const dbRes = await fetch(endpoint, {
-      headers: {
-        "apikey":        anonKey,
-        "Authorization": `Bearer ${anonKey}`,
-        "Prefer":        "count=exact",
-        "Range":         `0-${pageSize - 1}`,
-      },
-    });
+    // Get total count first
+    const countRes = await fetch(
+      `${supabaseUrl}/rest/v1/jobs?${queryStr}&select=id`,
+      { headers: { ...headers, "Range": "0-0" } }
+    );
+    const contentRange = countRes.headers.get("content-range") || "";
+    const totalMatch   = contentRange.match(/\/(\d+)/);
+    const total        = totalMatch ? parseInt(totalMatch[1]) : 0;
 
-    if (!dbRes.ok) {
-      const errText = await dbRes.text();
-      throw new Error(`Supabase query failed: ${dbRes.status} ${errText}`);
-    }
+    // Fetch all pages needed (max 5 pages = 5,000 jobs)
+    const pagesNeeded = Math.min(Math.ceil(total / PAGE), 5);
+    const responses = await Promise.all(
+      Array.from({ length: pagesNeeded }, (_, i) => {
+        const from = i * PAGE;
+        const to   = from + PAGE - 1;
+        return fetch(
+          `${supabaseUrl}/rest/v1/jobs?${queryStr}&order=sponsorship.desc.nullslast,created_at.desc&select=*`,
+          { headers: { ...headers, "Range": `${from}-${to}` } }
+        ).then(r => r.ok ? r.json() : []).catch(() => []);
+      })
+    );
 
-    const jobs = await dbRes.json();
-    const contentRange = dbRes.headers.get("content-range") || "";
-    const totalMatch = contentRange.match(/\/(\d+)/);
-    const total = totalMatch ? parseInt(totalMatch[1]) : jobs.length;
+    const jobs = responses.flat().filter(Boolean);
 
     return res.status(200).json({
-      jobs:      Array.isArray(jobs) ? jobs : [],
+      jobs:      jobs,
       total,
       pages:     Math.ceil(total / 20),
       updatedAt: new Date().toISOString(),
