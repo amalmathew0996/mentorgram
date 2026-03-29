@@ -330,11 +330,10 @@ async function fetchReed(reedKey, q) {
         } catch { return ''; }
       })(),
       url:         (() => {
-        // Use jobUrl from API if available (direct link), otherwise search URL
-        if (j.jobUrl) return j.jobUrl;
-        const slug = (j.jobTitle || 'job').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        // Always use search URL — direct job IDs expire when jobs are filled
         const encoded = encodeURIComponent(j.jobTitle || '');
-        return `https://www.reed.co.uk/jobs/${slug}-jobs?keywords=${encoded}&locationName=${encodeURIComponent(j.locationName || 'United Kingdom')}`;
+        const loc = encodeURIComponent(j.locationName || 'United Kingdom');
+        return `https://www.reed.co.uk/jobs?keywords=${encoded}&locationName=${loc}`;
       })(),
       source:      "Reed",
       sponsorship: detectSponsorship(j.jobTitle||"", j.jobDescription||""),
