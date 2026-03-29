@@ -313,7 +313,7 @@ async function fetchReed(reedKey, q) {
     });
     if (!r.ok) return [];
     const d = await r.json();
-    const expiresAt = new Date(Date.now() + 30*24*60*60*1000).toISOString();
+    const expiresAt = new Date(Date.now() + 14*24*60*60*1000).toISOString();
     return (d.results || []).map(j => ({
       title:       (j.jobTitle || "").substring(0, 120),
       company:     j.employerName || "UK Employer",
