@@ -16,14 +16,14 @@ export default async function handler(req, res) {
   const loc      = (url.searchParams.get("location") || "").trim();
   const sector   = (url.searchParams.get("sector")   || "");
   const visa     = (url.searchParams.get("visa")     || "");
-  const pageSize = Math.min(parseInt(url.searchParams.get("pageSize") || "500"), 5000);
+  // Default to 5000 so all jobs come back in one request
+  const pageSize = Math.min(parseInt(url.searchParams.get("pageSize") || "5000"), 5000);
 
   try {
     const now = new Date().toISOString();
     const filters = [`expires_at=gt.${encodeURIComponent(now)}`];
 
     if (q) {
-      // Search across title, company, location, sector
       filters.push(`or=(title.ilike.%25${encodeURIComponent(q)}%25,company.ilike.%25${encodeURIComponent(q)}%25,location.ilike.%25${encodeURIComponent(q)}%25,sector.ilike.%25${encodeURIComponent(q)}%25)`);
     }
     if (loc && loc.toLowerCase() !== "uk" && loc.toLowerCase() !== "united kingdom") {
@@ -60,10 +60,9 @@ export default async function handler(req, res) {
     return res.status(200).json({
       jobs:      Array.isArray(jobs) ? jobs : [],
       total,
-      pages:     Math.ceil(total / 15),
+      pages:     Math.ceil(total / 20),
       updatedAt: new Date().toISOString(),
     });
-
   } catch (err) {
     console.error("jobs-db error:", err.message);
     return res.status(500).json({ error: err.message, jobs: [] });
