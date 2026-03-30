@@ -39,9 +39,7 @@ const FEATURES = [
   { icon: "🌍", title: "Global Reach", desc: "Supporting students from 50+ countries on their journey to UK education." },
 ];
 
-// These are 100% real verified jobs fetched from Indeed
-// The live API fetches 500+ more on page load
-const FALLBACK_JOBS = []; // Jobs load from Supabase — no hardcoded fallback
+const FALLBACK_JOBS = [];
 
 
 
@@ -77,8 +75,8 @@ function ShareButton({ job }) {
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
-  const jobData = btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url })));
-  const siteUrl = `https://mentorgramai.com/#job=${encodeURIComponent(jobData)}`;
+  // ✅ FIXED: Use job ID instead of encoding full job object
+  const siteUrl = `https://mentorgramai.com/#job=${job.id}`;
   const text = `🇬🇧 UK Job with Visa Sponsorship!\n\n💼 ${job.title}\n🏢 ${job.company}\n📍 ${job.location}\n💰 ${job.salary}\n\n👉 View details: ${siteUrl}\n\n🎓 Find more at mentorgramai.com`;
 
   const options = [
@@ -128,8 +126,8 @@ function ShareButton({ job }) {
 
 // ─── Job Detail Page ───────────────────────────────────────────────────────
 function JobDetailPage({ job, onBack, onAskMentor }) {
-  const jobData = btoa(encodeURIComponent(JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, sector: job.sector, posted: job.posted, url: job.url })));
-  const siteUrl = `https://mentorgramai.com/#job=${encodeURIComponent(jobData)}`;
+  // ✅ FIXED: Use job ID instead of encoding full job object
+  const siteUrl = `https://mentorgramai.com/#job=${job.id}`;
   return (
     <div style={{ maxWidth: "760px", margin: "0 auto", padding: "2rem 1.5rem" }}>
       <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: "var(--color-text-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit", marginBottom: "1.5rem", padding: 0 }}>
@@ -183,7 +181,6 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
           Ask AI Mentor ↗
         </button>
       </div>
-      {/* Expiry warning */}
       <div style={{ background: "rgba(245,158,11,0.08)", border: "0.5px solid rgba(245,158,11,0.3)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
         <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
           ⚠️ <strong style={{ color: "var(--color-text-primary)" }}>Job listings can close at any time.</strong> If the link shows "page not found", the role has been filled. Try searching for similar roles on Reed or Adzuna directly.
@@ -477,7 +474,6 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
               <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", alignItems: "center", marginBottom: "8px" }}>
                 {j.sector && <span style={{ padding: "2px 7px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "#1A3FA8" }}>{j.sector}</span>}
                 <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
-                {/* ── POSTED DATE PILL ── */}
                 {(() => {
                   const raw = j.posted || "";
                   const isInvalid = !raw || raw.toLowerCase().includes("invalid") || raw.includes("NaN");
@@ -497,7 +493,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
                 })()}
               </div>
 
-              {/* Salary + buttons — pinned to bottom */}
+              {/* Salary + buttons */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginTop: "auto" }}>
                 <p style={{ fontWeight: 600, color: "var(--color-text-primary)", margin: 0, fontSize: "13px", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.salary || "Competitive"}</p>
                 <div style={{ display: "flex", gap: "6px", flexShrink: 0 }} onClick={e => e.stopPropagation()}>
@@ -755,8 +751,7 @@ function GuidePage({ navTo }) {
   );
 }
 
-// ─── Main component ────────────────────────────────────────────────────────
-// ─── Page routing (outside component so getInitialPage works on mount) ──────
+// ─── Page routing (outside component) ──────────────────────────────────────
 const PAGE_SLUGS = {
   "Home": "",
   "AI Mentor": "ai-mentor",
@@ -773,7 +768,6 @@ const PAGE_SLUGS = {
 const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([k,v]) => [v, k]));
 
 export default function Mentorgram() {
-  // PAGE_SLUGS moved outside component — see top of file
   function getInitialPage() {
     const path = window.location.pathname.replace("/", "").split("?")[0];
     return SLUG_TO_PAGE[path] || "Home";
@@ -787,6 +781,8 @@ export default function Mentorgram() {
   const [jobsLoading, setJobsLoading] = useState(false);
   const [updatedAt, setUpdatedAt] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+  // ✅ NEW: pendingJobId state for resolving shared job links
+  const [pendingJobId, setPendingJobId] = useState(null);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistDone, setWaitlistDone] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -800,15 +796,15 @@ export default function Mentorgram() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
+  // ✅ UPDATED: hash handler now uses job ID instead of decoding base64
   useEffect(() => {
     function checkHash() {
       try {
         const hash = window.location.hash;
         if (hash.startsWith("#job=")) {
-          const encoded = decodeURIComponent(hash.replace("#job=", ""));
-          const job = JSON.parse(decodeURIComponent(atob(encoded)));
-          setSelectedJob(job);
+          const jobId = hash.replace("#job=", "");
           setActivePage("Sponsorship Jobs");
+          setPendingJobId(jobId);
           return;
         }
         const path = window.location.pathname.replace("/", "").split("?")[0];
@@ -820,6 +816,17 @@ export default function Mentorgram() {
     window.addEventListener("popstate", checkHash);
     return () => window.removeEventListener("popstate", checkHash);
   }, []);
+
+  // ✅ NEW: resolve pendingJobId once jobs have loaded
+  useEffect(() => {
+    if (pendingJobId && allJobs.length > 0) {
+      const found = allJobs.find(j => String(j.id) === String(pendingJobId));
+      if (found) {
+        setSelectedJob(found);
+        setPendingJobId(null);
+      }
+    }
+  }, [pendingJobId, allJobs]);
 
   useEffect(() => {
     if (activePage === "Sponsorship Jobs" && !selectedJob && allJobs.length <= 75) {
