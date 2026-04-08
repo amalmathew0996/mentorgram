@@ -1,118 +1,75 @@
-export const config = { runtime: "nodejs" };
+export const config = { runtime: "edge" };
 
-const SYSTEM_PROMPT = `You are an expert UK university admissions advisor and career counsellor for Mentorgram AI.
+const SYSTEM = "You are an expert UK university admissions advisor for Mentorgram AI. Analyse the CV provided and return ONLY a valid JSON object with no markdown, no backticks, no explanation before or after. The JSON must have these exact keys: profile (object with name, level, currentField, keySkills array, experience, educationBackground), careerPaths (array of 2-3 objects with title, description, salaryRange in GBP, demandLevel as High or Medium or Growing, visaSponsorship as boolean, skills array), ukUniversities (array of 4-6 objects with name, course, degreeType, whyMatch, entryRequirements, duration, avgSalary, scholarships, ucasLink), gaps (array of strings), summary (string). Return only the JSON object starting with { and ending with }.";
 
-A user has uploaded their CV. Analyse it carefully and return a JSON response with this exact structure:
+export default async function handler(req) {
+  const cors = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json",
+  };
 
-{
-  "profile": {
-    "name": "extracted name or null",
-    "level": "undergraduate | postgraduate | professional",
-    "currentField": "their current field/industry",
-    "keySkills": ["skill1", "skill2", "skill3", "skill4", "skill5"],
-    "experience": "brief summary of experience level",
-    "educationBackground": "brief summary of their education"
-  },
-  "careerPaths": [
-    {
-      "title": "Career path title",
-      "description": "Why this suits them based on their CV",
-      "salaryRange": "£X–£Y average UK salary",
-      "demandLevel": "High | Medium | Growing",
-      "visaSponsorship": true or false,
-      "skills": ["skill needed 1", "skill needed 2"]
-    }
-  ],
-  "ukUniversities": [
-    {
-      "name": "University name",
-      "course": "Specific course/programme name",
-      "degreeType": "BSc | MSc | MBA | PGDip | PhD",
-      "whyMatch": "1-2 sentences explaining why this matches their CV",
-      "entryRequirements": "brief entry requirements",
-      "duration": "1 year | 2 years | 3 years | 4 years",
-      "avgSalary": "graduate salary range",
-      "scholarships": "relevant scholarships",
-      "ucasLink": "https://www.ucas.com/search?query=COURSENAME"
-    }
-  ],
-  "gaps": ["skill or qualification gap 1", "skill or qualification gap 2"],
-  "summary": "2-3 sentence personalised summary of their profile and recommendation"
-}
-
-Rules:
-- Return ONLY valid JSON, no markdown, no preamble
-- Recommend 2-3 career paths maximum
-- Recommend 4-6 UK universities with specific courses tailored to their background
-- Focus on courses that build on what they already know or pivot their career effectively
-- For ucasLink use: https://www.ucas.com/search?query=ENCODED_COURSE_NAME
-- Be specific — name real UK university courses that exist
-- salaryRange should reflect realistic UK graduate/professional salaries
-- gaps should be actionable (e.g. "Python programming", "UK work experience", "IELTS certification")`;
-
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Content-Type", "application/json");
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const { cvText } = req.body;
-
-  if (!cvText || cvText.trim().length < 50) {
-    return res.status(400).json({ error: "CV text too short or missing" });
-  }
-
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: "Missing API key" });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: cors });
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 2000,
-        system: SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content: `Here is the CV to analyse:\n\n${cvText.slice(0, 8000)}`,
-          },
-        ],
-      }),
-    });
+    const { cvText } = await req.json();
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("Claude API error:", err);
-      return res.status(500).json({ error: "AI analysis failed" });
+    if (!cvText || cvText.trim().length < 50) {
+      return new Response(JSON.stringify({ error: "CV text too short" }), { status: 400, headers: cors });
     }
 
-    const data = await response.json();
-    const raw = data.content?.[0]?.text || "";
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "Missing GEMINI_API_KEY env variable" }), { status: 500, headers: cors });
+    }
 
-    // Strip any accidental markdown fences
-    const cleaned = raw.replace(/```json|```/g, "").trim();
+    const prompt = SYSTEM + "\n\nCV to analyse:\n\n" + cvText.slice(0, 8000);
+
+    const apiRes = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 2048,
+          },
+        }),
+      }
+    );
+
+    if (!apiRes.ok) {
+      const err = await apiRes.text();
+      console.error("Gemini error:", apiRes.status, err);
+      return new Response(JSON.stringify({ error: "AI error " + apiRes.status + ": " + err.slice(0, 200) }), { status: 500, headers: cors });
+    }
+
+    const data = await apiRes.json();
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    if (!raw) {
+      return new Response(JSON.stringify({ error: "Empty response from AI" }), { status: 500, headers: cors });
+    }
+
+    // Robustly extract JSON
+    const first = raw.indexOf("{");
+    const last = raw.lastIndexOf("}");
+    if (first === -1 || last === -1) {
+      return new Response(JSON.stringify({ error: "Bad AI response format" }), { status: 500, headers: cors });
+    }
 
     let parsed;
     try {
-      parsed = JSON.parse(cleaned);
-    } catch {
-      console.error("JSON parse failed:", cleaned.slice(0, 200));
-      return res.status(500).json({ error: "Failed to parse AI response" });
+      parsed = JSON.parse(raw.slice(first, last + 1));
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "JSON parse failed: " + e.message }), { status: 500, headers: cors });
     }
 
-    return res.status(200).json({ result: parsed });
+    return new Response(JSON.stringify({ result: parsed }), { status: 200, headers: cors });
+
   } catch (err) {
-    console.error("cv-analyser error:", err.message);
-    return res.status(500).json({ error: err.message });
+    return new Response(JSON.stringify({ error: "Handler error: " + err.message }), { status: 500, headers: cors });
   }
 }
