@@ -30,6 +30,16 @@ const UK_UNIVERSITIES = [
   { name: "King's College London", rank: "#6 UK", focus: "Medicine & Law", entry: "AAB at A-Level", intl: "IELTS 7.0+", scholarships: "King's Scholarships" },
 ];
 
+// ✅ NEW: German universities data
+const GERMAN_UNIVERSITIES = [
+  { name: "Technical University of Munich", rank: "#1 DE", focus: "Engineering & Technology", tuition: "Free (€143/sem fee)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium" },
+  { name: "LMU Munich", rank: "#2 DE", focus: "Medicine & Humanities", tuition: "Free (€143/sem fee)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, LMU Excellence" },
+  { name: "Heidelberg University", rank: "#3 DE", focus: "Life Sciences & Medicine", tuition: "Free (€185/sem fee)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Heidelberg Excellence" },
+  { name: "Humboldt University Berlin", rank: "#4 DE", focus: "Research & Social Sciences", tuition: "Free (€315/sem fee)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium" },
+  { name: "RWTH Aachen University", rank: "#5 DE", focus: "Engineering & Natural Sciences", tuition: "Free (€275/sem fee)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, RWTH Excellence" },
+  { name: "Freie Universität Berlin", rank: "#6 DE", focus: "Politics & International Studies", tuition: "Free (€315/sem fee)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, FU Excellence" },
+];
+
 const FEATURES = [
   { icon: "🤖", title: "AI Mentor", desc: "Get personalised guidance on education and career paths powered by advanced AI." },
   { icon: "🎓", title: "University Gateway", desc: "Explore UK universities, entry requirements, scholarships and UCAS guidance." },
@@ -55,7 +65,7 @@ const S = {
   grid3: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" },
   grid2: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" },
   card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" },
-  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "rgba(26,63,168,0.15)" : c === "teal" ? "rgba(255,69,0,0.15)" : "rgba(26,63,168,0.1)", color: c === "purple" ? "#1A3FA8" : c === "teal" ? "#FF4500" : "#1A3FA8" }),
+  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "rgba(26,63,168,0.15)" : c === "teal" ? "rgba(255,69,0,0.15)" : c === "green" ? "rgba(22,163,74,0.15)" : "rgba(26,63,168,0.1)", color: c === "purple" ? "#1A3FA8" : c === "teal" ? "#FF4500" : c === "green" ? "#16A34A" : "#1A3FA8" }),
   input: { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
   footer: { borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "2rem 1.5rem", textAlign: "center" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", margin: "2rem 0" },
@@ -1088,9 +1098,11 @@ export default function Mentorgram() {
         </div>
       );
 
+      // ✅ UPDATED: UK Universities page now includes German universities section
       case "UK Universities": return (
         <div style={S.section}>
-          <h2 style={S.sectionTitle}>UK universities</h2>
+          {/* ── UK Universities ── */}
+          <h2 style={S.sectionTitle}>🇬🇧 UK universities</h2>
           <p style={S.sectionSub}>Explore top UK universities, entry requirements and scholarships.</p>
           <div style={S.grid2}>
             {UK_UNIVERSITIES.map(u => (
@@ -1101,16 +1113,87 @@ export default function Mentorgram() {
                 </div>
                 <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "0 0 10px" }}>{u.focus}</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {[["UK entry",u.entry],["International",u.intl],["Scholarships",u.scholarships]].map(([l,v]) => (
+                  {[["UK entry", u.entry], ["International", u.intl], ["Scholarships", u.scholarships]].map(([l, v]) => (
                     <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
                       <span style={{ color: "var(--color-text-secondary)" }}>{l}</span>
-                      <span style={l==="Scholarships"?{color:"#1A3FA8"}:{}}>{v}</span>
+                      <span style={l === "Scholarships" ? { color: "#1A3FA8" } : {}}>{v}</span>
                     </div>
                   ))}
                 </div>
-                <button style={{ ...S.btnOutline, marginTop: "12px", padding: "8px 16px", fontSize: "13px", width: "100%" }} onClick={() => { setChatInput(`Tell me more about ${u.name} — courses, tips and scholarships`); navTo("AI Mentor"); }}>Ask AI Mentor ↗</button>
+                <button style={{ ...S.btnOutline, marginTop: "12px", padding: "8px 16px", fontSize: "13px", width: "100%" }}
+                  onClick={() => { setChatInput(`Tell me more about ${u.name} — courses, tips and scholarships`); navTo("AI Mentor"); }}>
+                  Ask AI Mentor ↗
+                </button>
               </div>
             ))}
+          </div>
+
+          {/* ── German Universities ── */}
+          <div style={{ marginTop: "3rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "0.5rem", flexWrap: "wrap" }}>
+              <h2 style={{ ...S.sectionTitle, margin: 0 }}>🇩🇪 German universities</h2>
+              <span style={{ ...S.tag("green"), fontSize: "11px" }}>Mostly tuition-free</span>
+            </div>
+            <p style={S.sectionSub}>
+              Germany offers world-class education at public universities — mostly free for international students. A great alternative to the UK for STEM, engineering and research degrees.
+            </p>
+
+            {/* Key facts banner */}
+            <div style={{ background: "rgba(22,163,74,0.06)", border: "0.5px solid rgba(22,163,74,0.2)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
+              {[
+                { icon: "💶", label: "Tuition", value: "Free at public unis (small semester fee)" },
+                { icon: "🗣️", label: "Language", value: "English & German-taught programmes" },
+                { icon: "📋", label: "Application", value: "Uni-Assist or direct university portal" },
+                { icon: "🛂", label: "Visa", value: "Student visa required for non-EU" },
+              ].map(f => (
+                <div key={f.label} style={{ display: "flex", gap: "8px", alignItems: "flex-start", minWidth: "200px" }}>
+                  <span style={{ fontSize: "18px" }}>{f.icon}</span>
+                  <div>
+                    <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "0 0 2px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.label}</p>
+                    <p style={{ fontSize: "13px", margin: 0, fontWeight: 500 }}>{f.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={S.grid2}>
+              {GERMAN_UNIVERSITIES.map(u => (
+                <div key={u.name} style={S.card}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
+                    <p style={{ fontWeight: 500, margin: 0, fontSize: "15px" }}>{u.name}</p>
+                    <span style={S.tag("green")}>{u.rank}</span>
+                  </div>
+                  <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "0 0 10px" }}>{u.focus}</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {[["Tuition", u.tuition], ["International", u.intl], ["Scholarships", u.scholarships]].map(([l, v]) => (
+                      <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", gap: "8px" }}>
+                        <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>{l}</span>
+                        <span style={{ textAlign: "right", color: l === "Scholarships" ? "#16A34A" : l === "Tuition" ? "#16A34A" : "var(--color-text-primary)", fontWeight: l === "Tuition" ? 500 : 400 }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button style={{ ...S.btnOutline, marginTop: "12px", padding: "8px 16px", fontSize: "13px", width: "100%", borderColor: "rgba(22,163,74,0.3)", color: "#16A34A" }}
+                    onClick={() => { setChatInput(`Tell me more about ${u.name} in Germany — English programmes, application process and scholarships`); navTo("AI Mentor"); }}>
+                    Ask AI Mentor ↗
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* DAAD callout */}
+            <div style={{ marginTop: "1.5rem", background: "rgba(26,63,168,0.06)", border: "0.5px solid rgba(26,63,168,0.15)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", display: "flex", gap: "14px", alignItems: "flex-start", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "28px" }}>🎓</span>
+              <div style={{ flex: 1, minWidth: "220px" }}>
+                <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "14px" }}>DAAD Scholarships — Germany's main international scholarship</p>
+                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 10px", lineHeight: 1.6 }}>
+                  The German Academic Exchange Service (DAAD) offers hundreds of scholarships for international students and researchers. Covers tuition, living costs and health insurance.
+                </p>
+                <a href="https://www.daad.de/en/study-and-research-in-germany/scholarships/" target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize: "13px", color: "#1A3FA8", fontWeight: 500, textDecoration: "none" }}>
+                  Explore DAAD scholarships ↗
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       );
