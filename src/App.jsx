@@ -781,35 +781,18 @@ function UniversitiesPage({ setChatInput, navTo }) {
     { key: "Germany", label: "🇩🇪 Germany",         accent: "#16A34A" },
   ];
 
-  // ✅ Fetch all German universities from Hipolabs free API when Germany tab is opened
+  // ✅ Fetch all German universities via our Vercel proxy (which calls Hipolabs server-side)
   useEffect(() => {
     if (country === "Germany" && !deFetched) {
       setDeLoading(true);
-      fetch("https://universities.hipolabs.com/search?country=Germany")
+      fetch("/api/german-universities")
         .then(r => r.json())
         .then(data => {
-          // Merge with our curated GERMAN_UNIVERSITIES for extra fields (type, tuition, etc.)
-          const enriched = data.map(u => {
-            const curated = GERMAN_UNIVERSITIES.find(c => c.name.toLowerCase() === u.name.toLowerCase());
-            return {
-              name: u.name,
-              website: u.web_pages?.[0] || null,
-              domain: u.domains?.[0] || null,
-              type: curated?.type || "Public",   // default to Public (most German unis are)
-              tuition: curated?.tuition || "Free (small semester fee)",
-              intl: curated?.intl || "Check university website",
-              scholarships: curated?.scholarships || "DAAD, Deutschlandstipendium",
-              focus: curated?.focus || "Various disciplines",
-              rank: curated?.rank || null,
-            };
-          });
-          // Sort: curated (ranked) first, then alphabetically
-          enriched.sort((a, b) => {
-            if (a.rank && !b.rank) return -1;
-            if (!a.rank && b.rank) return 1;
-            return a.name.localeCompare(b.name);
-          });
-          setGermanUnis(enriched);
+          if (data.universities && data.universities.length > 0) {
+            setGermanUnis(data.universities);
+          } else {
+            throw new Error("Empty response");
+          }
           setDeFetched(true);
         })
         .catch(() => {
