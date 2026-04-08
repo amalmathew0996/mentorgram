@@ -1823,7 +1823,7 @@ export default function Mentorgram() {
                 <button className="hero-btn-outline" style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1rem", margin: "3rem 0 0" }}>
-                {[["5","Countries Covered","🌍"],["Free","To Use","✨"],["500+","Visa Sponsors","🏢"],["1,000+","Live Jobs","💼"]].map(([n,l,icon]) => (
+                {[["5","Countries Covered","🌍"],["Free","To Use","✨"],["500+","Visa Sponsors","🏢"],["10K+","Live Jobs","💼"]].map(([n,l,icon]) => (
                   <div key={l} className="stat-card" style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)" }}>
                     <div style={{ fontSize: "22px", marginBottom: "6px" }}>{icon}</div>
                     <p style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px" }}>{n}</p>
