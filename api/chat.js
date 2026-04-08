@@ -75,11 +75,21 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+  // ✅ Manually parse body — Vercel nodejs runtime does NOT auto-parse JSON
+  let body;
+  try {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch (e) {
+    return res.status(400).json({ error: "Invalid JSON body" });
+  }
+
   const mode = new URL(req.url, "https://mentorgramai.com").searchParams.get("mode");
 
   // ── CV Analyser mode ────────────────────────────────────────────────────
   if (mode === "cv") {
-    const { cvText } = req.body;
+    const { cvText } = body;
 
     if (!cvText || String(cvText).trim().length < 50) {
       return res.status(400).json({ error: "CV text too short or missing" });
@@ -138,7 +148,7 @@ export default async function handler(req, res) {
 
   // ── Chat mode (default) ─────────────────────────────────────────────────
   try {
-    const { messages } = req.body;
+    const { messages } = body;
 
     const apiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
