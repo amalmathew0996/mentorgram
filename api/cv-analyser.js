@@ -12,7 +12,7 @@ export default async function handler(req) {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
 
   try {
-    const { cvText } = await req.json();
+    const { cvText, degreeLevel } = await req.json();
 
     if (!cvText || cvText.trim().length < 50) {
       return new Response(JSON.stringify({ error: "CV text too short" }), { status: 400, headers: cors });
@@ -22,6 +22,14 @@ export default async function handler(req) {
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "Missing GROQ_API_KEY env variable" }), { status: 500, headers: cors });
     }
+
+    const levelInstruction = degreeLevel === "PhD"
+      ? "The user is specifically looking for PhD programmes. Focus on PhD and doctoral research opportunities. Include funded PhD positions, research groups, and supervisors where possible. For ukUniversities/universities, all or most entries should be PhD programmes."
+      : degreeLevel === "Masters"
+      ? "The user is specifically looking for Masters programmes (MSc, MA, MBA, MRes, MPhil). Focus on taught and research masters degrees. Include funding and scholarship options."
+      : degreeLevel === "Undergraduate"
+      ? "The user is specifically looking for Undergraduate programmes (BSc, BA, BEng, LLB). Focus on bachelor degrees with entry requirements suited to their background."
+      : "Include a mix of degree levels suited to their background.";
 
     const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -35,7 +43,7 @@ export default async function handler(req) {
         max_tokens: 2048,
         messages: [
           { role: "system", content: SYSTEM },
-          { role: "user", content: "CV to analyse:\n\n" + cvText.slice(0, 8000) },
+          { role: "user", content: levelInstruction + "\n\nCV to analyse:\n\n" + cvText.slice(0, 8000) },
         ],
       }),
     });
