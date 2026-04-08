@@ -913,14 +913,23 @@ function GuidePage({ navTo }) {
 // ─── Universities Page ─────────────────────────────────────────────────────
 // ─── CV Analyser Tab ──────────────────────────────────────────────────────
 function CVAnalyserTab({ user, navTo }) {
+  // ✅ Step 1: degree level selection BEFORE upload
+  const [selectedLevel, setSelectedLevel] = useState(null);
   const [cvText, setCvText] = useState("");
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [savedToProfile, setSavedToProfile] = useState(false);
-  const [uniCountry, setUniCountry] = useState("All"); // ✅ country filter
+  const [uniCountry, setUniCountry] = useState("All");
+  const [degreeFilter, setDegreeFilter] = useState("All");
   const fileRef = useRef(null);
+
+  const DEGREE_LEVELS = [
+    { key: "Undergraduate", label: "🎓 Undergraduate", desc: "Bachelor's degree (BSc, BA, BEng)", color: "#1A3FA8" },
+    { key: "Masters",       label: "📚 Masters",       desc: "Postgraduate taught (MSc, MA, MBA)", color: "#7C3AED" },
+    { key: "PhD",           label: "🔬 PhD",            desc: "Doctoral research programme", color: "#DC2626" },
+  ];
 
   async function extractTextFromPDF(file) {
     return new Promise((resolve, reject) => {
@@ -976,12 +985,13 @@ function CVAnalyserTab({ user, navTo }) {
 
   async function analyseCV() {
     if (!cvText.trim()) { setError("Please upload a CV or paste your CV text first."); return; }
+    if (!selectedLevel) { setError("Please select your degree level above first."); return; }
     setLoading(true); setError(""); setResult(null);
     try {
       const res = await fetch("/api/cv-analyser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cvText }),
+        body: JSON.stringify({ cvText, degreeLevel: selectedLevel }),
       });
       let data;
       try { data = await res.json(); } catch(e) { throw new Error("Server returned non-JSON (status " + res.status + ")"); }
@@ -989,7 +999,8 @@ function CVAnalyserTab({ user, navTo }) {
       if (!data.result) throw new Error("No result in response");
       setResult(data.result);
       setUniCountry("All");
-      const saved = { result: data.result, date: new Date().toISOString(), fileName };
+      setDegreeFilter("All");
+      const saved = { result: data.result, date: new Date().toISOString(), fileName, degreeLevel: selectedLevel };
       localStorage.setItem("mg_cv_analysis", JSON.stringify(saved));
       setSavedToProfile(true);
     } catch (err) {
@@ -1001,14 +1012,22 @@ function CVAnalyserTab({ user, navTo }) {
   const demandColor = (d) => d === "High" ? "#16A34A" : d === "Growing" ? "#1A3FA8" : "#D97706";
   const demandBg   = (d) => d === "High" ? "rgba(22,163,74,0.12)" : d === "Growing" ? "rgba(26,63,168,0.12)" : "rgba(217,119,6,0.12)";
 
-  // ✅ Support both old (ukUniversities) and new (universities) response format
   const allUniversities = result
     ? (result.universities || (result.ukUniversities || []).map(u => ({ ...u, country: "UK", fees: u.avgSalary, courseLink: u.ucasLink })))
     : [];
 
-  const ukCount = allUniversities.filter(u => u.country === "UK").length;
-  const deCount = allUniversities.filter(u => u.country === "Germany").length;
-  const filteredUnis = uniCountry === "All" ? allUniversities : allUniversities.filter(u => u.country === uniCountry);
+  const ukCount  = allUniversities.filter(u => u.country === "UK").length;
+  const deCount  = allUniversities.filter(u => u.country === "Germany").length;
+
+  const DEGREE_TYPES = ["All", ...new Set(allUniversities.map(u => u.degreeType).filter(Boolean))];
+
+  const filteredUnis = allUniversities.filter(u => {
+    const matchCountry = uniCountry === "All" || u.country === uniCountry;
+    const matchDegree  = degreeFilter === "All" || (u.degreeType || "").includes(degreeFilter);
+    return matchCountry && matchDegree;
+  });
+
+  const levelInfo = DEGREE_LEVELS.find(l => l.key === selectedLevel);
 
   return (
     <div>
@@ -1019,23 +1038,46 @@ function CVAnalyserTab({ user, navTo }) {
           <div>
             <h3 style={{ margin: "0 0 4px", fontSize: "1.1rem", fontWeight: 600 }}>CV to Course Matcher</h3>
             <p style={{ margin: 0, fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-              Upload your CV and our AI will recommend the best UK and German university courses and career paths tailored to your background.
+              Tell us what you are looking for, upload your CV, and our AI will recommend the best UK and German university courses tailored to your background.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Upload area */}
+      {/* ✅ STEP 1 — Degree level selector (always visible before result) */}
       {!result && (
-        <div>
+        <div style={{ marginBottom: "1.5rem" }}>
+          <p style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 10px" }}>
+            Step 1 — What are you looking for?
+            {selectedLevel && <span style={{ marginLeft: "8px", fontSize: "12px", color: levelInfo.color, fontWeight: 500 }}>✓ {selectedLevel} selected</span>}
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
+            {DEGREE_LEVELS.map(level => (
+              <button key={level.key} onClick={() => setSelectedLevel(level.key)}
+                style={{ padding: "14px 16px", borderRadius: "var(--border-radius-lg)", border: selectedLevel === level.key ? "2px solid " + level.color : "0.5px solid var(--color-border-tertiary)", background: selectedLevel === level.key ? "rgba(" + (level.key === "PhD" ? "220,38,38" : level.key === "Masters" ? "124,58,237" : "26,63,168") + ",0.08)" : "var(--color-background-primary)", cursor: "pointer", fontFamily: "inherit", textAlign: "left", transition: "all 0.15s" }}>
+                <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "14px", color: selectedLevel === level.key ? level.color : "var(--color-text-primary)" }}>{level.label}</p>
+                <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.4 }}>{level.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ✅ STEP 2 — CV Upload (only shown after level selected or show always with hint) */}
+      {!result && (
+        <div style={{ opacity: selectedLevel ? 1 : 0.5, transition: "opacity 0.2s", pointerEvents: selectedLevel ? "auto" : "none" }}>
+          <p style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 10px" }}>
+            Step 2 — Upload your CV
+            {!selectedLevel && <span style={{ marginLeft: "8px", fontSize: "12px", color: "#D97706", fontWeight: 400 }}>(select a degree level above first)</span>}
+          </p>
           <div
             onClick={() => fileRef.current?.click()}
             onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "#1A3FA8"; }}
             onDragLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-secondary)"; }}
             onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--color-border-secondary)"; handleFile(e.dataTransfer.files[0]); }}
-            style={{ border: "2px dashed var(--color-border-secondary)", borderRadius: "var(--border-radius-lg)", padding: "2.5rem", textAlign: "center", cursor: "pointer", marginBottom: "1rem", transition: "border-color 0.2s", background: "var(--color-background-primary)" }}>
+            style={{ border: "2px dashed var(--color-border-secondary)", borderRadius: "var(--border-radius-lg)", padding: "2rem", textAlign: "center", cursor: "pointer", marginBottom: "1rem", transition: "border-color 0.2s", background: "var(--color-background-primary)" }}>
             <input ref={fileRef} type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: "none" }} onChange={e => handleFile(e.target.files[0])} />
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>📄</div>
+            <div style={{ fontSize: "36px", marginBottom: "10px" }}>📄</div>
             {fileName ? (
               <div>
                 <p style={{ fontWeight: 500, margin: "0 0 4px", color: "#16A34A" }}>✓ {fileName}</p>
@@ -1049,21 +1091,18 @@ function CVAnalyserTab({ user, navTo }) {
             )}
           </div>
           <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", textAlign: "center", margin: "0 0 8px" }}>— or paste your CV text below —</p>
-          <textarea
-            value={cvText}
-            onChange={e => { setCvText(e.target.value); setFileName(""); }}
+          <textarea value={cvText} onChange={e => { setCvText(e.target.value); setFileName(""); }}
             placeholder="Paste your CV content here..."
-            style={{ width: "100%", minHeight: "160px", padding: "12px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.6 }}
-          />
+            style={{ width: "100%", minHeight: "140px", padding: "12px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.6 }} />
           {error && <p style={{ color: "#E24B4A", fontSize: "13px", margin: "8px 0 0", lineHeight: 1.5 }}>⚠️ {error}</p>}
-          <button onClick={analyseCV} disabled={loading || !cvText.trim()}
-            style={{ marginTop: "1rem", width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: loading || !cvText.trim() ? "var(--color-background-secondary)" : "#1A3FA8", color: loading || !cvText.trim() ? "var(--color-text-secondary)" : "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: loading || !cvText.trim() ? "default" : "pointer", fontFamily: "inherit" }}>
-            {loading ? "🔍 Analysing your CV..." : "✨ Analyse My CV"}
+          <button onClick={analyseCV} disabled={loading || !cvText.trim() || !selectedLevel}
+            style={{ marginTop: "1rem", width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: loading || !cvText.trim() || !selectedLevel ? "var(--color-background-secondary)" : "#1A3FA8", color: loading || !cvText.trim() || !selectedLevel ? "var(--color-text-secondary)" : "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: loading || !cvText.trim() || !selectedLevel ? "default" : "pointer", fontFamily: "inherit" }}>
+            {loading ? "🔍 Analysing your CV..." : selectedLevel ? "✨ Find " + selectedLevel + " Courses for Me" : "✨ Analyse My CV"}
           </button>
           {loading && (
             <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", gap: "8px" }}>
               <style>{".spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@keyframes fadeIn{to{opacity:1}}"}</style>
-              {["Reading your CV...", "Matching skills to courses...", "Finding UK & German universities...", "Building career paths..."].map((msg, i) => (
+              {["Reading your CV...", "Matching your skills to " + (selectedLevel || "courses") + "...", "Searching UK and German universities...", "Building personalised recommendations..."].map((msg, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-tertiary)", animation: "fadeIn 0.4s ease " + (i * 0.3) + "s both", opacity: 0 }}>
                   <div className="spin" style={{ width: "14px", height: "14px", border: "2px solid rgba(26,63,168,0.2)", borderTopColor: "#1A3FA8", borderRadius: "50%", flexShrink: 0 }} />
                   <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>{msg}</span>
@@ -1074,20 +1113,21 @@ function CVAnalyserTab({ user, navTo }) {
         </div>
       )}
 
-      {/* Results */}
+      {/* ✅ RESULTS */}
       {result && (
         <div>
-          {/* Saved badge + reset */}
-          {savedToProfile && (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 14px", background: "rgba(22,163,74,0.1)", border: "0.5px solid rgba(22,163,74,0.25)", borderRadius: "var(--border-radius-md)", marginBottom: "1.25rem" }}>
-              <span style={{ fontSize: "14px" }}>✅</span>
-              <p style={{ fontSize: "13px", margin: 0, color: "#16A34A", fontWeight: 500 }}>Analysis saved to your profile</p>
-              <button onClick={() => { setResult(null); setCvText(""); setFileName(""); setSavedToProfile(false); }}
-                style={{ marginLeft: "auto", fontSize: "12px", color: "var(--color-text-secondary)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-                Analyse another CV ↺
-              </button>
-            </div>
-          )}
+          {/* Selected level + reset bar */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: savedToProfile ? "rgba(22,163,74,0.08)" : "rgba(26,63,168,0.06)", border: "0.5px solid " + (savedToProfile ? "rgba(22,163,74,0.25)" : "rgba(26,63,168,0.15)"), borderRadius: "var(--border-radius-md)", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "13px" }}>🎓</span>
+            <p style={{ fontSize: "13px", margin: 0, fontWeight: 500 }}>
+              {selectedLevel} recommendations
+              {savedToProfile && <span style={{ color: "#16A34A", marginLeft: "8px" }}>· ✅ Saved to profile</span>}
+            </p>
+            <button onClick={() => { setResult(null); setCvText(""); setFileName(""); setSavedToProfile(false); }}
+              style={{ marginLeft: "auto", fontSize: "12px", color: "var(--color-text-secondary)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+              Start over ↺
+            </button>
+          </div>
 
           {/* Profile summary */}
           <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.25rem" }}>
@@ -1099,7 +1139,7 @@ function CVAnalyserTab({ user, navTo }) {
               ))}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "8px" }}>
-              {[["📚", "Level", result.profile?.level], ["💼", "Field", result.profile?.currentField], ["⭐", "Experience", result.profile?.experience]].map(([icon, label, val]) => val ? (
+              {[["📚", "Level sought", selectedLevel], ["💼", "Field", result.profile?.currentField], ["⭐", "Experience", result.profile?.experience]].map(([icon, label, val]) => val ? (
                 <div key={label} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "8px 12px" }}>
                   <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.04em" }}>{icon} {label}</p>
                   <p style={{ fontSize: "13px", fontWeight: 500, margin: 0, textTransform: "capitalize" }}>{val}</p>
@@ -1137,42 +1177,69 @@ function CVAnalyserTab({ user, navTo }) {
             ))}
           </div>
 
-          {/* ✅ University recommendations with country filter */}
+          {/* ✅ Universities with country + degree type filters */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "10px" }}>
-            <p style={{ fontWeight: 600, fontSize: "15px", margin: 0 }}>🎓 Best University Courses for You</p>
-            {/* Country filter pills */}
-            <div style={{ display: "flex", gap: "6px" }}>
-              {[
-                { key: "All",     label: "All",         count: allUniversities.length },
-                { key: "UK",      label: "🇬🇧 UK",        count: ukCount },
-                { key: "Germany", label: "🇩🇪 Germany",   count: deCount },
-              ].filter(f => f.count > 0 || f.key === "All").map(({ key, label, count }) => (
+            <p style={{ fontWeight: 600, fontSize: "15px", margin: 0 }}>🎓 Recommended {selectedLevel} Programmes</p>
+          </div>
+
+          {/* Filter row */}
+          <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+            {/* Country filter */}
+            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Country:</span>
+              {[{ key: "All", label: "All", count: allUniversities.length }, { key: "UK", label: "🇬🇧 UK", count: ukCount }, { key: "Germany", label: "🇩🇪 Germany", count: deCount }]
+                .filter(f => f.count > 0 || f.key === "All")
+                .map(({ key, label, count }) => (
                 <button key={key} onClick={() => setUniCountry(key)}
                   style={{ padding: "4px 12px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
                     border: uniCountry === key ? "0.5px solid #1A3FA8" : "0.5px solid var(--color-border-tertiary)",
                     background: uniCountry === key ? "#1A3FA8" : "var(--color-background-primary)",
                     color: uniCountry === key ? "#fff" : "var(--color-text-secondary)" }}>
-                  {label} <span style={{ opacity: 0.75 }}>({count})</span>
+                  {label} ({count})
                 </button>
               ))}
             </div>
+
+            {/* Degree type filter */}
+            {DEGREE_TYPES.length > 2 && (
+              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Type:</span>
+                {DEGREE_TYPES.map(dt => (
+                  <button key={dt} onClick={() => setDegreeFilter(dt)}
+                    style={{ padding: "4px 12px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
+                      border: degreeFilter === dt ? "0.5px solid #7C3AED" : "0.5px solid var(--color-border-tertiary)",
+                      background: degreeFilter === dt ? "#7C3AED" : "var(--color-background-primary)",
+                      color: degreeFilter === dt ? "#fff" : "var(--color-text-secondary)" }}>
+                    {dt}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
+          <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
+            Showing <strong>{filteredUnis.length}</strong> of <strong>{allUniversities.length}</strong> programmes
+          </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "1.5rem" }}>
             {filteredUnis.map((u, i) => (
-              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid " + (u.country === "Germany" ? "rgba(22,163,74,0.2)" : "var(--color-border-tertiary)"), borderRadius: "var(--border-radius-lg)", padding: "1.25rem" }}>
+              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid " + (u.country === "Germany" ? "rgba(22,163,74,0.2)" : u.degreeType === "PhD" ? "rgba(220,38,38,0.2)" : "var(--color-border-tertiary)"), borderRadius: "var(--border-radius-lg)", padding: "1.25rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px", gap: "8px", flexWrap: "wrap" }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", flexWrap: "wrap" }}>
                       <p style={{ fontWeight: 600, margin: 0, fontSize: "14px" }}>{u.course}</p>
                       {/* Country badge */}
                       <span style={{ fontSize: "11px", padding: "1px 7px", borderRadius: "var(--border-radius-md)", background: u.country === "Germany" ? "rgba(22,163,74,0.12)" : "rgba(26,63,168,0.12)", color: u.country === "Germany" ? "#16A34A" : "#1A3FA8", fontWeight: 600 }}>
                         {u.country === "Germany" ? "🇩🇪 Germany" : "🇬🇧 UK"}
                       </span>
+                      {/* PhD badge */}
+                      {(u.degreeType === "PhD" || (u.degreeType || "").includes("PhD")) && (
+                        <span style={{ fontSize: "11px", padding: "1px 7px", borderRadius: "var(--border-radius-md)", background: "rgba(220,38,38,0.12)", color: "#DC2626", fontWeight: 600 }}>🔬 PhD</span>
+                      )}
                     </div>
                     <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>{u.name}</p>
                   </div>
-                  <span style={{ padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "#1A3FA8", whiteSpace: "nowrap" }}>{u.degreeType}</span>
+                  <span style={{ padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: (u.degreeType || "").includes("PhD") ? "rgba(220,38,38,0.1)" : "rgba(26,63,168,0.12)", color: (u.degreeType || "").includes("PhD") ? "#DC2626" : "#1A3FA8", whiteSpace: "nowrap" }}>{u.degreeType}</span>
                 </div>
 
                 <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6, margin: "0 0 10px", borderLeft: "3px solid rgba(26,63,168,0.25)", paddingLeft: "10px", fontStyle: "italic" }}>{u.whyMatch}</p>
@@ -1182,7 +1249,7 @@ function CVAnalyserTab({ user, navTo }) {
                     ["⏱", "Duration",     u.duration],
                     ["💰", "Fees",         u.fees || u.avgSalary],
                     ["📋", "Entry req",    u.entryRequirements],
-                    ["🎁", "Scholarships", u.scholarships],
+                    ["🎁", "Funding",      u.scholarships],
                   ].map(([icon, label, val]) => val ? (
                     <div key={label} style={{ background: "var(--color-background-secondary)", padding: "6px 10px", borderRadius: "var(--border-radius-md)" }}>
                       <p style={{ color: "var(--color-text-secondary)", margin: "0 0 2px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.04em" }}>{icon} {label}</p>
@@ -1191,11 +1258,10 @@ function CVAnalyserTab({ user, navTo }) {
                   ) : null)}
                 </div>
 
-                {/* ✅ Course link */}
                 {(u.courseLink || u.ucasLink) && (
                   <a href={u.courseLink || u.ucasLink} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: u.country === "Germany" ? "#16A34A" : "#1A3FA8", color: "#fff", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
-                    {u.country === "Germany" ? "View course ↗" : "Search on UCAS ↗"}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: (u.degreeType || "").includes("PhD") ? "#DC2626" : u.country === "Germany" ? "#16A34A" : "#1A3FA8", color: "#fff", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                    {(u.degreeType || "").includes("PhD") ? "View PhD Programme ↗" : u.country === "Germany" ? "View Course ↗" : "Search on UCAS ↗"}
                   </a>
                 )}
               </div>
@@ -1214,7 +1280,6 @@ function CVAnalyserTab({ user, navTo }) {
             </div>
           )}
 
-          {/* CTA for non-logged in users */}
           {!user && (
             <div style={{ background: "rgba(26,63,168,0.06)", border: "0.5px solid rgba(26,63,168,0.2)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", textAlign: "center" }}>
               <p style={{ fontWeight: 500, margin: "0 0 6px" }}>💾 Save your results permanently</p>
