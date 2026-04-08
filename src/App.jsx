@@ -985,7 +985,7 @@ function CVAnalyserTab({ user, navTo }) {
     setError("");
     setResult(null);
     try {
-      const res = await fetch("/api/cv-analyser", {
+      const res = await fetch("/api/chat?mode=cv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cvText }),
