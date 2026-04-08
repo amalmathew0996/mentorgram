@@ -18,42 +18,41 @@ export default async function handler(req) {
       return new Response(JSON.stringify({ error: "CV text too short" }), { status: 400, headers: cors });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Missing GEMINI_API_KEY env variable" }), { status: 500, headers: cors });
+      return new Response(JSON.stringify({ error: "Missing GROQ_API_KEY env variable" }), { status: 500, headers: cors });
     }
 
-    const prompt = SYSTEM + "\n\nCV to analyse:\n\n" + cvText.slice(0, 8000);
-
-    const apiRes = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 2048,
-          },
-        }),
-      }
-    );
+    const apiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + apiKey,
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.3,
+        max_tokens: 2048,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: "CV to analyse:\n\n" + cvText.slice(0, 8000) },
+        ],
+      }),
+    });
 
     if (!apiRes.ok) {
       const err = await apiRes.text();
-      console.error("Gemini error:", apiRes.status, err);
+      console.error("Groq error:", apiRes.status, err);
       return new Response(JSON.stringify({ error: "AI error " + apiRes.status + ": " + err.slice(0, 200) }), { status: 500, headers: cors });
     }
 
     const data = await apiRes.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const raw = data.choices?.[0]?.message?.content || "";
 
     if (!raw) {
       return new Response(JSON.stringify({ error: "Empty response from AI" }), { status: 500, headers: cors });
     }
 
-    // Robustly extract JSON
     const first = raw.indexOf("{");
     const last = raw.lastIndexOf("}");
     if (first === -1 || last === -1) {
