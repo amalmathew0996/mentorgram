@@ -768,17 +768,76 @@ function GuidePage({ navTo }) {
 // ─── Universities Page ─────────────────────────────────────────────────────
 function UniversitiesPage({ setChatInput, navTo }) {
   const [country, setCountry] = useState("UK");
-  const [deFilter, setDeFilter] = useState("All"); // ✅ NEW: Public/Private filter for Germany
+  const [deFilter, setDeFilter] = useState("All");
+  const [deSearch, setDeSearch] = useState("");
+  const [germanUnis, setGermanUnis] = useState([]);
+  const [deLoading, setDeLoading] = useState(false);
+  const [deFetched, setDeFetched] = useState(false);
+  const [dePage, setDePage] = useState(1);
+  const DE_PER_PAGE = 24;
 
   const tabs = [
     { key: "UK",      label: "🇬🇧 United Kingdom", accent: "#1A3FA8" },
     { key: "Germany", label: "🇩🇪 Germany",         accent: "#16A34A" },
   ];
 
-  // ✅ Filter German universities by type
-  const filteredGerman = GERMAN_UNIVERSITIES.filter(u =>
-    deFilter === "All" || u.type === deFilter
-  );
+  // ✅ Fetch all German universities from Hipolabs free API when Germany tab is opened
+  useEffect(() => {
+    if (country === "Germany" && !deFetched) {
+      setDeLoading(true);
+      fetch("https://universities.hipolabs.com/search?country=Germany")
+        .then(r => r.json())
+        .then(data => {
+          // Merge with our curated GERMAN_UNIVERSITIES for extra fields (type, tuition, etc.)
+          const enriched = data.map(u => {
+            const curated = GERMAN_UNIVERSITIES.find(c => c.name.toLowerCase() === u.name.toLowerCase());
+            return {
+              name: u.name,
+              website: u.web_pages?.[0] || null,
+              domain: u.domains?.[0] || null,
+              type: curated?.type || "Public",   // default to Public (most German unis are)
+              tuition: curated?.tuition || "Free (small semester fee)",
+              intl: curated?.intl || "Check university website",
+              scholarships: curated?.scholarships || "DAAD, Deutschlandstipendium",
+              focus: curated?.focus || "Various disciplines",
+              rank: curated?.rank || null,
+            };
+          });
+          // Sort: curated (ranked) first, then alphabetically
+          enriched.sort((a, b) => {
+            if (a.rank && !b.rank) return -1;
+            if (!a.rank && b.rank) return 1;
+            return a.name.localeCompare(b.name);
+          });
+          setGermanUnis(enriched);
+          setDeFetched(true);
+        })
+        .catch(() => {
+          // Fallback to curated list if API fails
+          setGermanUnis(GERMAN_UNIVERSITIES.map(u => ({ ...u, website: null, domain: null })));
+          setDeFetched(true);
+        })
+        .finally(() => setDeLoading(false));
+    }
+  }, [country, deFetched]);
+
+  // Filter + search
+  const filteredGerman = germanUnis.filter(u => {
+    const matchType = deFilter === "All" || u.type === deFilter;
+    const q = deSearch.toLowerCase().trim();
+    const matchSearch = !q || u.name.toLowerCase().includes(q) || (u.focus || "").toLowerCase().includes(q);
+    return matchType && matchSearch;
+  });
+
+  const totalDePages = Math.max(1, Math.ceil(filteredGerman.length / DE_PER_PAGE));
+  const safeDePageNum = Math.min(dePage, totalDePages);
+  const paginatedGerman = filteredGerman.slice((safeDePageNum - 1) * DE_PER_PAGE, safeDePageNum * DE_PER_PAGE);
+
+  // Reset to page 1 on filter/search change
+  useEffect(() => { setDePage(1); }, [deFilter, deSearch]);
+
+  const publicCount  = germanUnis.filter(u => u.type === "Public").length;
+  const privateCount = germanUnis.filter(u => u.type === "Private").length;
 
   return (
     <div style={S.section}>
@@ -855,78 +914,171 @@ function UniversitiesPage({ setChatInput, navTo }) {
             ))}
           </div>
 
-          {/* ✅ Public / Private filter pills */}
-          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Type:</span>
-            {[
-              { key: "All",     label: "All",             count: GERMAN_UNIVERSITIES.length },
-              { key: "Public",  label: "🏛 Public",        count: GERMAN_UNIVERSITIES.filter(u => u.type === "Public").length },
-              { key: "Private", label: "🏢 Private",       count: GERMAN_UNIVERSITIES.filter(u => u.type === "Private").length },
-            ].map(({ key, label, count }) => {
-              const active = deFilter === key;
-              return (
-                <button key={key} onClick={() => setDeFilter(key)}
-                  style={{ padding: "5px 14px", borderRadius: "var(--border-radius-md)", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-                    border: `0.5px solid ${active ? "#16A34A" : "var(--color-border-tertiary)"}`,
-                    background: active ? "#16A34A" : "var(--color-background-primary)",
-                    color: active ? "#fff" : "var(--color-text-secondary)",
-                  }}>
-                  {label} <span style={{ opacity: 0.75, fontSize: "11px" }}>({count})</span>
-                </button>
-              );
-            })}
-            {/* Inline callout when Private is selected */}
-            {deFilter === "Private" && (
-              <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", marginLeft: "4px" }}>
-                💡 Private unis charge tuition but often offer generous scholarships
-              </span>
-            )}
-            {deFilter === "Public" && (
-              <span style={{ fontSize: "12px", color: "#16A34A", marginLeft: "4px" }}>
-                ✓ Public universities are mostly free for all students
-              </span>
-            )}
+          {/* Search + filter row */}
+          <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+            {/* Search input */}
+            <div style={{ position: "relative", flex: 1, minWidth: "200px", display: "flex", alignItems: "center" }}>
+              <input
+                style={{ ...S.input, paddingRight: deSearch ? "32px" : "12px" }}
+                placeholder="🔍 Search universities..."
+                value={deSearch}
+                onChange={e => setDeSearch(e.target.value)}
+              />
+              {deSearch && (
+                <button onClick={() => setDeSearch("")}
+                  style={{ position: "absolute", right: "8px", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: "18px", lineHeight: 1, padding: 0 }}>×</button>
+              )}
+            </div>
+
+            {/* Public / Private filter pills */}
+            <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Type:</span>
+              {[
+                { key: "All",     label: "All",       count: germanUnis.length },
+                { key: "Public",  label: "🏛 Public",  count: publicCount },
+                { key: "Private", label: "🏢 Private", count: privateCount },
+              ].map(({ key, label, count }) => {
+                const active = deFilter === key;
+                return (
+                  <button key={key} onClick={() => setDeFilter(key)}
+                    style={{ padding: "5px 14px", borderRadius: "var(--border-radius-md)", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+                      border: `0.5px solid ${active ? "#16A34A" : "var(--color-border-tertiary)"}`,
+                      background: active ? "#16A34A" : "var(--color-background-primary)",
+                      color: active ? "#fff" : "var(--color-text-secondary)",
+                    }}>
+                    {label}{count > 0 && <span style={{ opacity: 0.75, fontSize: "11px", marginLeft: "4px" }}>({count})</span>}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div style={S.grid2}>
-            {filteredGerman.map(u => (
-              <div key={u.name} style={{ ...S.card, borderColor: u.type === "Private" ? "rgba(245,158,11,0.25)" : "var(--color-border-tertiary)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                  <p style={{ fontWeight: 500, margin: 0, fontSize: "15px", flex: 1, paddingRight: "8px" }}>{u.name}</p>
-                  <span style={S.tag(u.type === "Private" ? "teal" : "green")}>{u.rank}</span>
+          {/* Context hints */}
+          {deFilter === "Private" && !deLoading && (
+            <p style={{ fontSize: "12px", color: "#D97706", marginBottom: "0.75rem" }}>💡 Private universities charge tuition but often offer generous scholarships</p>
+          )}
+          {deFilter === "Public" && !deLoading && (
+            <p style={{ fontSize: "12px", color: "#16A34A", marginBottom: "0.75rem" }}>✓ Public universities are mostly free for all students</p>
+          )}
+
+          {/* Results count */}
+          {!deLoading && deFetched && (
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
+              Showing <strong>{paginatedGerman.length}</strong> of <strong>{filteredGerman.length}</strong> universities
+              {deSearch && ` · matching "${deSearch}"`}
+              {deFilter !== "All" && ` · ${deFilter} only`}
+            </p>
+          )}
+
+          {/* Loading skeletons */}
+          {deLoading && (
+            <div style={S.grid2}>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ height: "16px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "70%" }} />
+                  <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "40%" }} />
+                  <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "55%" }} />
+                  <div style={{ height: "32px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", marginTop: "4px" }} />
                 </div>
-                {/* ✅ Type badge */}
-                <span style={{ display: "inline-block", marginBottom: "8px", padding: "2px 8px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 600,
-                  background: u.type === "Private" ? "rgba(245,158,11,0.12)" : "rgba(22,163,74,0.1)",
-                  color: u.type === "Private" ? "#D97706" : "#16A34A",
-                }}>
-                  {u.type === "Private" ? "🏢 Private" : "🏛 Public"}
-                </span>
-                <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "0 0 10px" }}>{u.focus}</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {[["Tuition", u.tuition], ["International", u.intl], ["Scholarships", u.scholarships]].map(([l, v]) => (
-                    <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", gap: "8px" }}>
-                      <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>{l}</span>
-                      <span style={{ textAlign: "right",
-                        color: l === "Scholarships" ? "#16A34A" : l === "Tuition" ? (u.type === "Public" ? "#16A34A" : "#D97706") : "var(--color-text-primary)",
-                        fontWeight: l === "Tuition" ? 500 : 400
-                      }}>{v}</span>
+              ))}
+            </div>
+          )}
+
+          {/* University cards */}
+          {!deLoading && (
+            <div style={S.grid2}>
+              {paginatedGerman.map(u => (
+                <div key={u.name} style={{ ...S.card, borderColor: u.type === "Private" ? "rgba(245,158,11,0.25)" : "var(--color-border-tertiary)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px", gap: "8px" }}>
+                      <p style={{ fontWeight: 500, margin: 0, fontSize: "14px", flex: 1, lineHeight: 1.4 }}>{u.name}</p>
+                      {u.rank && <span style={S.tag(u.type === "Private" ? "teal" : "green")}>{u.rank}</span>}
                     </div>
-                  ))}
+
+                    {/* Type badge */}
+                    <span style={{ display: "inline-block", marginBottom: "8px", padding: "2px 8px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 600,
+                      background: u.type === "Private" ? "rgba(245,158,11,0.12)" : "rgba(22,163,74,0.1)",
+                      color: u.type === "Private" ? "#D97706" : "#16A34A",
+                    }}>
+                      {u.type === "Private" ? "🏢 Private" : "🏛 Public"}
+                    </span>
+
+                    <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: "0 0 8px" }}>{u.focus}</p>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "10px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", gap: "8px" }}>
+                        <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>Tuition</span>
+                        <span style={{ textAlign: "right", color: u.type === "Public" ? "#16A34A" : "#D97706", fontWeight: 500 }}>{u.tuition}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", gap: "8px" }}>
+                        <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>International</span>
+                        <span style={{ textAlign: "right" }}>{u.intl}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", gap: "8px" }}>
+                        <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>Scholarships</span>
+                        <span style={{ textAlign: "right", color: "#16A34A" }}>{u.scholarships}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div style={{ display: "flex", gap: "6px", marginTop: "auto" }}>
+                    {u.website && (
+                      <a href={u.website} target="_blank" rel="noopener noreferrer"
+                        style={{ flex: 1, padding: "7px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, textAlign: "center", textDecoration: "none",
+                          border: `0.5px solid ${u.type === "Private" ? "rgba(245,158,11,0.3)" : "rgba(22,163,74,0.3)"}`,
+                          color: u.type === "Private" ? "#D97706" : "#16A34A",
+                          background: "transparent",
+                        }}>
+                        Visit website ↗
+                      </a>
+                    )}
+                    <button style={{ flex: 1, ...S.btnOutline, padding: "7px 10px", fontSize: "12px",
+                      borderColor: u.type === "Private" ? "rgba(245,158,11,0.3)" : "rgba(22,163,74,0.3)",
+                      color: u.type === "Private" ? "#D97706" : "#16A34A",
+                    }}
+                      onClick={() => { setChatInput(`Tell me more about ${u.name} in Germany — English programmes, application process and scholarships`); navTo("AI Mentor"); }}>
+                      Ask AI Mentor ↗
+                    </button>
+                  </div>
                 </div>
-                <button style={{ ...S.btnOutline, marginTop: "12px", padding: "8px 16px", fontSize: "13px", width: "100%",
-                  borderColor: u.type === "Private" ? "rgba(245,158,11,0.3)" : "rgba(22,163,74,0.3)",
-                  color: u.type === "Private" ? "#D97706" : "#16A34A"
-                }}
-                  onClick={() => { setChatInput(`Tell me more about ${u.name} in Germany — English programmes, application process and scholarships`); navTo("AI Mentor"); }}>
-                  Ask AI Mentor ↗
-                </button>
+              ))}
+            </div>
+          )}
+
+          {/* No results */}
+          {!deLoading && deFetched && filteredGerman.length === 0 && (
+            <div style={{ ...S.card, textAlign: "center", padding: "2.5rem" }}>
+              <p style={{ fontSize: "1.5rem", margin: "0 0 0.75rem" }}>🔍</p>
+              <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No universities found</p>
+              <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1rem" }}>Try a different search term or filter</p>
+              <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "13px" }} onClick={() => { setDeSearch(""); setDeFilter("All"); }}>Clear filters</button>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!deLoading && totalDePages > 1 && (
+            <div style={{ marginTop: "1.5rem" }}>
+              <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
+                {safeDePageNum > 1 && <button style={S.pageBtn(false)} onClick={() => setDePage(p => p - 1)}>← Prev</button>}
+                {Array.from({ length: Math.min(totalDePages, 7) }, (_, i) => {
+                  let p;
+                  if (totalDePages <= 7) p = i + 1;
+                  else if (safeDePageNum <= 4) p = i + 1;
+                  else if (safeDePageNum >= totalDePages - 3) p = totalDePages - 6 + i;
+                  else p = safeDePageNum - 3 + i;
+                  return <button key={p} style={S.pageBtn(p === safeDePageNum)} onClick={() => setDePage(p)}>{p}</button>;
+                })}
+                {safeDePageNum < totalDePages && <button style={S.pageBtn(false)} onClick={() => setDePage(p => p + 1)}>Next →</button>}
               </div>
-            ))}
-          </div>
+              <p style={{ textAlign: "center", fontSize: "12px", color: "var(--color-text-secondary)", marginTop: "0.5rem" }}>
+                Page {safeDePageNum} of {totalDePages} · {filteredGerman.length} universities
+              </p>
+            </div>
+          )}
 
           {/* DAAD callout */}
-          <div style={{ marginTop: "1.5rem", background: "rgba(26,63,168,0.06)", border: "0.5px solid rgba(26,63,168,0.15)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", display: "flex", gap: "14px", alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ marginTop: "2rem", background: "rgba(26,63,168,0.06)", border: "0.5px solid rgba(26,63,168,0.15)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", display: "flex", gap: "14px", alignItems: "flex-start", flexWrap: "wrap" }}>
             <span style={{ fontSize: "28px" }}>🎓</span>
             <div style={{ flex: 1, minWidth: "220px" }}>
               <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "14px" }}>DAAD Scholarships — Germany's main international scholarship</p>
@@ -941,6 +1093,7 @@ function UniversitiesPage({ setChatInput, navTo }) {
           </div>
         </>
       )}
+
     </div>
   );
 }
