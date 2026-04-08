@@ -912,6 +912,88 @@ function GuidePage({ navTo }) {
 
 // ─── Universities Page ─────────────────────────────────────────────────────
 // ─── CV Analyser Tab ──────────────────────────────────────────────────────
+// ✅ Known German university search URLs — always reliable
+const DE_UNI_SEARCH = {
+  "technical university of munich":     "https://www.tum.de/en/studies/degree-programs",
+  "tum":                                "https://www.tum.de/en/studies/degree-programs",
+  "ludwig maximilian university":       "https://www.lmu.de/en/study/all-degrees-and-programs/",
+  "lmu munich":                         "https://www.lmu.de/en/study/all-degrees-and-programs/",
+  "heidelberg university":              "https://www.uni-heidelberg.de/en/study/all-subjects",
+  "humboldt university":                "https://www.hu-berlin.de/en/studies/counselling/course-catalogue",
+  "rwth aachen":                        "https://www.rwth-aachen.de/go/id/bkaz?lidx=1",
+  "freie universitat berlin":           "https://www.fu-berlin.de/en/studium/studienangebot/index.html",
+  "freie universität berlin":           "https://www.fu-berlin.de/en/studium/studienangebot/index.html",
+  "university of tubingen":             "https://uni-tuebingen.de/en/study/",
+  "university of tübingen":             "https://uni-tuebingen.de/en/study/",
+  "university of freiburg":             "https://uni-freiburg.de/en/studies/",
+  "karlsruhe institute":                "https://www.kit.edu/english/studies.php",
+  "kit":                                "https://www.kit.edu/english/studies.php",
+  "university of cologne":              "https://www.uni-koeln.de/en/studying",
+  "university of bonn":                 "https://www.uni-bonn.de/en/studying",
+  "university of hamburg":              "https://www.uni-hamburg.de/en/studium.html",
+  "goethe university":                  "https://www.goethe-university-frankfurt.de/en/academics",
+  "university of munich":               "https://www.lmu.de/en/study/all-degrees-and-programs/",
+  "tu berlin":                          "https://www.tu.berlin/en/studying/degree-programs",
+  "tu dresden":                         "https://tu-dresden.de/en/study/programs",
+  "tu darmstadt":                       "https://www.tu-darmstadt.de/studieren/index.en.jsp",
+  "mannheim":                           "https://www.uni-mannheim.de/en/academics/programs/",
+  "saarland":                           "https://www.uni-saarland.de/en/study.html",
+  "passau":                             "https://www.uni-passau.de/en/programs/",
+};
+
+// ✅ Known UK university search URLs
+const UK_UNI_SEARCH = {
+  "university of oxford":      "https://www.ox.ac.uk/admissions/graduate/courses/courses-a-z-listing",
+  "oxford":                    "https://www.ox.ac.uk/admissions/graduate/courses/courses-a-z-listing",
+  "university of cambridge":   "https://www.postgraduate.study.cam.ac.uk/courses",
+  "cambridge":                 "https://www.postgraduate.study.cam.ac.uk/courses",
+  "imperial college":          "https://www.imperial.ac.uk/study/courses/",
+  "ucl":                       "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees",
+  "university college london": "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees",
+  "king's college":            "https://www.kcl.ac.uk/study/postgraduate-taught",
+  "lse":                       "https://www.lse.ac.uk/study-at-lse/Graduate",
+  "london school of economics":"https://www.lse.ac.uk/study-at-lse/Graduate",
+  "university of edinburgh":   "https://www.ed.ac.uk/studying/postgraduate/degrees",
+  "university of manchester":  "https://www.manchester.ac.uk/study/postgraduate-taught/courses/list/",
+  "university of birmingham":  "https://www.birmingham.ac.uk/postgraduate/courses",
+  "university of bristol":     "https://www.bristol.ac.uk/study/postgraduate/",
+  "university of leeds":       "https://courses.leeds.ac.uk/course-search/postgraduate-courses",
+  "university of sheffield":   "https://www.sheffield.ac.uk/postgraduate/taught/courses",
+  "university of nottingham":  "https://www.nottingham.ac.uk/pgstudy/courses/courses.aspx",
+  "university of exeter":      "https://www.exeter.ac.uk/postgraduate/courses/",
+  "university of southampton": "https://www.southampton.ac.uk/courses/postgraduate",
+  "university of warwick":     "https://warwick.ac.uk/study/postgraduate/courses/",
+  "university of glasgow":     "https://www.gla.ac.uk/postgraduate/taught/",
+  "durham university":         "https://www.durham.ac.uk/study/postgraduate/",
+  "bath":                      "https://www.bath.ac.uk/topics/postgraduate-courses/",
+};
+
+function buildCourseLink(u) {
+  const nameLower = (u.name || "").toLowerCase();
+  const courseLower = (u.course || "").toLowerCase();
+  const isPhD = (u.degreeType || "").toLowerCase().includes("phd");
+
+  if (u.country === "Germany") {
+    // Try known lookup first
+    for (const [key, url] of Object.entries(DE_UNI_SEARCH)) {
+      if (nameLower.includes(key) || key.includes(nameLower.split(" ")[0])) return url;
+    }
+    // Fallback: DAAD course search (always works)
+    return "https://www2.daad.de/deutschland/studienangebote/international-programmes/en/result/?q=" + encodeURIComponent(u.course || "") + "&degree=" + encodeURIComponent(u.degreeType || "");
+  }
+
+  // UK — try known lookup
+  for (const [key, url] of Object.entries(UK_UNI_SEARCH)) {
+    if (nameLower.includes(key) || key.includes(nameLower.split(" ")[0])) return url;
+  }
+
+  // UK fallback: UCAS search (always works)
+  if (isPhD) {
+    return "https://www.jobs.ac.uk/search/?keywords=" + encodeURIComponent(u.course || "") + "&discipline=&type%5B%5D=phd";
+  }
+  return "https://www.ucas.com/search?query=" + encodeURIComponent((u.course || "") + " " + (u.name || "")).trim();
+}
+
 function CVAnalyserTab({ user, navTo }) {
   // ✅ Step 1: degree level selection BEFORE upload
   const [selectedLevel, setSelectedLevel] = useState(null);
@@ -1258,12 +1340,10 @@ function CVAnalyserTab({ user, navTo }) {
                   ) : null)}
                 </div>
 
-                {(u.courseLink || u.ucasLink) && (
-                  <a href={u.courseLink || u.ucasLink} target="_blank" rel="noopener noreferrer"
+                <a href={buildCourseLink(u)} target="_blank" rel="noopener noreferrer"
                     style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: (u.degreeType || "").includes("PhD") ? "#DC2626" : u.country === "Germany" ? "#16A34A" : "#1A3FA8", color: "#fff", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
-                    {(u.degreeType || "").includes("PhD") ? "View PhD Programme ↗" : u.country === "Germany" ? "View Course ↗" : "Search on UCAS ↗"}
+                    {(u.degreeType || "").includes("PhD") ? "Search PhD Programmes ↗" : u.country === "Germany" ? "Browse Courses ↗" : "Search on UCAS ↗"}
                   </a>
-                )}
               </div>
             ))}
           </div>
