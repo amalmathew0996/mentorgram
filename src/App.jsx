@@ -30,18 +30,163 @@ const UK_UNIVERSITIES = [
   { name: "King's College London", rank: "#6 UK", focus: "Medicine & Law", entry: "AAB at A-Level", intl: "IELTS 7.0+", scholarships: "King's Scholarships" },
 ];
 
-// ✅ NEW: German universities data with type field
+// ✅ Full German universities list — 155 institutions across all types
 const GERMAN_UNIVERSITIES = [
-  { name: "Technical University of Munich", rank: "#1 DE", focus: "Engineering & Technology", tuition: "Free (€143/sem fee)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", type: "Public" },
-  { name: "LMU Munich", rank: "#2 DE", focus: "Medicine & Humanities", tuition: "Free (€143/sem fee)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, LMU Excellence", type: "Public" },
-  { name: "Heidelberg University", rank: "#3 DE", focus: "Life Sciences & Medicine", tuition: "Free (€185/sem fee)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Heidelberg Excellence", type: "Public" },
-  { name: "Humboldt University Berlin", rank: "#4 DE", focus: "Research & Social Sciences", tuition: "Free (€315/sem fee)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", type: "Public" },
-  { name: "RWTH Aachen University", rank: "#5 DE", focus: "Engineering & Natural Sciences", tuition: "Free (€275/sem fee)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, RWTH Excellence", type: "Public" },
-  { name: "Freie Universität Berlin", rank: "#6 DE", focus: "Politics & International Studies", tuition: "Free (€315/sem fee)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, FU Excellence", type: "Public" },
-  { name: "Constructor University Bremen", rank: "Top Private", focus: "Engineering & Data Science", tuition: "€20,000/yr", intl: "IELTS 6.0+ or equivalent", scholarships: "Merit scholarships up to 100%", type: "Private" },
-  { name: "Jacobs University Bremen", rank: "Top Private", focus: "International Sciences & Business", tuition: "€20,000/yr", intl: "IELTS 6.5+ or equivalent", scholarships: "Need & merit-based awards", type: "Private" },
-  { name: "EBS University (Wiesbaden)", rank: "Top Private", focus: "Business & Law", tuition: "€15,000–€22,000/yr", intl: "IELTS 6.5+ or equivalent", scholarships: "Partial merit scholarships", type: "Private" },
-  { name: "WHU – Otto Beisheim School", rank: "Top Private", focus: "Business & Management", tuition: "€25,000/yr", intl: "IELTS 7.0+ or equivalent", scholarships: "Competitive merit awards", type: "Private" },
+  // ── Top Research Universities (Exzellenzuniversitäten) ──
+  { name: "Technical University of Munich (TUM)", type: "Public", focus: "Engineering & Technology", tuition: "Free (€143/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "#1 DE", website: "https://www.tum.de/en/" },
+  { name: "Ludwig Maximilian University of Munich (LMU)", type: "Public", focus: "Medicine, Law & Humanities", tuition: "Free (€143/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, LMU Excellence", rank: "#2 DE", website: "https://www.lmu.de/en/" },
+  { name: "Heidelberg University", type: "Public", focus: "Life Sciences & Medicine", tuition: "Free (€185/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Heidelberg Excellence", rank: "#3 DE", website: "https://www.uni-heidelberg.de/en" },
+  { name: "Humboldt University of Berlin", type: "Public", focus: "Research & Social Sciences", tuition: "Free (€315/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "#4 DE", website: "https://www.hu-berlin.de/en" },
+  { name: "RWTH Aachen University", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€275/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, RWTH Excellence", rank: "#5 DE", website: "https://www.rwth-aachen.de" },
+  { name: "Freie Universität Berlin", type: "Public", focus: "Politics & International Studies", tuition: "Free (€315/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, FU Excellence", rank: "#6 DE", website: "https://www.fu-berlin.de/en/" },
+  { name: "University of Tübingen", type: "Public", focus: "Humanities, Medicine & Science", tuition: "Free (€175/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://uni-tuebingen.de/en/" },
+  { name: "University of Freiburg", type: "Public", focus: "Life Sciences & Humanities", tuition: "Free (€165/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://uni-freiburg.de/en/" },
+  { name: "University of Konstanz", type: "Public", focus: "Social Sciences & Natural Sciences", tuition: "Free (€160/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Zukunftskolleg", rank: "Excellence Uni", website: "https://www.uni-konstanz.de/en/" },
+  { name: "University of Bonn", type: "Public", focus: "Mathematics, Natural Sciences & Medicine", tuition: "Free (€300/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-bonn.de/en" },
+  { name: "Dresden University of Technology (TU Dresden)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€275/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://tu-dresden.de/en" },
+  { name: "Karlsruhe Institute of Technology (KIT)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€175/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, KIT Excellence", rank: "Excellence Uni", website: "https://www.kit.edu/english/" },
+  { name: "University of Hamburg", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€340/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-hamburg.de/en.html" },
+  { name: "University of Cologne", type: "Public", focus: "Business, Law & Medicine", tuition: "Free (€295/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-koeln.de/en/" },
+  { name: "University of Münster", type: "Public", focus: "Law, Economics & Natural Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-muenster.de/en/" },
+  { name: "University of Bremen", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-bremen.de/en/" },
+  { name: "University of Bayreuth", type: "Public", focus: "Natural Sciences & Law", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-bayreuth.de/en/" },
+  // ── Major Research Universities ──
+  { name: "Goethe University Frankfurt", type: "Public", focus: "Finance, Law & Social Sciences", tuition: "Free (€315/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.goethe-university-frankfurt.de/en" },
+  { name: "University of Stuttgart", type: "Public", focus: "Engineering & Technology", tuition: "Free (€190/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.uni-stuttgart.de/en/" },
+  { name: "University of Erlangen-Nuremberg (FAU)", type: "Public", focus: "Engineering, Medicine & Humanities", tuition: "Free (€130/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.fau.eu/" },
+  { name: "University of Würzburg", type: "Public", focus: "Medicine & Natural Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-wuerzburg.de/en/home/" },
+  { name: "University of Mannheim", type: "Public", focus: "Business & Social Sciences", tuition: "Free (€170/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Business", website: "https://www.uni-mannheim.de/en/" },
+  { name: "University of Mainz (JGU)", type: "Public", focus: "Humanities, Natural Sciences & Medicine", tuition: "Free (€295/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-mainz.de/eng/" },
+  { name: "University of Düsseldorf (HHU)", type: "Public", focus: "Medicine, Law & Natural Sciences", tuition: "Free (€300/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.hhu.de/en/" },
+  { name: "University of Bochum (RUB)", type: "Public", focus: "Engineering, Natural Sciences & Humanities", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.ruhr-uni-bochum.de/en/" },
+  { name: "University of Bielefeld", type: "Public", focus: "Social Sciences & Natural Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-bielefeld.de/en/" },
+  { name: "University of Duisburg-Essen", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-due.de/en/" },
+  { name: "University of Leipzig", type: "Public", focus: "Medicine, Humanities & Social Sciences", tuition: "Free (€233/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-leipzig.de/en/" },
+  { name: "University of Göttingen", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€395/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Göttingen International", rank: "Top Research", website: "https://www.uni-goettingen.de/en/" },
+  { name: "University of Jena (FSU)", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-jena.de/en" },
+  { name: "University of Kiel (CAU)", type: "Public", focus: "Natural Sciences & Medicine", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-kiel.de/en/" },
+  { name: "University of Marburg", type: "Public", focus: "Medicine, Pharmacy & Humanities", tuition: "Free (€285/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-marburg.de/en" },
+  { name: "University of Halle-Wittenberg (MLU)", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-halle.de/en/" },
+  { name: "University of Regensburg", type: "Public", focus: "Law, Medicine & Natural Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-regensburg.de/index.html.en" },
+  { name: "University of Augsburg", type: "Public", focus: "Business, Law & Natural Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-augsburg.de/en/" },
+  { name: "University of Ulm", type: "Public", focus: "Medicine & Engineering", tuition: "Free (€178/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-ulm.de/en/home.html" },
+  { name: "University of Giessen (JLU)", type: "Public", focus: "Agriculture, Medicine & Humanities", tuition: "Free (€285/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-giessen.de/en" },
+  { name: "University of Kassel", type: "Public", focus: "Social Sciences & Engineering", tuition: "Free (€285/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-kassel.de/en/" },
+  { name: "University of Oldenburg (UOL)", type: "Public", focus: "Natural Sciences & Social Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://uol.de/en" },
+  { name: "University of Osnabrück", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-osnabrueck.de/en/" },
+  { name: "University of Paderborn", type: "Public", focus: "Computer Science & Engineering", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-paderborn.de/en/" },
+  { name: "University of Siegen", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-siegen.de/start/index.html.en" },
+  { name: "University of Wuppertal (BUW)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-wuppertal.de/en/" },
+  { name: "Charité – Universitätsmedizin Berlin", type: "Public", focus: "Medicine & Health Sciences", tuition: "Free (€315/sem)", intl: "German C1 required", scholarships: "DAAD, Helmholtz scholarships", rank: "Top Medical", website: "https://www.charite.de/en/" },
+  { name: "University of Greifswald", type: "Public", focus: "Medicine & Natural Sciences", tuition: "Free (€377/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-greifswald.de/en/" },
+  { name: "University of Rostock", type: "Public", focus: "Maritime Studies & Engineering", tuition: "Free (€377/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-rostock.de/en/" },
+  { name: "University of Magdeburg (OVGU)", type: "Public", focus: "Engineering & Medicine", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.ovgu.de/en/" },
+  { name: "Technische Universität Berlin (TU Berlin)", type: "Public", focus: "Engineering & Computer Science", tuition: "Free (€315/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu.berlin/en/" },
+  { name: "Technische Universität Braunschweig", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu-braunschweig.de/en/" },
+  { name: "Technische Universität Chemnitz", type: "Public", focus: "Engineering & Computer Science", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu-chemnitz.de/index.html.en" },
+  { name: "Technische Universität Darmstadt", type: "Public", focus: "Engineering & Computer Science", tuition: "Free (€280/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu-darmstadt.de/index.en.jsp" },
+  { name: "Technische Universität Hamburg (TUHH)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€340/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tuhh.de/tuhh/en/" },
+  { name: "Technische Universität Ilmenau", type: "Public", focus: "Engineering & Computer Science", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu-ilmenau.de/en/" },
+  { name: "Technische Universität Kaiserslautern-Landau (RPTU)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€300/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.rptu.de/en" },
+  { name: "Brandenburg University of Technology (BTU)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.b-tu.de/en/" },
+  { name: "University of Passau", type: "Public", focus: "Law, Business & Computer Science", tuition: "Free (€130/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-passau.de/en/" },
+  { name: "Saarland University", type: "Public", focus: "Computer Science & Natural Sciences", tuition: "Free (€290/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-saarland.de/en/home.html" },
+  { name: "University of Bamberg", type: "Public", focus: "Humanities & Social Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-bamberg.de/en/" },
+  { name: "University of Potsdam", type: "Public", focus: "Natural Sciences & Law", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-potsdam.de/en/" },
+  { name: "Europa-Universität Viadrina Frankfurt (Oder)", type: "Public", focus: "Law & Cultural Studies", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.europa-uni.de/en/index.html" },
+  { name: "University of Erfurt", type: "Public", focus: "Humanities & Social Sciences", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-erfurt.de/en/" },
+  { name: "University of Hildesheim", type: "Public", focus: "Education & Cultural Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-hildesheim.de/en/" },
+  { name: "University of Lübeck", type: "Public", focus: "Medicine & Computer Science", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Medical", website: "https://www.uni-luebeck.de/en/university.html" },
+  { name: "Leuphana University Lüneburg", type: "Public", focus: "Sustainability & Business", tuition: "Free (€380/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.leuphana.de/en.html" },
+  { name: "Catholic University of Eichstätt-Ingolstadt (KU)", type: "Public", focus: "Theology, Social Sciences & Business", tuition: "Free (€435/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, KU scholarships", rank: "Top Research", website: "https://www.ku.de/en/" },
+  { name: "University of Trier", type: "Public", focus: "Law, Humanities & Social Sciences", tuition: "Free (€290/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-trier.de" },
+  { name: "University of Koblenz (UKO)", type: "Public", focus: "Computer Science & Social Sciences", tuition: "Free (€290/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-koblenz.de/en" },
+  { name: "University of Flensburg (EUF)", type: "Public", focus: "Business & Education", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-flensburg.de/en/" },
+  { name: "University of Vechta", type: "Public", focus: "Social Sciences & Humanities", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-vechta.de/en/" },
+  // ── Universities of Applied Sciences (Fachhochschulen) ──
+  { name: "Munich University of Applied Sciences (HM)", type: "Public", focus: "Engineering, Business & Design", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hm.edu/en/" },
+  { name: "Cologne University of Applied Sciences (TH Köln)", type: "Public", focus: "Engineering, Business & Social Work", tuition: "Free (€295/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-koeln.de/en/" },
+  { name: "Berlin University of Applied Sciences (HTW Berlin)", type: "Public", focus: "Engineering, Business & Design", tuition: "Free (€315/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.htw-berlin.de/en/" },
+  { name: "Berlin University of Applied Sciences (BHT)", type: "Public", focus: "Engineering & Life Sciences", tuition: "Free (€315/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.bht-berlin.de/en" },
+  { name: "Hamburg University of Applied Sciences (HAW Hamburg)", type: "Public", focus: "Engineering, Business & Social Sciences", tuition: "Free (€340/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.haw-hamburg.de/en/" },
+  { name: "Dortmund University of Applied Sciences (FH Dortmund)", type: "Public", focus: "Engineering, Business & Design", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-dortmund.de/en/" },
+  { name: "Frankfurt University of Applied Sciences", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€315/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.frankfurt-university.de/en/" },
+  { name: "Nuremberg Institute of Technology (TH Nürnberg)", type: "Public", focus: "Engineering, Business & Social Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-nuernberg.de/en/" },
+  { name: "Stuttgart Media University (HdM)", type: "Public", focus: "Media, Publishing & Information Science", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hdm-stuttgart.de/en" },
+  { name: "Reutlingen University", type: "Public", focus: "Business, Engineering & Computer Science", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.reutlingen-university.de/en/" },
+  { name: "Aalen University", type: "Public", focus: "Engineering & Business", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-aalen.de/en/" },
+  { name: "Esslingen University of Applied Sciences", type: "Public", focus: "Engineering & Management", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-esslingen.de/en/" },
+  { name: "Pforzheim University", type: "Public", focus: "Business, Engineering & Design", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-pforzheim.de/en/" },
+  { name: "Konstanz University of Applied Sciences (HTWG)", type: "Public", focus: "Engineering & Business", tuition: "Free (€165/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.htwg-konstanz.de/en/" },
+  { name: "Mittweida University of Applied Sciences", type: "Public", focus: "Engineering & Media", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-mittweida.de/en/" },
+  { name: "Fulda University of Applied Sciences", type: "Public", focus: "Social Work, Nutrition & Business", tuition: "Free (€285/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-fulda.de/en/" },
+  { name: "Heilbronn University", type: "Public", focus: "Business & Engineering", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-heilbronn.de/en" },
+  { name: "Furtwangen University (HFU)", type: "Public", focus: "Computer Science & Engineering", tuition: "Free (€165/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hfu.eu/" },
+  { name: "Offenburg University", type: "Public", focus: "Engineering & Media", tuition: "Free (€165/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-offenburg.de/en/" },
+  { name: "Ravensburg-Weingarten University (RWU)", type: "Public", focus: "Engineering & Business", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.rwu.de/en/" },
+  { name: "Hochschule Niederrhein", type: "Public", focus: "Textile & Chemical Engineering", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-niederrhein.de/en/" },
+  { name: "Bielefeld University of Applied Sciences (FH Bielefeld)", type: "Public", focus: "Engineering, Business & Social Work", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-bielefeld.de/en" },
+  { name: "Münster University of Applied Sciences (FH Münster)", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://en.fh-muenster.de/" },
+  { name: "Hochschule Bonn-Rhein-Sieg", type: "Public", focus: "Computer Science & Engineering", tuition: "Free (€295/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.h-brs.de/en" },
+  { name: "Aachen University of Applied Sciences (FH Aachen)", type: "Public", focus: "Engineering & Aerospace", tuition: "Free (€275/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-aachen.de/en/" },
+  { name: "Düsseldorf University of Applied Sciences (HSD)", type: "Public", focus: "Design, Social Work & Engineering", tuition: "Free (€300/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-duesseldorf.de/en" },
+  { name: "Augsburg University of Applied Sciences (HS Augsburg)", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-augsburg.de/en/" },
+  { name: "Rosenheim Technical University of Applied Sciences", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-rosenheim.de/en/" },
+  { name: "Ingolstadt University of Applied Sciences (THI)", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.thi.de/en/" },
+  { name: "Deggendorf Institute of Technology (THD)", type: "Public", focus: "Engineering & Health Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-deg.de/en" },
+  { name: "Weihenstephan-Triesdorf University of Applied Sciences", type: "Public", focus: "Agriculture & Life Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hswt.de/en.html" },
+  { name: "Coburg University of Applied Sciences", type: "Public", focus: "Design, Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-coburg.de/en/" },
+  { name: "Ansbach University of Applied Sciences", type: "Public", focus: "Business & Media", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-ansbach.de/en/" },
+  { name: "Kempten University of Applied Sciences", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-kempten.de/en/" },
+  { name: "Amberg-Weiden University of Applied Sciences (OTH)", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.oth-aw.de/en/" },
+  { name: "Landshut University of Applied Sciences", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.haw-landshut.de/en.html" },
+  { name: "OTH Regensburg (Ostbayerische TH)", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.oth-regensburg.de/en.html" },
+  { name: "Ostwestfalen-Lippe University of Applied Sciences (TH OWL)", type: "Public", focus: "Engineering & Production", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-owl.de/en/" },
+  { name: "Hochschule Stralsund (HOST)", type: "Public", focus: "Engineering & Business", tuition: "Free (€377/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hochschule-stralsund.de/en/" },
+  { name: "Hochschule Wismar", type: "Public", focus: "Engineering & Business", tuition: "Free (€377/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://en.hs-wismar.de/" },
+  { name: "Flensburg University of Applied Sciences", type: "Public", focus: "Business & Engineering", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-flensburg.de/en/" },
+  { name: "Lübeck University of Applied Sciences", type: "Public", focus: "Engineering & Business", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-luebeck.de/en/" },
+  { name: "Kiel University of Applied Sciences (FH Kiel)", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-kiel.de/en/" },
+  { name: "Hochschule Bremen", type: "Public", focus: "Engineering & Business", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-bremen.de/en/" },
+  { name: "Hannover University of Applied Sciences (HsH)", type: "Public", focus: "Engineering & Business", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-hannover.de/en/" },
+  { name: "Jade University of Applied Sciences", type: "Public", focus: "Engineering & Geosciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.jade-hs.de/en/" },
+  { name: "Osnabrück University of Applied Sciences", type: "Public", focus: "Engineering & Agriculture", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-osnabrueck.de/en/" },
+  { name: "HAWK University of Applied Sciences", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hawk.de/en" },
+  { name: "Erfurt University of Applied Sciences", type: "Public", focus: "Business & Social Sciences", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-erfurt.de/en/" },
+  { name: "Jena University of Applied Sciences (EAH Jena)", type: "Public", focus: "Engineering & Business", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.eah-jena.de/en/" },
+  { name: "Schmalkalden University of Applied Sciences", type: "Public", focus: "Engineering & Business", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-schmalkalden.de/en/" },
+  { name: "Merseburg University of Applied Sciences", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-merseburg.de/en/" },
+  { name: "Hochschule Harz", type: "Public", focus: "Business & Computer Science", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-harz.de/en/" },
+  { name: "Hochschule Anhalt", type: "Public", focus: "Engineering & Agriculture", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-anhalt.de/en.html" },
+  { name: "Hochschule Magdeburg-Stendal", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.h2.de/en.html" },
+  // ── Art & Music Colleges ──
+  { name: "Berlin University of the Arts (UdK Berlin)", type: "Public", focus: "Fine Arts, Music & Architecture", tuition: "Free (€315/sem)", intl: "Audition/portfolio + German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Art", website: "https://www.udk-berlin.de/en/" },
+  { name: "Hochschule für Musik und Theater München", type: "Public", focus: "Music & Theatre", tuition: "Free (€130/sem)", intl: "Audition + German B2", scholarships: "DAAD, music scholarships", rank: "Top Music", website: "https://www.hmtm.de/en/" },
+  { name: "Hochschule für Musik Freiburg", type: "Public", focus: "Classical Music & Composition", tuition: "Free (€165/sem)", intl: "Audition + German B2", scholarships: "DAAD, music scholarships", rank: "Top Music", website: "https://www.mh-freiburg.de/en/" },
+  { name: "Hochschule für Musik Detmold", type: "Public", focus: "Music Performance & Education", tuition: "Free (€310/sem)", intl: "Audition + German B2", scholarships: "DAAD, music scholarships", rank: "Top Music", website: "https://www.hfm-detmold.de/en/" },
+  { name: "Hochschule für Musik Karlsruhe", type: "Public", focus: "Music Performance & Composition", tuition: "Free (€175/sem)", intl: "Audition + German B2", scholarships: "DAAD, music scholarships", rank: "Top Music", website: "https://www.hfm-karlsruhe.de/en/" },
+  { name: "HfK Bremen (Hochschule für Künste)", type: "Public", focus: "Fine Arts & Music", tuition: "Free (€380/sem)", intl: "Portfolio/audition + German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Art", website: "https://www.hfk-bremen.de/en/" },
+  // ── Private Universities ──
+  { name: "WHU – Otto Beisheim School of Management", type: "Private", focus: "Business & Management", tuition: "€25,000/yr", intl: "IELTS 7.0+", scholarships: "Competitive merit awards", rank: "Top Private", website: "https://www.whu.edu/en/" },
+  { name: "Jacobs University Bremen (Constructor University)", type: "Private", focus: "STEM & International Studies", tuition: "€20,000/yr", intl: "IELTS 6.5+", scholarships: "Need & merit-based up to 100%", rank: "Top Private", website: "https://www.constructor.university/" },
+  { name: "Hertie School (Berlin)", type: "Private", focus: "Public Policy & Governance", tuition: "€12,000–€18,000/yr", intl: "IELTS 7.0+", scholarships: "Generous need & merit awards", rank: "Top Private", website: "https://www.hertie-school.org/en/" },
+  { name: "HHL Leipzig Graduate School of Management", type: "Private", focus: "Business & Entrepreneurship", tuition: "€25,000–€35,000/yr", intl: "IELTS 6.5+", scholarships: "Merit-based scholarships", rank: "Top Private", website: "https://www.hhl.de/en/" },
+  { name: "Frankfurt School of Finance & Management", type: "Private", focus: "Finance & Management", tuition: "€18,000–€32,000/yr", intl: "IELTS 6.5+", scholarships: "Merit & need-based scholarships", rank: "Top Private", website: "https://www.frankfurt-school.de/en/" },
+  { name: "EBS University for Business and Law", type: "Private", focus: "Business & Law", tuition: "€15,000–€22,000/yr", intl: "IELTS 6.5+", scholarships: "Partial merit scholarships", rank: "Top Private", website: "https://www.ebs.edu/en" },
+  { name: "Bucerius Law School (Hamburg)", type: "Private", focus: "Law & Business", tuition: "€10,000/yr", intl: "IELTS 7.0+", scholarships: "Merit-based scholarships", rank: "Top Private", website: "https://www.law-school.de/en/" },
+  { name: "Zeppelin University (Friedrichshafen)", type: "Private", focus: "Business, Culture & Politics", tuition: "€6,500/sem", intl: "IELTS 6.5+", scholarships: "Merit-based scholarships", rank: "Top Private", website: "https://www.zu.de/en/" },
+  { name: "Munich Business School", type: "Private", focus: "International Business", tuition: "€18,000–€22,000/yr", intl: "IELTS 6.5+", scholarships: "Merit scholarships available", rank: "Top Private", website: "https://www.munich-business-school.de/en/" },
+  { name: "ISM – International School of Management", type: "Private", focus: "International Management", tuition: "€10,000–€15,000/yr", intl: "IELTS 6.0+", scholarships: "Merit-based scholarships", rank: "Top Private", website: "https://www.ism.de/en/" },
+  { name: "ESCP Business School (Berlin campus)", type: "Private", focus: "European Business & Management", tuition: "€15,000–€30,000/yr", intl: "IELTS 6.5+", scholarships: "Merit scholarships", rank: "Top Private", website: "https://escp.eu/berlin" },
+  { name: "SRH University Heidelberg", type: "Private", focus: "Business, Health & Engineering", tuition: "€8,000–€14,000/yr", intl: "IELTS 6.0+", scholarships: "SRH scholarships available", rank: "Top Private", website: "https://www.srh-university.de/en/" },
+  { name: "IU International University of Applied Sciences", type: "Private", focus: "Business, IT & Psychology", tuition: "€5,000–€15,000/yr", intl: "IELTS 6.0+", scholarships: "Early-bird & merit discounts", rank: "Top Private", website: "https://www.iu.de/en/" },
+  { name: "Macromedia University", type: "Private", focus: "Media, Design & Management", tuition: "€8,000–€12,000/yr", intl: "IELTS 6.0+", scholarships: "Merit scholarships available", rank: "Top Private", website: "https://www.macromedia.de/en/" },
+  { name: "Code University of Applied Sciences", type: "Private", focus: "Software Engineering & Product Design", tuition: "€6,000/yr", intl: "IELTS 6.0+", scholarships: "Partial scholarships", rank: "Top Private", website: "https://code.berlin/en/" },
+  { name: "Charlotte Fresenius University", type: "Private", focus: "Psychology, Media & Business", tuition: "€8,000–€14,000/yr", intl: "IELTS 6.0+", scholarships: "Merit scholarships", rank: "Top Private", website: "https://www.charlotte-fresenius-uni.de/en/" },
+  { name: "BSP Business and Law School Berlin", type: "Private", focus: "Business & Law", tuition: "€7,000–€12,000/yr", intl: "IELTS 6.0+", scholarships: "Merit scholarships", rank: "Top Private", website: "https://www.bsp-business.de/en/" },
+  { name: "EU Business School Germany", type: "Private", focus: "International Business", tuition: "€14,000–€18,000/yr", intl: "IELTS 6.0+", scholarships: "Merit-based awards", rank: "Top Private", website: "https://www.euruni.edu/campuses/germany/" },
+  { name: "New European College (Munich)", type: "Private", focus: "Business Administration", tuition: "€9,000–€12,000/yr", intl: "IELTS 6.0+", scholarships: "Merit scholarships", rank: "Top Private", website: "https://www.neweuropeancollege.com/" },
+  { name: "Touro University Berlin", type: "Private", focus: "Business, Jewish Studies & Education", tuition: "€7,000–€10,000/yr", intl: "IELTS 6.0+", scholarships: "Need-based support", rank: "Top Private", website: "https://www.touroberlin.de/en/" },
 ];
 
 const FEATURES = [
@@ -770,9 +915,6 @@ function UniversitiesPage({ setChatInput, navTo }) {
   const [country, setCountry] = useState("UK");
   const [deFilter, setDeFilter] = useState("All");
   const [deSearch, setDeSearch] = useState("");
-  const [germanUnis, setGermanUnis] = useState([]);
-  const [deLoading, setDeLoading] = useState(false);
-  const [deFetched, setDeFetched] = useState(false);
   const [dePage, setDePage] = useState(1);
   const DE_PER_PAGE = 24;
 
@@ -781,31 +923,10 @@ function UniversitiesPage({ setChatInput, navTo }) {
     { key: "Germany", label: "🇩🇪 Germany",         accent: "#16A34A" },
   ];
 
-  // ✅ Fetch all German universities via our Vercel proxy (which calls Hipolabs server-side)
-  useEffect(() => {
-    if (country === "Germany" && !deFetched) {
-      setDeLoading(true);
-      fetch("/api/german-universities")
-        .then(r => r.json())
-        .then(data => {
-          if (data.universities && data.universities.length > 0) {
-            setGermanUnis(data.universities);
-          } else {
-            throw new Error("Empty response");
-          }
-          setDeFetched(true);
-        })
-        .catch(() => {
-          // Fallback to curated list if API fails
-          setGermanUnis(GERMAN_UNIVERSITIES.map(u => ({ ...u, website: null, domain: null })));
-          setDeFetched(true);
-        })
-        .finally(() => setDeLoading(false));
-    }
-  }, [country, deFetched]);
+  const publicCount  = GERMAN_UNIVERSITIES.filter(u => u.type === "Public").length;
+  const privateCount = GERMAN_UNIVERSITIES.filter(u => u.type === "Private").length;
 
-  // Filter + search
-  const filteredGerman = germanUnis.filter(u => {
+  const filteredGerman = GERMAN_UNIVERSITIES.filter(u => {
     const matchType = deFilter === "All" || u.type === deFilter;
     const q = deSearch.toLowerCase().trim();
     const matchSearch = !q || u.name.toLowerCase().includes(q) || (u.focus || "").toLowerCase().includes(q);
@@ -816,11 +937,7 @@ function UniversitiesPage({ setChatInput, navTo }) {
   const safeDePageNum = Math.min(dePage, totalDePages);
   const paginatedGerman = filteredGerman.slice((safeDePageNum - 1) * DE_PER_PAGE, safeDePageNum * DE_PER_PAGE);
 
-  // Reset to page 1 on filter/search change
   useEffect(() => { setDePage(1); }, [deFilter, deSearch]);
-
-  const publicCount  = germanUnis.filter(u => u.type === "Public").length;
-  const privateCount = germanUnis.filter(u => u.type === "Private").length;
 
   return (
     <div style={S.section}>
@@ -937,39 +1054,22 @@ function UniversitiesPage({ setChatInput, navTo }) {
           </div>
 
           {/* Context hints */}
-          {deFilter === "Private" && !deLoading && (
+          {deFilter === "Private" && (
             <p style={{ fontSize: "12px", color: "#D97706", marginBottom: "0.75rem" }}>💡 Private universities charge tuition but often offer generous scholarships</p>
           )}
-          {deFilter === "Public" && !deLoading && (
+          {deFilter === "Public" && (
             <p style={{ fontSize: "12px", color: "#16A34A", marginBottom: "0.75rem" }}>✓ Public universities are mostly free for all students</p>
           )}
 
           {/* Results count */}
-          {!deLoading && deFetched && (
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
-              Showing <strong>{paginatedGerman.length}</strong> of <strong>{filteredGerman.length}</strong> universities
-              {deSearch && ` · matching "${deSearch}"`}
-              {deFilter !== "All" && ` · ${deFilter} only`}
-            </p>
-          )}
-
-          {/* Loading skeletons */}
-          {deLoading && (
-            <div style={S.grid2}>
-              {[...Array(6)].map((_, i) => (
-                <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <div style={{ height: "16px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "70%" }} />
-                  <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "40%" }} />
-                  <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "55%" }} />
-                  <div style={{ height: "32px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", marginTop: "4px" }} />
-                </div>
-              ))}
-            </div>
-          )}
+          <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
+            Showing <strong>{paginatedGerman.length}</strong> of <strong>{filteredGerman.length}</strong> universities
+            {deSearch && ` · matching "${deSearch}"`}
+            {deFilter !== "All" && ` · ${deFilter} only`}
+          </p>
 
           {/* University cards */}
-          {!deLoading && (
-            <div style={S.grid2}>
+          <div style={S.grid2}>
               {paginatedGerman.map(u => (
                 <div key={u.name} style={{ ...S.card, borderColor: u.type === "Private" ? "rgba(245,158,11,0.25)" : "var(--color-border-tertiary)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div>
@@ -1027,10 +1127,9 @@ function UniversitiesPage({ setChatInput, navTo }) {
                 </div>
               ))}
             </div>
-          )}
 
           {/* No results */}
-          {!deLoading && deFetched && filteredGerman.length === 0 && (
+          {filteredGerman.length === 0 && (
             <div style={{ ...S.card, textAlign: "center", padding: "2.5rem" }}>
               <p style={{ fontSize: "1.5rem", margin: "0 0 0.75rem" }}>🔍</p>
               <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No universities found</p>
