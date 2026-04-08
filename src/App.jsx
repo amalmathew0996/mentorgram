@@ -918,11 +918,6 @@ function UniversitiesPage({ setChatInput, navTo }) {
   const [dePage, setDePage] = useState(1);
   const DE_PER_PAGE = 24;
 
-  const tabs = [
-    { key: "UK",      label: "🇬🇧 United Kingdom", accent: "#1A3FA8" },
-    { key: "Germany", label: "🇩🇪 Germany",         accent: "#16A34A" },
-  ];
-
   const publicCount  = GERMAN_UNIVERSITIES.filter(u => u.type === "Public").length;
   const privateCount = GERMAN_UNIVERSITIES.filter(u => u.type === "Private").length;
 
@@ -934,14 +929,53 @@ function UniversitiesPage({ setChatInput, navTo }) {
   });
 
   const totalDePages = Math.max(1, Math.ceil(filteredGerman.length / DE_PER_PAGE));
-  const safeDePageNum = Math.min(dePage, totalDePages);
-  const paginatedGerman = filteredGerman.slice((safeDePageNum - 1) * DE_PER_PAGE, safeDePageNum * DE_PER_PAGE);
+  const safePage = Math.min(dePage, totalDePages);
+  const paginatedGerman = filteredGerman.slice((safePage - 1) * DE_PER_PAGE, safePage * DE_PER_PAGE);
 
   useEffect(() => { setDePage(1); }, [deFilter, deSearch]);
 
+  const tabBtnStyle = (active, accent) => ({
+    padding: "8px 20px",
+    borderRadius: "var(--border-radius-md)",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    background: active ? accent : "transparent",
+    color: active ? "#fff" : "var(--color-text-secondary)",
+    boxShadow: active ? "0 2px 8px rgba(0,0,0,0.15)" : "none",
+    transition: "all 0.18s",
+  });
+
+  const filterPillStyle = (active) => ({
+    padding: "5px 14px",
+    borderRadius: "var(--border-radius-md)",
+    fontSize: "13px",
+    fontWeight: 500,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    border: active ? "0.5px solid #16A34A" : "0.5px solid var(--color-border-tertiary)",
+    background: active ? "#16A34A" : "var(--color-background-primary)",
+    color: active ? "#fff" : "var(--color-text-secondary)",
+  });
+
+  const cardBtnStyle = (isPrivate) => ({
+    flex: 1,
+    padding: "7px 10px",
+    borderRadius: "var(--border-radius-md)",
+    fontSize: "12px",
+    fontWeight: 500,
+    textAlign: "center",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    border: isPrivate ? "0.5px solid rgba(245,158,11,0.3)" : "0.5px solid rgba(22,163,74,0.3)",
+    color: isPrivate ? "#D97706" : "#16A34A",
+    background: "transparent",
+  });
+
   return (
     <div style={S.section}>
-      {/* ── Tab switcher ── */}
       <h2 style={S.sectionTitle}>Universities</h2>
       <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Explore top universities, entry requirements and scholarships.</p>
 
@@ -978,8 +1012,8 @@ function UniversitiesPage({ setChatInput, navTo }) {
                     </div>
                   ))}
                 </div>
-                <button style={{ ...S.btnOutline, marginTop: "12px", padding: "8px 16px", fontSize: "13px", width: "100%" }}
-                  onClick={() => { setChatInput(`Tell me more about ${u.name} — courses, tips and scholarships`); navTo("AI Mentor"); }}>
+                <button style={{ marginTop: "12px", padding: "8px 16px", fontSize: "13px", width: "100%", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", cursor: "pointer", fontFamily: "inherit" }}
+                  onClick={() => { setChatInput("Tell me more about " + u.name + " — courses, tips and scholarships"); navTo("AI Mentor"); }}>
                   Ask AI Mentor ↗
                 </button>
               </div>
@@ -1034,7 +1068,7 @@ function UniversitiesPage({ setChatInput, navTo }) {
             <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
               <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Type:</span>
               {[
-                { key: "All",     label: "All",       count: germanUnis.length },
+                { key: "All",     label: "All",       count: GERMAN_UNIVERSITIES.length },
                 { key: "Public",  label: "🏛 Public",  count: publicCount },
                 { key: "Private", label: "🏢 Private", count: privateCount },
               ].map(({ key, label, count }) => {
@@ -1116,11 +1150,8 @@ function UniversitiesPage({ setChatInput, navTo }) {
                         Visit website ↗
                       </a>
                     )}
-                    <button style={{ flex: 1, ...S.btnOutline, padding: "7px 10px", fontSize: "12px",
-                      borderColor: u.type === "Private" ? "rgba(245,158,11,0.3)" : "rgba(22,163,74,0.3)",
-                      color: u.type === "Private" ? "#D97706" : "#16A34A",
-                    }}
-                      onClick={() => { setChatInput(`Tell me more about ${u.name} in Germany — English programmes, application process and scholarships`); navTo("AI Mentor"); }}>
+                    <button style={{ flex: 1, padding: "7px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", border: u.type === "Private" ? "0.5px solid rgba(245,158,11,0.3)" : "0.5px solid rgba(22,163,74,0.3)", color: u.type === "Private" ? "#D97706" : "#16A34A", background: "transparent" }}
+                      onClick={() => { setChatInput("Tell me more about " + u.name + " in Germany — English programmes, application and scholarships"); navTo("AI Mentor"); }}>
                       Ask AI Mentor ↗
                     </button>
                   </div>
@@ -1134,27 +1165,27 @@ function UniversitiesPage({ setChatInput, navTo }) {
               <p style={{ fontSize: "1.5rem", margin: "0 0 0.75rem" }}>🔍</p>
               <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No universities found</p>
               <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1rem" }}>Try a different search term or filter</p>
-              <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "13px" }} onClick={() => { setDeSearch(""); setDeFilter("All"); }}>Clear filters</button>
+              <button style={{ padding: "8px 20px", fontSize: "13px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", cursor: "pointer", fontFamily: "inherit" }} onClick={() => { setDeSearch(""); setDeFilter("All"); }}>Clear filters</button>
             </div>
           )}
 
           {/* Pagination */}
-          {!deLoading && totalDePages > 1 && (
+          {totalDePages > 1 && (
             <div style={{ marginTop: "1.5rem" }}>
               <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
-                {safeDePageNum > 1 && <button style={S.pageBtn(false)} onClick={() => setDePage(p => p - 1)}>← Prev</button>}
+                {safePage > 1 && <button style={S.pageBtn(false)} onClick={() => setDePage(p => p - 1)}>← Prev</button>}
                 {Array.from({ length: Math.min(totalDePages, 7) }, (_, i) => {
                   let p;
                   if (totalDePages <= 7) p = i + 1;
-                  else if (safeDePageNum <= 4) p = i + 1;
-                  else if (safeDePageNum >= totalDePages - 3) p = totalDePages - 6 + i;
-                  else p = safeDePageNum - 3 + i;
-                  return <button key={p} style={S.pageBtn(p === safeDePageNum)} onClick={() => setDePage(p)}>{p}</button>;
+                  else if (safePage <= 4) p = i + 1;
+                  else if (safePage >= totalDePages - 3) p = totalDePages - 6 + i;
+                  else p = safePage - 3 + i;
+                  return <button key={p} style={S.pageBtn(p === safePage)} onClick={() => setDePage(p)}>{p}</button>;
                 })}
-                {safeDePageNum < totalDePages && <button style={S.pageBtn(false)} onClick={() => setDePage(p => p + 1)}>Next →</button>}
+                {safePage < totalDePages && <button style={S.pageBtn(false)} onClick={() => setDePage(p => p + 1)}>Next →</button>}
               </div>
               <p style={{ textAlign: "center", fontSize: "12px", color: "var(--color-text-secondary)", marginTop: "0.5rem" }}>
-                Page {safeDePageNum} of {totalDePages} · {filteredGerman.length} universities
+                Page {safePage} of {totalDePages} · {filteredGerman.length} universities
               </p>
             </div>
           )}
