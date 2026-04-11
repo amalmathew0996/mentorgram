@@ -170,12 +170,16 @@ const REED_SEARCHES = [
 const JSEARCH_SEARCHES = [
   { q: "software engineer visa sponsorship United Kingdom",  sector: "Technology",    group: 0 },
   { q: "data scientist visa sponsorship United Kingdom",     sector: "AI & Data",     group: 0 },
+  { q: "graphic designer visa sponsorship United Kingdom",   sector: "Business",      group: 0 },
   { q: "NHS nurse visa sponsorship United Kingdom",          sector: "Healthcare",    group: 1 },
   { q: "registered nurse sponsorship United Kingdom",        sector: "Healthcare",    group: 1 },
+  { q: "UI UX designer visa sponsorship United Kingdom",     sector: "Technology",    group: 1 },
   { q: "mechanical engineer visa sponsorship UK",            sector: "Engineering",   group: 2 },
   { q: "civil engineer sponsorship United Kingdom",          sector: "Engineering",   group: 2 },
+  { q: "web designer visa sponsorship United Kingdom",       sector: "Technology",    group: 2 },
   { q: "project manager visa sponsorship UK",                sector: "Business",      group: 3 },
   { q: "social worker visa sponsorship United Kingdom",      sector: "Public Sector", group: 3 },
+  { q: "creative designer visa sponsorship United Kingdom",  sector: "Business",      group: 3 },
 ];
 
 const SPONSOR_KW = ["visa sponsor","sponsorship","skilled worker","tier 2","work permit","certificate of sponsorship","will sponsor","cos provided"];
@@ -202,7 +206,7 @@ function getSector(title = "", feedSector = "") {
   if (/teacher|teaching|lecturer|education|school|university|academic/.test(t)) return "Education";
   if (/chef|cook|hotel|restaurant|hospitality/.test(t)) return "Hospitality";
   if (/social worker|probation|council|government|police|charity/.test(t)) return "Public Sector";
-  if (/marketing|sales|hr |human resources|product manager/.test(t)) return "Business";
+  if (/marketing|sales|hr |human resources|product manager|designer|graphic|ui|ux|creative|brand/.test(t)) return "Business";
   return feedSector || "Other";
 }
 
