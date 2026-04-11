@@ -132,6 +132,56 @@ const REED_SEARCHES = [
   { q: "cybersecurity",              group: 0 },
   { q: "network engineer",           group: 0 },
   { q: "cloud engineer",             group: 0 },
+  { q: "full stack developer",        group: 0 },
+  { q: "backend developer",           group: 0 },
+  { q: "frontend developer",          group: 0 },
+  { q: "React developer",             group: 0 },
+  { q: "Python developer",            group: 0 },
+  { q: "Java developer",              group: 1 },
+  { q: "AWS engineer",                group: 1 },
+  { q: "Azure engineer",              group: 1 },
+  { q: "cloud architect",             group: 1 },
+  { q: "infrastructure engineer",     group: 2 },
+  { q: "site reliability engineer",   group: 2 },
+  { q: "QA engineer",                 group: 2 },
+  { q: "test automation engineer",    group: 2 },
+  { q: "mobile developer",            group: 2 },
+  { q: "iOS developer",               group: 3 },
+  { q: "Android developer",           group: 3 },
+  { q: "database administrator",      group: 3 },
+  { q: "security engineer",           group: 3 },
+  { q: "AI engineer",                 group: 3 },
+  // ✅ Designers
+  { q: "graphic designer",            group: 0 },
+  { q: "UI designer",                 group: 0 },
+  { q: "UX designer",                 group: 1 },
+  { q: "UI UX designer",              group: 1 },
+  { q: "web designer",                group: 2 },
+  { q: "product designer",            group: 2 },
+  { q: "creative designer",           group: 3 },
+  { q: "visual designer",             group: 3 },
+  { q: "brand designer",              group: 0 },
+  // ✅ IT Technicians
+  { q: "IT technician",               group: 0 },
+  { q: "IT support technician",       group: 1 },
+  { q: "desktop support technician",  group: 2 },
+  { q: "helpdesk technician",         group: 3 },
+  { q: "field service technician",    group: 0 },
+  { q: "network technician",          group: 1 },
+  { q: "IT support engineer",         group: 2 },
+  // ✅ System Administrators
+  { q: "system administrator",        group: 0 },
+  { q: "Linux administrator",         group: 1 },
+  { q: "Windows administrator",       group: 2 },
+  { q: "network administrator",       group: 3 },
+  { q: "cloud administrator",         group: 0 },
+  // ✅ Systems Engineers
+  { q: "systems engineer",            group: 1 },
+  { q: "systems analyst",             group: 2 },
+  { q: "solutions engineer",          group: 3 },
+  { q: "platform engineer",           group: 0 },
+  { q: "embedded systems engineer",   group: 1 },
+  { q: "IT systems engineer",         group: 2 },
   { q: "NHS nurse",                  group: 1 },
   { q: "NHS registered nurse",       group: 1 },
   { q: "NHS staff nurse",            group: 1 },
@@ -180,6 +230,31 @@ const JSEARCH_SEARCHES = [
   { q: "project manager visa sponsorship UK",                sector: "Business",      group: 3 },
   { q: "social worker visa sponsorship United Kingdom",      sector: "Public Sector", group: 3 },
   { q: "creative designer visa sponsorship United Kingdom",  sector: "Business",      group: 3 },
+  // ✅ Extra IT JSearch searches
+  { q: "full stack developer visa sponsorship United Kingdom",  sector: "Technology",  group: 0 },
+  { q: "Python developer visa sponsorship UK",                  sector: "Technology",  group: 0 },
+  { q: "React developer visa sponsorship United Kingdom",       sector: "Technology",  group: 1 },
+  { q: "AWS cloud engineer visa sponsorship UK",                sector: "Technology",  group: 1 },
+  { q: "DevOps engineer visa sponsorship United Kingdom",       sector: "Technology",  group: 2 },
+  { q: "cybersecurity engineer visa sponsorship UK",            sector: "Technology",  group: 2 },
+  { q: "Java developer visa sponsorship United Kingdom",        sector: "Technology",  group: 3 },
+  { q: "data engineer visa sponsorship UK",                     sector: "AI & Data",   group: 3 },
+  // ✅ Designers
+  { q: "graphic designer visa sponsorship United Kingdom",      sector: "Business",    group: 0 },
+  { q: "UI UX designer visa sponsorship UK",                    sector: "Technology",  group: 1 },
+  { q: "web designer visa sponsorship United Kingdom",          sector: "Technology",  group: 2 },
+  { q: "product designer visa sponsorship UK",                  sector: "Technology",  group: 3 },
+  // ✅ IT Technicians
+  { q: "IT technician visa sponsorship United Kingdom",         sector: "Technology",  group: 0 },
+  { q: "IT support engineer visa sponsorship UK",               sector: "Technology",  group: 1 },
+  { q: "helpdesk technician visa sponsorship United Kingdom",   sector: "Technology",  group: 2 },
+  // ✅ System Administrators & Engineers
+  { q: "system administrator visa sponsorship United Kingdom",  sector: "Technology",  group: 0 },
+  { q: "Linux administrator visa sponsorship UK",               sector: "Technology",  group: 1 },
+  { q: "systems engineer visa sponsorship United Kingdom",      sector: "Technology",  group: 2 },
+  { q: "network administrator visa sponsorship UK",             sector: "Technology",  group: 3 },
+  { q: "solutions engineer visa sponsorship United Kingdom",    sector: "Technology",  group: 0 },
+  { q: "platform engineer visa sponsorship UK",                 sector: "Technology",  group: 1 },
 ];
 
 const SPONSOR_KW = ["visa sponsor","sponsorship","skilled worker","tier 2","work permit","certificate of sponsorship","will sponsor","cos provided"];
@@ -206,7 +281,11 @@ function getSector(title = "", feedSector = "") {
   if (/teacher|teaching|lecturer|education|school|university|academic/.test(t)) return "Education";
   if (/chef|cook|hotel|restaurant|hospitality/.test(t)) return "Hospitality";
   if (/social worker|probation|council|government|police|charity/.test(t)) return "Public Sector";
-  if (/marketing|sales|hr |human resources|product manager|designer|graphic|ui|ux|creative|brand/.test(t)) return "Business";
+  if (/system.admin|sysadmin|systems admin|network admin|linux admin|windows admin|cloud admin|active.directory/.test(t)) return "Technology";
+  if (/it.technician|it.support|helpdesk|desktop.support|field.service.tech|network.tech|hardware.tech/.test(t)) return "Technology";
+  if (/systems engineer|systems analyst|solutions engineer|platform engineer|embedded.system|it.system/.test(t)) return "Technology";
+  if (/ui.designer|ux.designer|web.designer|product.designer|graphic.designer|visual.designer|brand.designer|motion.graphic|creative.designer/.test(t)) return "Business";
+  if (/marketing|sales|hr |human resources|product manager/.test(t)) return "Business";
   return feedSector || "Other";
 }
 
