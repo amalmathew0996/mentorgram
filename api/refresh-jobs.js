@@ -257,7 +257,14 @@ const JSEARCH_SEARCHES = [
   { q: "platform engineer visa sponsorship UK",                 sector: "Technology",  group: 1 },
 ];
 
-const SPONSOR_KW = ["visa sponsor","sponsorship","skilled worker","tier 2","work permit","certificate of sponsorship","will sponsor","cos provided"];
+const SPONSOR_KW = [
+  "visa sponsor","sponsorship","skilled worker","tier 2","work permit",
+  "certificate of sponsorship","will sponsor","cos provided",
+  "sponsor successful","able to sponsor","happy to sponsor",
+  "sponsorship available","provide sponsorship","offer sponsorship",
+  "uk visa","right to work provided","work authorization",
+  "immigration support","relocation support","international applicants welcome",
+];
 const NO_SPONSOR = ["no sponsorship","unable to sponsor","must have right to work","must already have the right","uk residency required"];
 
 function detectSponsorship(title = "", desc = "") {
@@ -371,12 +378,18 @@ async function fetchAdzuna(appId, appKey, q, sector) {
       sponsorship: detectSponsorship(j.title||"", j.description||""),
       expires_at:  expiresAt,
     });
-    const [r1, r2] = await Promise.allSettled([
+    // ✅ Fetch ALL jobs (sponsored + non-sponsored) — detectSponsorship() tags them
+    // Also run a second sponsored-specific search to maximise sponsored coverage
+    const [r1, r2, r3, r4] = await Promise.allSettled([
+      // General search - page 1 & 2 (all jobs)
       fetch(`https://api.adzuna.com/v1/api/jobs/gb/search/1?${new URLSearchParams({app_id:appId,app_key:appKey,results_per_page:"50",what:q,where:"UK"})}`, { signal: AbortSignal.timeout(8000) }),
       fetch(`https://api.adzuna.com/v1/api/jobs/gb/search/2?${new URLSearchParams({app_id:appId,app_key:appKey,results_per_page:"50",what:q,where:"UK"})}`, { signal: AbortSignal.timeout(8000) }),
+      // Sponsored-specific search - page 1 (maximise sponsored results)
+      fetch(`https://api.adzuna.com/v1/api/jobs/gb/search/1?${new URLSearchParams({app_id:appId,app_key:appKey,results_per_page:"50",what:q+" visa sponsorship",where:"UK"})}`, { signal: AbortSignal.timeout(8000) }),
+      fetch(`https://api.adzuna.com/v1/api/jobs/gb/search/1?${new URLSearchParams({app_id:appId,app_key:appKey,results_per_page:"50",what:q+" sponsor",where:"UK"})}`, { signal: AbortSignal.timeout(8000) }),
     ]);
     const jobs = [];
-    for (const r of [r1, r2]) {
+    for (const r of [r1, r2, r3, r4]) {
       if (r.status === "fulfilled" && r.value.ok) {
         const d = await r.value.json();
         jobs.push(...(d.results || []).map(mapJob).filter(j => j.url));
@@ -388,6 +401,7 @@ async function fetchAdzuna(appId, appKey, q, sector) {
 
 async function fetchReed(reedKey, q) {
   try {
+    // ✅ Fetch ALL jobs — detectSponsorship() tags sponsored ones
     const params = new URLSearchParams({ keywords: q, locationName: "United Kingdom", resultsToTake: "100" });
     const r = await fetch(`https://www.reed.co.uk/api/1.0/search?${params}`, {
       headers: { "Authorization": `Basic ${Buffer.from(reedKey + ":").toString("base64")}` },
@@ -396,7 +410,23 @@ async function fetchReed(reedKey, q) {
     if (!r.ok) return [];
     const d = await r.json();
     const expiresAt = new Date(Date.now() + 14*24*60*60*1000).toISOString();
-    return (d.results || []).map(j => ({
+    // Also fetch sponsorship-specific results
+    let sponsoredResults = [];
+    try {
+      const sponsoredParams = new URLSearchParams({ keywords: q + " visa sponsorship", locationName: "United Kingdom", resultsToTake: "50" });
+      const rs = await fetch(`https://www.reed.co.uk/api/1.0/search?${sponsoredParams}`, {
+        headers: { "Authorization": `Basic ${Buffer.from(reedKey + ":").toString("base64")}` },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (rs.ok) {
+        const ds = await rs.json();
+        sponsoredResults = ds.results || [];
+      }
+    } catch {}
+
+    const allResults = [...(d.results || []), ...sponsoredResults];
+
+    return allResults.map(j => ({
       title:       (j.jobTitle || "").substring(0, 120),
       company:     j.employerName || "UK Employer",
       location:    j.locationName || "United Kingdom",
@@ -425,29 +455,9 @@ async function fetchReed(reedKey, q) {
 // ✅ NEW: Fetch from JSearch (Indeed/LinkedIn aggregator)
 async function fetchJSearch(rapidApiKey, q, sector) {
   try {
-    const expiresAt = new Date(Date.now() + 7*24*60*60*1000).toISOString(); // 7 days — Indeed listings move fast
-    const url = "https://jsearch.p.rapidapi.com/search?query=" +
-      encodeURIComponent(q) +
-      "&page=1&num_pages=1&country=gb&date_posted=week";
+    const expiresAt = new Date(Date.now() + 7*24*60*60*1000).toISOString();
 
-    const r = await fetch(url, {
-      method: "GET",
-      headers: {
-        "x-rapidapi-host": "jsearch.p.rapidapi.com",
-        "x-rapidapi-key":  rapidApiKey,
-      },
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (!r.ok) {
-      console.error("JSearch error:", r.status);
-      return [];
-    }
-
-    const data = await r.json();
-    const raw  = data.data || [];
-
-    return raw.map(j => ({
+    const mapJob = (j) => ({
       title:       (j.job_title || "").substring(0, 120),
       company:     (j.employer_name || "UK Employer").substring(0, 80),
       location:    j.job_city
@@ -460,12 +470,41 @@ async function fetchJSearch(rapidApiKey, q, sector) {
       posted:      j.job_posted_at_datetime_utc
         ? (() => { try { return new Date(j.job_posted_at_datetime_utc).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); } catch { return "Recently"; } })()
         : "Recently",
-      // ✅ Use apply link directly — Indeed apply links stay live
       url:         j.job_apply_link || j.job_google_link || "",
       source:      "Indeed",
       sponsorship: detectSponsorship(j.job_title || "", j.job_description || ""),
       expires_at:  expiresAt,
-    })).filter(j => j.url && j.title);
+    });
+
+    // ✅ Two parallel searches:
+    // 1. General search — all jobs (sponsored + non-sponsored)
+    // 2. Sponsored search — specifically targets visa sponsorship roles
+    const baseQuery = q.replace(/ visa sponsorship.*$/i, "").trim(); // strip any existing sponsorship suffix
+    const sponsoredQuery = baseQuery + " visa sponsorship United Kingdom";
+    const generalQuery   = baseQuery + " United Kingdom";
+
+    const [generalRes, sponsoredRes] = await Promise.allSettled([
+      fetch(
+        "https://jsearch.p.rapidapi.com/search?query=" + encodeURIComponent(generalQuery) + "&page=1&num_pages=1&country=gb&date_posted=month",
+        { method: "GET", headers: { "x-rapidapi-host": "jsearch.p.rapidapi.com", "x-rapidapi-key": rapidApiKey }, signal: AbortSignal.timeout(10000) }
+      ),
+      fetch(
+        "https://jsearch.p.rapidapi.com/search?query=" + encodeURIComponent(sponsoredQuery) + "&page=1&num_pages=1&country=gb&date_posted=month",
+        { method: "GET", headers: { "x-rapidapi-host": "jsearch.p.rapidapi.com", "x-rapidapi-key": rapidApiKey }, signal: AbortSignal.timeout(10000) }
+      ),
+    ]);
+
+    const jobs = [];
+
+    for (const res of [generalRes, sponsoredRes]) {
+      if (res.status === "fulfilled" && res.value.ok) {
+        const data = await res.value.json();
+        const raw  = data.data || [];
+        jobs.push(...raw.map(mapJob).filter(j => j.url && j.title));
+      }
+    }
+
+    return jobs;
   } catch (err) {
     console.error("JSearch fetch error:", err.message);
     return [];
