@@ -482,13 +482,17 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
             {jobsLoading ? "Searching..." : "Search"}
           </button>
         </div>
-        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 10px" }}>
-          💡 Type to filter instantly · Click Search for live results from Indeed
-        </p>
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager", "Research Fellow", "Lecturer"].map(q => (
-            <button key={q} style={{ ...S.filterBtn(titleQuery === q), fontSize: "12px", padding: "4px 12px" }}
-              onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}>{q}</button>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center", marginTop: "10px" }}>
+          <span style={{ fontSize: "11px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>🔍 Try:</span>
+          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager", "Graphic Designer", "IT Technician"].map(q => (
+            <button key={q}
+              onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}
+              style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", fontWeight: 400,
+                border: "0.5px dashed var(--color-border-secondary)",
+                background: "transparent",
+                color: "var(--color-text-secondary)" }}>
+              {q}
+            </button>
           ))}
         </div>
         {updatedAt && <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>Updated: {new Date(updatedAt).toLocaleTimeString()}</p>}
@@ -511,60 +515,33 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         </div>
       )}
 
-      {/* ✅ Filters — Visa + Sector as pills */}
-      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
-
+      {/* Filters */}
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }}>
+        {/* Sector dropdown */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Sector:</span>
+          <select
+            value={sector}
+            onChange={e => { setSector(e.target.value); setPage(1); }}
+            style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: sector !== "All" ? "#1A3FA8" : "var(--color-background-primary)", color: sector !== "All" ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", outline: "none" }}>
+            {SECTORS.map(s => <option key={s} value={s} style={{ background: "var(--color-background-primary)", color: "var(--color-text-primary)" }}>{s}</option>)}
+          </select>
+        </div>
         {/* Visa filter */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "32px" }}>Visa</span>
-          {VISA_TYPES.map(v => {
-            const active = visaType === v;
-            const isSponsored = v === "✓ Visa Sponsorship";
-            return (
-              <button key={v}
-                onClick={() => { setVisaType(v); setPage(1); }}
-                style={{ padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit", border: "none", transition: "all 0.15s",
-                  background: active ? (isSponsored ? "#16A34A" : "#1A3FA8") : "var(--color-background-secondary)",
-                  color: active ? "#fff" : "var(--color-text-secondary)" }}>
-                {v}
-              </button>
-            );
-          })}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Visa:</span>
+          {VISA_TYPES.map(v => (
+            <button key={v} style={{ ...S.filterBtn(visaType === v), fontSize: "12px", padding: "5px 12px", background: visaType === v ? (v === "✓ Visa Sponsorship" ? "#16A34A" : "#1A3FA8") : "var(--color-background-primary)" }}
+              onClick={() => { setVisaType(v); setPage(1); }}>{v}</button>
+          ))}
         </div>
-
-        {/* Divider */}
-        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "8px 0" }} />
-
-        {/* Sector filter as pills */}
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "32px", paddingTop: "6px" }}>Sector</span>
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flex: 1 }}>
-            {SECTORS.map(s => {
-              const active = sector === s;
-              const icons = { "All": "⚡", "Technology": "💻", "AI & Data": "🤖", "Healthcare": "🏥", "Finance": "💰", "Engineering": "⚙️", "Business": "💼", "Education": "🎓", "Hospitality": "🍽️", "Public Sector": "🏛" };
-              return (
-                <button key={s}
-                  onClick={() => { setSector(s); setPage(1); }}
-                  style={{ padding: "5px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-                    border: active ? "none" : "0.5px solid var(--color-border-tertiary)",
-                    background: active ? "#1A3FA8" : "var(--color-background-secondary)",
-                    color: active ? "#fff" : "var(--color-text-secondary)" }}>
-                  {icons[s] || "📋"} {s}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Clear all filters */}
         {(sector !== "All" || visaType !== "All Jobs" || employerType !== "All" || titleQuery || locationQuery) && (
-          <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "10px", paddingTop: "10px" }}>
-            <button
-              onClick={() => { setSector("All"); setVisaType("All Jobs"); setEmployerType("All"); setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", ""); }}
-              style={{ padding: "5px 14px", borderRadius: "20px", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)" }}>
-              ✕ Clear all filters
-            </button>
-          </div>
+          <button
+            onClick={() => { setSector("All"); setVisaType("All Jobs"); setEmployerType("All"); setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", ""); }}
+            style={{ padding: "5px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
+            ✕ Clear all filters
+          </button>
         )}
       </div>
 
