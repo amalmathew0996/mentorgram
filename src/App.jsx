@@ -511,33 +511,60 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         </div>
       )}
 
-      {/* Filters */}
-      <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }}>
-        {/* Sector dropdown */}
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Sector:</span>
-          <select
-            value={sector}
-            onChange={e => { setSector(e.target.value); setPage(1); }}
-            style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: sector !== "All" ? "#1A3FA8" : "var(--color-background-primary)", color: sector !== "All" ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", outline: "none" }}>
-            {SECTORS.map(s => <option key={s} value={s} style={{ background: "var(--color-background-primary)", color: "var(--color-text-primary)" }}>{s}</option>)}
-          </select>
-        </div>
+      {/* ✅ Filters — Visa + Sector as pills */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
+
         {/* Visa filter */}
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Visa:</span>
-          {VISA_TYPES.map(v => (
-            <button key={v} style={{ ...S.filterBtn(visaType === v), fontSize: "12px", padding: "5px 12px", background: visaType === v ? (v === "✓ Visa Sponsorship" ? "#16A34A" : "#1A3FA8") : "var(--color-background-primary)" }}
-              onClick={() => { setVisaType(v); setPage(1); }}>{v}</button>
-          ))}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "32px" }}>Visa</span>
+          {VISA_TYPES.map(v => {
+            const active = visaType === v;
+            const isSponsored = v === "✓ Visa Sponsorship";
+            return (
+              <button key={v}
+                onClick={() => { setVisaType(v); setPage(1); }}
+                style={{ padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit", border: "none", transition: "all 0.15s",
+                  background: active ? (isSponsored ? "#16A34A" : "#1A3FA8") : "var(--color-background-secondary)",
+                  color: active ? "#fff" : "var(--color-text-secondary)" }}>
+                {v}
+              </button>
+            );
+          })}
         </div>
+
+        {/* Divider */}
+        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "8px 0" }} />
+
+        {/* Sector filter as pills */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "32px", paddingTop: "6px" }}>Sector</span>
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flex: 1 }}>
+            {SECTORS.map(s => {
+              const active = sector === s;
+              const icons = { "All": "⚡", "Technology": "💻", "AI & Data": "🤖", "Healthcare": "🏥", "Finance": "💰", "Engineering": "⚙️", "Business": "💼", "Education": "🎓", "Hospitality": "🍽️", "Public Sector": "🏛" };
+              return (
+                <button key={s}
+                  onClick={() => { setSector(s); setPage(1); }}
+                  style={{ padding: "5px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+                    border: active ? "none" : "0.5px solid var(--color-border-tertiary)",
+                    background: active ? "#1A3FA8" : "var(--color-background-secondary)",
+                    color: active ? "#fff" : "var(--color-text-secondary)" }}>
+                  {icons[s] || "📋"} {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Clear all filters */}
         {(sector !== "All" || visaType !== "All Jobs" || employerType !== "All" || titleQuery || locationQuery) && (
-          <button
-            onClick={() => { setSector("All"); setVisaType("All Jobs"); setEmployerType("All"); setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", ""); }}
-            style={{ padding: "5px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
-            ✕ Clear all filters
-          </button>
+          <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "10px", paddingTop: "10px" }}>
+            <button
+              onClick={() => { setSector("All"); setVisaType("All Jobs"); setEmployerType("All"); setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", ""); }}
+              style={{ padding: "5px 14px", borderRadius: "20px", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)" }}>
+              ✕ Clear all filters
+            </button>
+          </div>
         )}
       </div>
 
@@ -1305,20 +1332,17 @@ export default function Mentorgram() {
       let dbJobs = [];
       let rssJobs = [];
 
-      const [dbRes, rssRes, indeedRes, jsearchRes] = await Promise.allSettled([
+      const [dbRes, rssRes, indeedRes] = await Promise.allSettled([
         fetch(`/api/jobs-db?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
         fetch(`/api/jobsacuk?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
         fetch(`/api/jobs?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
-        // ✅ Indeed via JSearch (free tier — gracefully returns [] if key missing)
-        fetch(`/api/indeed?q=${encodeURIComponent(q || "visa sponsorship jobs")}&location=United+Kingdom`).then(r => r.json()).catch(() => ({ jobs: [] })),
       ]);
 
-      dbJobs     = dbRes.status      === "fulfilled" ? (dbRes.value?.jobs      || []) : [];
-      rssJobs    = rssRes.status     === "fulfilled" ? (rssRes.value?.jobs     || []) : [];
-      const indeedJobs   = indeedRes.status   === "fulfilled" ? (indeedRes.value?.jobs   || []) : [];
-      const jsearchJobs  = jsearchRes.status  === "fulfilled" ? (jsearchRes.value?.jobs  || []) : [];
+      dbJobs     = dbRes.status     === "fulfilled" ? (dbRes.value?.jobs     || []) : [];
+      rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
+      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
 
-      const allSources = [...dbJobs, ...rssJobs, ...indeedJobs, ...jsearchJobs];
+      const allSources = [...dbJobs, ...rssJobs, ...indeedJobs];
 
       const seen = new Set();
       const combined = allSources.filter(j => {
