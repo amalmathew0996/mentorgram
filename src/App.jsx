@@ -7,7 +7,7 @@ import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
 
 inject();
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
 const JOBS_PER_PAGE = 20;
