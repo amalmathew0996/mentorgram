@@ -283,37 +283,6 @@ function ShareButton({ job }) {
   );
 }
 
-// ✅ Always returns a working job search URL — direct listing URLs expire
-function getJobSearchUrl(job) {
-  const title = encodeURIComponent(job.title || "");
-  const company = encodeURIComponent(job.company || "");
-  const src = (job.source || "").toLowerCase();
-  if (src === "reed") {
-    return "https://www.reed.co.uk/jobs?keywords=" + title + "&employer=" + company;
-  }
-  if (src === "adzuna") {
-    return "https://www.adzuna.co.uk/search?q=" + encodeURIComponent((job.title || "") + " " + (job.company || "")) + "&w=United+Kingdom";
-  }
-  if (src === "jobs.ac.uk" || src.includes("jobs.ac")) {
-    return "https://www.jobs.ac.uk/search/?keywords=" + title;
-  }
-  if (src === "guardian" || src.includes("guardian")) {
-    return "https://jobs.theguardian.com/jobs/?q=" + title;
-  }
-  // fallback — use original URL if available, else Reed search
-  return job.url || ("https://www.reed.co.uk/jobs?keywords=" + title);
-}
-
-function getJobLabel(job) {
-  const src = (job.source || "").toLowerCase();
-  if (src === "reed")    return "Search on Reed ↗";
-  if (src === "adzuna")  return "Search on Adzuna ↗";
-  if (src.includes("jobs.ac")) return "Search on jobs.ac.uk ↗";
-  if (src.includes("guardian")) return "Search on Guardian Jobs ↗";
-  return "Find this job ↗";
-}
-
-
 // ─── Job Detail Page ───────────────────────────────────────────────────────
 function JobDetailPage({ job, onBack, onAskMentor }) {
   // ✅ FIXED: Use job ID instead of encoding full job object
@@ -373,26 +342,34 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
       </div>
       <div style={{ background: "rgba(245,158,11,0.08)", border: "0.5px solid rgba(245,158,11,0.3)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
         <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
-          ⚠️ <strong style={{ color: "var(--color-text-primary)" }}>Job listings fill quickly.</strong> We link to live job board searches — so even if this exact posting has closed, you'll always find the latest open roles for this position.
+          ⚠️ <strong style={{ color: "var(--color-text-primary)" }}>Job listings can close at any time.</strong> If the link shows "page not found", the role has been filled. Try searching for similar roles on Reed or Adzuna directly.
         </p>
       </div>
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        {/* ✅ Always use search URLs — direct listing URLs expire when role is filled */}
-        <a
-          href={getJobSearchUrl(job)}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ ...S.btnPrimary, textDecoration: "none" }}
-        >{getJobLabel(job)}</a>
-
-        {/* Broad title search as secondary option */}
-        <a
-          href={"https://www.reed.co.uk/jobs?keywords=" + encodeURIComponent(job.title || "")}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ ...S.btnOutline, textDecoration: "none", fontSize: "14px" }}
-        >All {job.title} jobs ↗</a>
-
+        {job.url && (
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...S.btnPrimary, textDecoration: "none" }}
+          >Apply for this job ↗</a>
+        )}
+        {job.source === "Reed" && (
+          <a
+            href={"https://www.reed.co.uk/jobs/" + encodeURIComponent(job.title || "").replace(/%20/g, "-").toLowerCase() + "-jobs?keywords=" + encodeURIComponent(job.title || "")}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...S.btnOutline, textDecoration: "none", fontSize: "14px" }}
+          >Search similar on Reed ↗</a>
+        )}
+        {job.source === "Adzuna" && (
+          <a
+            href={"https://www.adzuna.co.uk/search?q=" + encodeURIComponent(job.title || "") + "&w=United+Kingdom"}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...S.btnOutline, textDecoration: "none", fontSize: "14px" }}
+          >Search similar on Adzuna ↗</a>
+        )}
         <button style={S.btnOutline} onClick={onBack}>← Back to jobs</button>
       </div>
     </div>
@@ -1328,17 +1305,20 @@ export default function Mentorgram() {
       let dbJobs = [];
       let rssJobs = [];
 
-      const [dbRes, rssRes, indeedRes] = await Promise.allSettled([
+      const [dbRes, rssRes, indeedRes, jsearchRes] = await Promise.allSettled([
         fetch(`/api/jobs-db?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
         fetch(`/api/jobsacuk?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
         fetch(`/api/jobs?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
+        // ✅ Indeed via JSearch (free tier — gracefully returns [] if key missing)
+        fetch(`/api/indeed?q=${encodeURIComponent(q || "visa sponsorship jobs")}&location=United+Kingdom`).then(r => r.json()).catch(() => ({ jobs: [] })),
       ]);
 
-      dbJobs     = dbRes.status     === "fulfilled" ? (dbRes.value?.jobs     || []) : [];
-      rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
-      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
+      dbJobs     = dbRes.status      === "fulfilled" ? (dbRes.value?.jobs      || []) : [];
+      rssJobs    = rssRes.status     === "fulfilled" ? (rssRes.value?.jobs     || []) : [];
+      const indeedJobs   = indeedRes.status   === "fulfilled" ? (indeedRes.value?.jobs   || []) : [];
+      const jsearchJobs  = jsearchRes.status  === "fulfilled" ? (jsearchRes.value?.jobs  || []) : [];
 
-      const allSources = [...dbJobs, ...rssJobs, ...indeedJobs];
+      const allSources = [...dbJobs, ...rssJobs, ...indeedJobs, ...jsearchJobs];
 
       const seen = new Set();
       const combined = allSources.filter(j => {
