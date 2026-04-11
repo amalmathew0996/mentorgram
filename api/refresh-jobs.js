@@ -54,87 +54,73 @@ const ALL_FEEDS = [
   { url: "https://jobs.theguardian.com/jobs/data/?format=rss",                      sector: "AI & Data", source: "Guardian Jobs" },
   { url: "https://jobs.theguardian.com/jobs/science/?format=rss",                   sector: "Healthcare", source: "Guardian Jobs" },
   { url: "https://jobs.theguardian.com/jobs/environment/?format=rss",               sector: "Engineering", source: "Guardian Jobs" },
-  // Totaljobs RSS
-  { url: "https://www.totaljobs.com/jobs/healthcare/rss",                             sector: "Healthcare",   source: "Totaljobs" },
-  { url: "https://www.totaljobs.com/jobs/it-jobs/rss",                                sector: "Technology",   source: "Totaljobs" },
-  { url: "https://www.totaljobs.com/jobs/engineering/rss",                            sector: "Engineering",  source: "Totaljobs" },
-  { url: "https://www.totaljobs.com/jobs/finance/rss",                               sector: "Finance",      source: "Totaljobs" },
-  { url: "https://www.totaljobs.com/jobs/education/rss",                             sector: "Education",    source: "Totaljobs" },
-  { url: "https://www.totaljobs.com/jobs/social-care/rss",                           sector: "Public Sector",source: "Totaljobs" },
-  // CWJobs RSS — UK tech specialist
-  { url: "https://www.cwjobs.co.uk/jobs/it/rss",                                     sector: "Technology",   source: "CWJobs" },
-  { url: "https://www.cwjobs.co.uk/jobs/data-science/rss",                           sector: "AI & Data",    source: "CWJobs" },
-  { url: "https://www.cwjobs.co.uk/jobs/software-engineering/rss",                   sector: "Technology",   source: "CWJobs" },
-  // NHS Jobs RSS — official NHS vacancies
+  { url: "https://www.totaljobs.com/jobs/healthcare/rss",                           sector: "Healthcare",    source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/it-jobs/rss",                              sector: "Technology",    source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/engineering/rss",                          sector: "Engineering",   source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/finance/rss",                              sector: "Finance",       source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/education/rss",                            sector: "Education",     source: "Totaljobs" },
+  { url: "https://www.totaljobs.com/jobs/social-care/rss",                          sector: "Public Sector", source: "Totaljobs" },
+  { url: "https://www.cwjobs.co.uk/jobs/it/rss",                                    sector: "Technology",    source: "CWJobs" },
+  { url: "https://www.cwjobs.co.uk/jobs/data-science/rss",                          sector: "AI & Data",     source: "CWJobs" },
+  { url: "https://www.cwjobs.co.uk/jobs/software-engineering/rss",                  sector: "Technology",    source: "CWJobs" },
   { url: "https://www.jobs.nhs.uk/xi/vacancy_feed/?pincode=&distance=50&vacancy_type=JOB&specialty=&job_type_code=&employer_type=1&hours=&pay_band=&orderby=publicationdate&pagenum=1", sector: "Healthcare", source: "NHS Jobs" },
-  // LG Jobs RSS — official UK local government jobs
-  { url: "https://www.lgjobs.com/vacancies/rss",                                     sector: "Public Sector", source: "LG Jobs" },
-  { url: "https://www.lgjobs.com/vacancies/rss?keyword=social+worker",               sector: "Public Sector", source: "LG Jobs" },
-  { url: "https://www.lgjobs.com/vacancies/rss?keyword=housing",                     sector: "Public Sector", source: "LG Jobs" },
-  { url: "https://www.lgjobs.com/vacancies/rss?keyword=planning",                    sector: "Public Sector", source: "LG Jobs" },
-  { url: "https://www.lgjobs.com/vacancies/rss?keyword=finance",                     sector: "Finance",       source: "LG Jobs" },
-  { url: "https://www.lgjobs.com/vacancies/rss?keyword=IT",                          sector: "Technology",    source: "LG Jobs" },
-  // Civil Service Jobs RSS
+  { url: "https://www.lgjobs.com/vacancies/rss",                                    sector: "Public Sector", source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=social+worker",              sector: "Public Sector", source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=housing",                    sector: "Public Sector", source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=planning",                   sector: "Public Sector", source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=finance",                    sector: "Finance",       source: "LG Jobs" },
+  { url: "https://www.lgjobs.com/vacancies/rss?keyword=IT",                         sector: "Technology",    source: "LG Jobs" },
   { url: "https://www.civilservicejobs.service.gov.uk/csr/index.cgi?SID=b3duZXI9NTA3MDAwMCZvd25lcnR5cGU9ZmFpcg==&format=rss", sector: "Public Sector", source: "Civil Service" },
 ];
 
-// 39 searches split into 4 groups — only one group runs per cron job
-// Group 0 runs at 0,4,8,12,16,20 — Group 1 at 1,5,9... etc.
-// Total Adzuna calls per day: ~10 searches × 2 pages × 6 runs = 120/day (well under 250 limit)
 const ADZUNA_SEARCHES = [
-  // Group 0 — Technology
-  { q: "software engineer",         sector: "Technology",    group: 0 },
-  { q: "software developer",        sector: "Technology",    group: 0 },
-  { q: "data scientist",            sector: "AI & Data",     group: 0 },
-  { q: "data engineer",             sector: "AI & Data",     group: 0 },
-  { q: "machine learning engineer", sector: "AI & Data",     group: 0 },
-  { q: "DevOps engineer",           sector: "Technology",    group: 0 },
-  { q: "web developer",             sector: "Technology",    group: 0 },
-  { q: "cybersecurity analyst",     sector: "Technology",    group: 0 },
-  { q: "network engineer",          sector: "Technology",    group: 0 },
-  { q: "data analyst",              sector: "AI & Data",     group: 0 },
-  // Group 1 — Healthcare (NHS roles)
-  { q: "NHS nurse",                 sector: "Healthcare",    group: 1 },
-  { q: "registered nurse",          sector: "Healthcare",    group: 1 },
-  { q: "staff nurse",               sector: "Healthcare",    group: 1 },
-  { q: "NHS healthcare assistant",  sector: "Healthcare",    group: 1 },
-  { q: "NHS doctor",                sector: "Healthcare",    group: 1 },
-  { q: "NHS pharmacist",            sector: "Healthcare",    group: 1 },
-  { q: "NHS physiotherapist",       sector: "Healthcare",    group: 1 },
-  { q: "NHS occupational therapist",sector: "Healthcare",    group: 1 },
-  { q: "NHS radiographer",          sector: "Healthcare",    group: 1 },
-  { q: "NHS mental health nurse",   sector: "Healthcare",    group: 1 },
-  // Group 2 — Healthcare (general) + Finance
-  { q: "care worker",               sector: "Healthcare",    group: 2 },
-  { q: "midwife",                   sector: "Healthcare",    group: 2 },
-  { q: "paramedic",                 sector: "Healthcare",    group: 2 },
-  { q: "dental nurse",              sector: "Healthcare",    group: 2 },
-  { q: "NHS social worker",         sector: "Healthcare",    group: 2 },
-  { q: "financial analyst",         sector: "Finance",       group: 2 },
-  { q: "accountant",                sector: "Finance",       group: 2 },
-  { q: "mechanical engineer",       sector: "Engineering",   group: 2 },
-  { q: "civil engineer",            sector: "Engineering",   group: 2 },
-  { q: "electrical engineer",       sector: "Engineering",   group: 2 },
-  // Group 3 — Business + Education + Other
-  { q: "project manager",           sector: "Business",      group: 3 },
-  { q: "marketing manager",         sector: "Business",      group: 3 },
-  { q: "business analyst",          sector: "Business",      group: 3 },
-  { q: "product manager",           sector: "Business",      group: 3 },
-  { q: "HR manager",                sector: "Business",      group: 3 },
-  { q: "operations manager",        sector: "Business",      group: 3 },
-  { q: "social worker",             sector: "Public Sector", group: 3 },
-  { q: "teacher",                   sector: "Education",     group: 3 },
-  { q: "chef",                      sector: "Hospitality",   group: 3 },
-  // Council / Public Sector
-  { q: "council social worker",      sector: "Public Sector",  group: 0 },
-  { q: "local authority planner",    sector: "Public Sector",  group: 1 },
-  { q: "council housing officer",    sector: "Public Sector",  group: 2 },
-  { q: "environmental health officer",sector: "Public Sector", group: 3 },
-  { q: "council finance officer",    sector: "Finance",        group: 0 },
-  { q: "council IT officer",         sector: "Technology",     group: 1 },
+  { q: "software engineer",          sector: "Technology",    group: 0 },
+  { q: "software developer",         sector: "Technology",    group: 0 },
+  { q: "data scientist",             sector: "AI & Data",     group: 0 },
+  { q: "data engineer",              sector: "AI & Data",     group: 0 },
+  { q: "machine learning engineer",  sector: "AI & Data",     group: 0 },
+  { q: "DevOps engineer",            sector: "Technology",    group: 0 },
+  { q: "web developer",              sector: "Technology",    group: 0 },
+  { q: "cybersecurity analyst",      sector: "Technology",    group: 0 },
+  { q: "network engineer",           sector: "Technology",    group: 0 },
+  { q: "data analyst",               sector: "AI & Data",     group: 0 },
+  { q: "NHS nurse",                  sector: "Healthcare",    group: 1 },
+  { q: "registered nurse",           sector: "Healthcare",    group: 1 },
+  { q: "staff nurse",                sector: "Healthcare",    group: 1 },
+  { q: "NHS healthcare assistant",   sector: "Healthcare",    group: 1 },
+  { q: "NHS doctor",                 sector: "Healthcare",    group: 1 },
+  { q: "NHS pharmacist",             sector: "Healthcare",    group: 1 },
+  { q: "NHS physiotherapist",        sector: "Healthcare",    group: 1 },
+  { q: "NHS occupational therapist", sector: "Healthcare",    group: 1 },
+  { q: "NHS radiographer",           sector: "Healthcare",    group: 1 },
+  { q: "NHS mental health nurse",    sector: "Healthcare",    group: 1 },
+  { q: "care worker",                sector: "Healthcare",    group: 2 },
+  { q: "midwife",                    sector: "Healthcare",    group: 2 },
+  { q: "paramedic",                  sector: "Healthcare",    group: 2 },
+  { q: "dental nurse",               sector: "Healthcare",    group: 2 },
+  { q: "NHS social worker",          sector: "Healthcare",    group: 2 },
+  { q: "financial analyst",          sector: "Finance",       group: 2 },
+  { q: "accountant",                 sector: "Finance",       group: 2 },
+  { q: "mechanical engineer",        sector: "Engineering",   group: 2 },
+  { q: "civil engineer",             sector: "Engineering",   group: 2 },
+  { q: "electrical engineer",        sector: "Engineering",   group: 2 },
+  { q: "project manager",            sector: "Business",      group: 3 },
+  { q: "marketing manager",          sector: "Business",      group: 3 },
+  { q: "business analyst",           sector: "Business",      group: 3 },
+  { q: "product manager",            sector: "Business",      group: 3 },
+  { q: "HR manager",                 sector: "Business",      group: 3 },
+  { q: "operations manager",         sector: "Business",      group: 3 },
+  { q: "social worker",              sector: "Public Sector", group: 3 },
+  { q: "teacher",                    sector: "Education",     group: 3 },
+  { q: "chef",                       sector: "Hospitality",   group: 3 },
+  { q: "council social worker",      sector: "Public Sector", group: 0 },
+  { q: "local authority planner",    sector: "Public Sector", group: 1 },
+  { q: "council housing officer",    sector: "Public Sector", group: 2 },
+  { q: "environmental health officer",sector:"Public Sector", group: 3 },
+  { q: "council finance officer",    sector: "Finance",       group: 0 },
+  { q: "council IT officer",         sector: "Technology",    group: 1 },
 ];
 
-// Reed searches also split into 4 groups
 const REED_SEARCHES = [
   { q: "software engineer",          group: 0 },
   { q: "software developer",         group: 0 },
@@ -176,6 +162,20 @@ const REED_SEARCHES = [
   { q: "marketing manager",          group: 3 },
   { q: "teacher",                    group: 3 },
   { q: "social worker",              group: 3 },
+];
+
+// ✅ JSearch (Indeed) searches — 5 per group, 200 req/month free tier
+// 5 searches × 4 groups × 6 runs/day = 120 calls/day — but we cap at 1 run/day for Indeed
+// to stay well within the 200/month free limit
+const JSEARCH_SEARCHES = [
+  { q: "software engineer visa sponsorship United Kingdom",  sector: "Technology",    group: 0 },
+  { q: "data scientist visa sponsorship United Kingdom",     sector: "AI & Data",     group: 0 },
+  { q: "NHS nurse visa sponsorship United Kingdom",          sector: "Healthcare",    group: 1 },
+  { q: "registered nurse sponsorship United Kingdom",        sector: "Healthcare",    group: 1 },
+  { q: "mechanical engineer visa sponsorship UK",            sector: "Engineering",   group: 2 },
+  { q: "civil engineer sponsorship United Kingdom",          sector: "Engineering",   group: 2 },
+  { q: "project manager visa sponsorship UK",                sector: "Business",      group: 3 },
+  { q: "social worker visa sponsorship United Kingdom",      sector: "Public Sector", group: 3 },
 ];
 
 const SPONSOR_KW = ["visa sponsor","sponsorship","skilled worker","tier 2","work permit","certificate of sponsorship","will sponsor","cos provided"];
@@ -283,7 +283,6 @@ async function fetchAdzuna(appId, appKey, q, sector) {
       salary:      j.salary_min ? `£${Math.round(j.salary_min).toLocaleString()}–£${Math.round(j.salary_max||j.salary_min).toLocaleString()}/yr` : "Competitive",
       sector:      getSector(j.title || "", sector),
       posted:      j.created ? new Date(j.created).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "",
-      // Keep Adzuna redirect_url intact — do NOT strip query string
       url:         j.redirect_url || `https://www.adzuna.co.uk/search?q=${encodeURIComponent(j.title || q)}&w=United+Kingdom`,
       source:      "Adzuna",
       sponsorship: detectSponsorship(j.title||"", j.description||""),
@@ -324,13 +323,11 @@ async function fetchReed(reedKey, q) {
         if (!j.date) return '';
         try {
           const d = new Date(j.date);
-          // Reject future dates — Reed sometimes returns expiry not posted date
           if (d > new Date()) return '';
           return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
         } catch { return ''; }
       })(),
       url:         (() => {
-        // Always use search URL — direct job IDs expire when jobs are filled
         const encoded = encodeURIComponent(j.jobTitle || '');
         const loc = encodeURIComponent(j.locationName || 'United Kingdom');
         return `https://www.reed.co.uk/jobs?keywords=${encoded}&locationName=${loc}`;
@@ -340,6 +337,56 @@ async function fetchReed(reedKey, q) {
       expires_at:  expiresAt,
     })).filter(j => j.url);
   } catch { return []; }
+}
+
+// ✅ NEW: Fetch from JSearch (Indeed/LinkedIn aggregator)
+async function fetchJSearch(rapidApiKey, q, sector) {
+  try {
+    const expiresAt = new Date(Date.now() + 7*24*60*60*1000).toISOString(); // 7 days — Indeed listings move fast
+    const url = "https://jsearch.p.rapidapi.com/search?query=" +
+      encodeURIComponent(q) +
+      "&page=1&num_pages=1&country=gb&date_posted=week";
+
+    const r = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-rapidapi-host": "jsearch.p.rapidapi.com",
+        "x-rapidapi-key":  rapidApiKey,
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!r.ok) {
+      console.error("JSearch error:", r.status);
+      return [];
+    }
+
+    const data = await r.json();
+    const raw  = data.data || [];
+
+    return raw.map(j => ({
+      title:       (j.job_title || "").substring(0, 120),
+      company:     (j.employer_name || "UK Employer").substring(0, 80),
+      location:    j.job_city
+        ? (j.job_city + ", " + (j.job_country || "UK")).substring(0, 80)
+        : "United Kingdom",
+      salary:      j.job_min_salary && j.job_max_salary
+        ? "GBP " + Math.round(j.job_min_salary).toLocaleString() + " - " + Math.round(j.job_max_salary).toLocaleString() + "/yr"
+        : "Competitive",
+      sector:      getSector(j.job_title || "", sector),
+      posted:      j.job_posted_at_datetime_utc
+        ? (() => { try { return new Date(j.job_posted_at_datetime_utc).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); } catch { return "Recently"; } })()
+        : "Recently",
+      // ✅ Use apply link directly — Indeed apply links stay live
+      url:         j.job_apply_link || j.job_google_link || "",
+      source:      "Indeed",
+      sponsorship: detectSponsorship(j.job_title || "", j.job_description || ""),
+      expires_at:  expiresAt,
+    })).filter(j => j.url && j.title);
+  } catch (err) {
+    console.error("JSearch fetch error:", err.message);
+    return [];
+  }
 }
 
 export default async function handler(req, res) {
@@ -353,25 +400,24 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Missing env vars" });
   }
 
-  // Work out which rotation group to run based on current hour
-  // 4 groups × 6 runs/day = every search runs ~6 times per day
-  // Adzuna: ~10 searches × 2 pages × 6 runs = ~120 calls/day (under 250 limit)
   const group = new Date().getHours() % 4;
-
-  const log = [`Rotation group ${group} | ${new Date().toISOString()}`];
+  const log   = [`Rotation group ${group} | ${new Date().toISOString()}`];
 
   try {
-    const appId   = process.env.ADZUNA_APP_ID;
-    const appKey  = process.env.ADZUNA_APP_KEY;
-    const reedKey = process.env.REED_API_KEY;
+    const appId        = process.env.ADZUNA_APP_ID;
+    const appKey       = process.env.ADZUNA_APP_KEY;
+    const reedKey      = process.env.REED_API_KEY;
+    const rapidApiKey  = process.env.RAPIDAPI_KEY; // ✅ JSearch key
 
-    const adzunaGroup = ADZUNA_SEARCHES.filter(s => s.group === group);
-    const reedGroup   = REED_SEARCHES.filter(s => s.group === group);
+    const adzunaGroup  = ADZUNA_SEARCHES.filter(s => s.group === group);
+    const reedGroup    = REED_SEARCHES.filter(s => s.group === group);
+    // ✅ Only run JSearch for this group's searches — saves quota
+    const jsearchGroup = JSEARCH_SEARCHES.filter(s => s.group === group);
 
-    log.push(`Running ${ALL_FEEDS.length} RSS feeds + ${adzunaGroup.length} Adzuna + ${reedGroup.length} Reed searches`);
+    log.push(`RSS: ${ALL_FEEDS.length} feeds | Adzuna: ${adzunaGroup.length} | Reed: ${reedGroup.length} | Indeed: ${jsearchGroup.length}`);
 
-    const [rssSettled, adzunaSettled, reedSettled] = await Promise.all([
-      // RSS — run all feeds every time (they're free and fast)
+    const [rssSettled, adzunaSettled, reedSettled, jsearchSettled] = await Promise.all([
+      // RSS — all feeds every run (free)
       Promise.allSettled(
         ALL_FEEDS.map((feed) =>
           fetch(feed.url, { headers: { "User-Agent": "Mentorgram AI (+https://mentorgramai.com)" }, signal: AbortSignal.timeout(12000) })
@@ -380,21 +426,26 @@ export default async function handler(req, res) {
             .catch(() => [])
         )
       ),
-      // Adzuna — only this group's searches
+      // Adzuna
       appId && appKey
         ? Promise.allSettled(adzunaGroup.map(({ q, sector }) => fetchAdzuna(appId, appKey, q, sector)))
         : Promise.resolve([]),
-      // Reed — only this group's searches
+      // Reed
       reedKey
         ? Promise.allSettled(reedGroup.map(({ q }) => fetchReed(reedKey, q)))
         : Promise.resolve([]),
+      // ✅ JSearch (Indeed) — only if key exists, graceful if missing
+      rapidApiKey && jsearchGroup.length > 0
+        ? Promise.allSettled(jsearchGroup.map(({ q, sector }) => fetchJSearch(rapidApiKey, q, sector)))
+        : Promise.resolve([]),
     ]);
 
-    const rssJobs    = rssSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
-    const adzunaJobs = Array.isArray(adzunaSettled) ? adzunaSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value) : [];
-    const reedJobs   = Array.isArray(reedSettled)   ? reedSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value) : [];
+    const rssJobs     = rssSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
+    const adzunaJobs  = Array.isArray(adzunaSettled) ? adzunaSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value) : [];
+    const reedJobs    = Array.isArray(reedSettled)   ? reedSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value)   : [];
+    const indeedJobs  = Array.isArray(jsearchSettled) ? jsearchSettled.filter(r => r.status === "fulfilled").flatMap(r => r.value) : [];
 
-    let jobs = [...rssJobs, ...adzunaJobs, ...reedJobs];
+    let jobs = [...rssJobs, ...adzunaJobs, ...reedJobs, ...indeedJobs];
 
     // Deduplicate by URL
     const seen = new Set();
@@ -405,7 +456,7 @@ export default async function handler(req, res) {
       return true;
     });
 
-    log.push(`RSS: ${rssJobs.length} | Adzuna: ${adzunaJobs.length} | Reed: ${reedJobs.length} | Unique: ${jobs.length}`);
+    log.push(`RSS: ${rssJobs.length} | Adzuna: ${adzunaJobs.length} | Reed: ${reedJobs.length} | Indeed: ${indeedJobs.length} | Unique: ${jobs.length}`);
 
     // Upsert in batches of 100
     const BATCH = 100;
@@ -420,12 +471,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // Delete jobs older than 30 days
     await supabaseDeleteExpired(supabaseUrl, serviceKey);
 
     const total = await supabaseCount(supabaseUrl, serviceKey);
     log.push(`Total in database: ${total}`);
-    log.push("✅ Done!");
+    log.push("Done!");
 
     return res.status(200).json({ success: true, inserted: jobs.length, total, log });
   } catch (err) {
