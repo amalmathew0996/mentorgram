@@ -64,7 +64,8 @@ export default async function handler(req, res) {
 
     // ✅ FIXED: Raised cap from 5 pages (5,000 jobs) to 10 pages (10,000 jobs)
     // Previously capped at 5 pages which would have hidden jobs even after expiry fix
-    const pagesNeeded = Math.min(Math.ceil(total / PAGE), 10);
+    // ✅ Cap raised to 20 pages (20,000 jobs) to match growing database
+    const pagesNeeded = Math.min(Math.ceil(total / PAGE), 20);
 
     const responses = await Promise.all(
       Array.from({ length: pagesNeeded }, (_, i) => {
