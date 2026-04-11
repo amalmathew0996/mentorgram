@@ -1036,32 +1036,60 @@ function CVAnalyserTab({ user, navTo }) {
     });
   }
 
+  async function loadScript(src) {
+    if (document.querySelector('script[src="' + src + '"]')) return;
+    return new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = src; s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
   async function handleFile(file) {
     if (!file) return;
     setError(""); setResult(null); setSavedToProfile(false);
     setFileName(file.name);
+
     try {
       let text = "";
-      if (file.type === "application/pdf") {
-        if (!window.pdfjsLib) {
-          await new Promise((res, rej) => {
-            const s = document.createElement("script");
-            s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-            s.onload = res; s.onerror = rej;
-            document.head.appendChild(s);
-          });
-        }
+      const name = file.name.toLowerCase();
+      const isPDF  = file.type === "application/pdf" || name.endsWith(".pdf");
+      const isDOCX = name.endsWith(".docx") ||
+                     file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      const isDOC  = name.endsWith(".doc") ||
+                     file.type === "application/msword";
+
+      if (isPDF) {
+        // ── PDF: use PDF.js ──────────────────────────────────────────────
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
         text = await extractTextFromPDF(file);
+
+      } else if (isDOCX) {
+        // ── DOCX: use mammoth.js ─────────────────────────────────────────
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await window.mammoth.extractRawText({ arrayBuffer });
+        text = result.value || "";
+
+      } else if (isDOC) {
+        // ── Old .doc: can't reliably parse in browser ────────────────────
+        setError("Old .doc files cannot be read in the browser. Please save your CV as .docx or PDF and try again.");
+        return;
+
       } else {
+        // ── Plain text / other ───────────────────────────────────────────
         text = await file.text();
       }
-      if (text.trim().length < 50) {
-        setError("Could not extract text. Try a text-based PDF or paste your CV below.");
+
+      if (!text || text.trim().length < 50) {
+        setError("Could not extract text from this file. Please try saving as PDF or paste your CV text below.");
         return;
       }
+
       setCvText(text);
-    } catch {
-      setError("Could not read file. Please try a different format or paste your CV text below.");
+    } catch (err) {
+      console.error("File read error:", err);
+      setError("Could not read file: " + err.message + ". Please try PDF or paste your CV below.");
     }
   }
 
@@ -1823,7 +1851,7 @@ export default function Mentorgram() {
                 <button className="hero-btn-outline" style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1rem", margin: "3rem 0 0" }}>
-                {[["5","Countries Covered","🌍"],["Free","To Use","✨"],["500+","Visa Sponsors","🏢"],["10K+","Live Jobs","💼"]].map(([n,l,icon]) => (
+                {[["5","Countries Covered","🌍"],["Free","To Use","✨"],["500+","Visa Sponsors","🏢"],["1,000+","Live Jobs","💼"]].map(([n,l,icon]) => (
                   <div key={l} className="stat-card" style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)" }}>
                     <div style={{ fontSize: "22px", marginBottom: "6px" }}>{icon}</div>
                     <p style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px" }}>{n}</p>
