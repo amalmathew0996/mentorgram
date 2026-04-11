@@ -482,20 +482,24 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
             {jobsLoading ? "Searching..." : "Search"}
           </button>
         </div>
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center", marginTop: "10px" }}>
-          <span style={{ fontSize: "11px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>🔍 Try:</span>
-          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager", "Graphic Designer", "IT Technician"].map(q => (
-            <button key={q}
-              onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}
-              style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", fontWeight: 400,
-                border: "0.5px dashed var(--color-border-secondary)",
-                background: "transparent",
-                color: "var(--color-text-secondary)" }}>
-              {q}
-            </button>
+        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 10px" }}>
+          💡 Type to filter instantly · Click Search for live results from Indeed
+        </p>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager", "Research Fellow", "Lecturer"].map(q => (
+            <button key={q} style={{ ...S.filterBtn(titleQuery === q), fontSize: "12px", padding: "4px 12px" }}
+              onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}>{q}</button>
           ))}
         </div>
-        {updatedAt && <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "8px 0 0" }}>Updated: {new Date(updatedAt).toLocaleTimeString()}</p>}
+        {updatedAt && (
+          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 0" }}>
+            Last updated <strong style={{ color: "var(--color-text-primary)" }}>
+              {new Date(updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+            </strong> at <strong style={{ color: "var(--color-text-primary)" }}>
+              {new Date(updatedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+            </strong>
+          </p>
+        )}
       </div>
 
       {/* Profile filter banner */}
