@@ -21,7 +21,7 @@ const EDUCATION_SYSTEMS = [
   { country: "🌍 International", systems: ["IB", "EU Systems", "Middle East Curricula"] },
 ];
 
-const UK_UNIVERSITIES = [
+const UNIVERSITIES = [
   { name: "University of Oxford", rank: "#1 UK", focus: "Research & Humanities", entry: "AAA at A-Level", intl: "IELTS 7.0+", scholarships: "Rhodes, Clarendon" },
   { name: "University of Cambridge", rank: "#2 UK", focus: "STEM & Research", entry: "A*AA at A-Level", intl: "IELTS 7.5+", scholarships: "Gates Cambridge" },
   { name: "Imperial College London", rank: "#3 UK", focus: "Engineering & Medicine", entry: "A*AA at A-Level", intl: "IELTS 6.5+", scholarships: "Imperial Bursaries" },
