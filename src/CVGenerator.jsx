@@ -247,7 +247,6 @@ export default function CVGenerator({ user, cvText: propCvText, onSignIn }) {
   const atsScore = cv && cv.atsScore;
   const atsColor = atsScore >= 85 ? "#16A34A" : atsScore >= 70 ? "#D97706" : "#DC2626";
   const atsLabel = atsScore >= 85 ? "Excellent" : atsScore >= 70 ? "Good" : "Needs Work";
-  const circumference = 2 * Math.PI * 38;
 
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "2rem 1.5rem", display: "grid", gap: "1.25rem" }}>
@@ -361,7 +360,7 @@ export default function CVGenerator({ user, cvText: propCvText, onSignIn }) {
           </div>
           {loading && (
             <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "6px" }}>
-              <style dangerouslySetInnerHTML={{ __html: ".spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}" }} />
+              <style>{".spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}"}</style>
               {["Analysing job description...", "Matching your skills to requirements...", "Optimising for ATS keywords...", "Writing your tailored cover letter..."].map(function(msg, i) {
                 return (
                   <div key={i} style={{ display: "flex", gap: "10px", alignItems: "center", padding: "8px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }}>
@@ -423,16 +422,10 @@ export default function CVGenerator({ user, cvText: propCvText, onSignIn }) {
                     <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "14px" }}>🎯 ATS Score</p>
                     <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem" }}>
                       <div style={{ position: "relative", width: "90px", height: "90px", flexShrink: 0 }}>
-                        <svg width="90" height="90" viewBox="0 0 90 90">
-                          <circle cx="45" cy="45" r="38" fill="none" stroke="var(--color-background-secondary)" strokeWidth="8" />
-                          <circle cx="45" cy="45" r="38" fill="none" stroke={atsColor} strokeWidth="8"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={circumference * (1 - (atsScore || 0) / 100)}
-                            strokeLinecap="round"
-                            transform="rotate(-90 45 45)" />
-                        </svg>
-                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <span style={{ fontWeight: 700, fontSize: "20px", color: atsColor }}>{atsScore || 0}%</span>
+                        <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: "conic-gradient(" + atsColor + " " + ((atsScore || 0) * 3.6) + "deg, var(--color-background-secondary) 0deg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: "var(--color-background-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ fontWeight: 700, fontSize: "18px", color: atsColor }}>{atsScore || 0}%</span>
+                          </div>
                         </div>
                       </div>
                       <div style={{ flex: 1 }}>
@@ -489,7 +482,8 @@ export default function CVGenerator({ user, cvText: propCvText, onSignIn }) {
                         <p style={{ margin: 0 }}>{cl.body1}</p>
                         <p style={{ margin: 0 }}>{cl.body2}</p>
                         <p style={{ margin: 0 }}>{cl.closing}</p>
-                        <p style={{ margin: 0, color: "var(--color-text-secondary)", fontSize: "11px" }}>Yours sincerely,<br /><strong>{cv && cv.name}</strong></p>
+                        <p style={{ margin: 0, color: "var(--color-text-secondary)", fontSize: "11px" }}>Yours sincerely,</p>
+                        <p style={{ margin: 0, fontWeight: 600 }}>{cv && cv.name}</p>
                       </div>
                     </div>
                   )}
