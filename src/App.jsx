@@ -982,6 +982,13 @@ function UniversitiesPage({ setChatInput, navTo }) {
     background: "transparent",
   });
 
+  // ✅ Tab definitions
+  const tabs = [
+    { key: "UK",         label: "🇬🇧 UK" },
+    { key: "Germany",    label: "🇩🇪 Germany" },
+    { key: "CV Matcher", label: "🎯 CV Matcher" },
+  ];
+
   return (
     <div style={S.section}>
       <h2 style={S.sectionTitle}>Universities</h2>
@@ -1213,6 +1220,11 @@ function UniversitiesPage({ setChatInput, navTo }) {
             </div>
           </div>
         </>
+      )}
+
+      {/* ── CV Matcher tab ── */}
+      {country === "CV Matcher" && (
+        <CVAnalyserTab user={null} navTo={() => {}} />
       )}
 
     </div>
