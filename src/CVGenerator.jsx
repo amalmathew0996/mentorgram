@@ -341,50 +341,33 @@ export default function CVGenerator({ user, cvText: propCvText, onNavigateToCV, 
       {step === 3 && result?.data && (
         <div style={{ display: "grid", gap: "1rem" }}>
 
-          {/* ✅ Fix 1: Sign-in gate on download */}
+          {/* ✅ Sign-in gate overlay */}
           {showSignIn && !user ? (
             <div style={{ ...card, background: "linear-gradient(135deg, rgba(26,63,168,0.08), rgba(124,58,237,0.06))", borderColor: "rgba(26,63,168,0.25)", textAlign: "center", padding: "2.5rem" }}>
               <div style={{ fontSize: "48px", marginBottom: "1rem" }}>🔒</div>
               <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: 600 }}>Sign in to download your documents</h3>
-              <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
-                Your tailored CV and cover letter are ready! Create a free account to download them — and save your results for future use.
-              </p>
+              <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem", lineHeight: 1.6 }}>Your tailored CV and cover letter are ready! Create a free account to download them.</p>
               <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-                {onSignIn && (
-                  <button onClick={onSignIn}
-                    style={{ ...btnStyle(true), padding: "12px 28px", fontSize: "15px" }}>
-                    Sign in / Register — it's free
-                  </button>
-                )}
-                <button onClick={() => setShowSignIn(false)}
-                  style={{ ...btnStyle(false), padding: "12px 20px" }}>
-                  ← Back to preview
-                </button>
+                {onSignIn && <button onClick={onSignIn} style={{ ...btnStyle(true), padding: "12px 28px", fontSize: "15px" }}>Sign in / Register — it's free</button>}
+                <button onClick={() => setShowSignIn(false)} style={{ ...btnStyle(false), padding: "12px 20px" }}>← Back to preview</button>
               </div>
             </div>
           ) : (
-            <>
-              {/* Download card */}
-              <div style={{ ...card, background: "linear-gradient(135deg, rgba(22,163,74,0.08), transparent)", borderColor: "rgba(22,163,74,0.2)" }}>
+            <div>
+              {/* ── Top bar: job title + download buttons ── */}
+              <div style={{ ...card, marginBottom: "1rem", background: "linear-gradient(135deg, rgba(22,163,74,0.08), transparent)", borderColor: "rgba(22,163,74,0.2)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                   <div>
-                    <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "15px" }}>
-                      ✅ Ready — {result.jobTitle} at {result.company}
-                    </p>
-                    {result.data.cv?.atsScore && (
-                      <p style={{ fontSize: "13px", color: "#16A34A", margin: "0 0 4px", fontWeight: 500 }}>
-                        ATS Score: {result.data.cv.atsScore}% · Matched: {(result.data.cv.keywordsMatched||[]).join(", ")}
-                      </p>
-                    )}
-                    {!user && <p style={{ fontSize: "12px", color: "#7C3AED", margin: 0 }}>Sign in to download ↓</p>}
+                    <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "15px" }}>✅ {result.jobTitle} at {result.company}</p>
+                    <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>CV + Cover Letter tailored for this role</p>
                   </div>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     <button onClick={() => handleDownload("pdf")} disabled={!!downloading}
-                      style={{ ...btnStyle(true, "#DC2626"), padding: "10px 20px", opacity: downloading?0.7:1, display:"flex",alignItems:"center",gap:"6px" }}>
+                      style={{ ...btnStyle(true, "#DC2626"), padding: "9px 18px", fontSize: "13px", opacity: downloading?0.7:1 }}>
                       {downloading==="pdf" ? "⏳" : "📄"} {user ? "Download PDF" : "Get PDF — Sign in"}
                     </button>
                     <button onClick={() => handleDownload("docx")} disabled={!!downloading}
-                      style={{ ...btnStyle(true, "#1A3FA8"), padding: "10px 20px", opacity: downloading?0.7:1, display:"flex",alignItems:"center",gap:"6px" }}>
+                      style={{ ...btnStyle(true, "#1A3FA8"), padding: "9px 18px", fontSize: "13px", opacity: downloading?0.7:1 }}>
                       {downloading==="docx" ? "⏳" : "📝"} {user ? "Download Word" : "Get Word — Sign in"}
                     </button>
                   </div>
@@ -392,52 +375,172 @@ export default function CVGenerator({ user, cvText: propCvText, onNavigateToCV, 
                 {error && <p style={{ color: "#E24B4A", fontSize: "13px", margin: "10px 0 0" }}>⚠️ {error}</p>}
               </div>
 
-              {/* CV Preview */}
-              <div style={card}>
-                <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "15px" }}>📄 Your Tailored CV</p>
-                <div style={{ background:"var(--color-background-secondary)",borderRadius:"var(--border-radius-md)",padding:"1.5rem",fontFamily:"Georgia, serif",fontSize:"13px",lineHeight:1.7 }}>
-                  <p style={{ fontWeight:700,fontSize:"18px",margin:"0 0 4px",textAlign:"center" }}>{result.data.cv?.name}</p>
-                  <p style={{ textAlign:"center",color:"var(--color-text-secondary)",fontSize:"12px",margin:"0 0 16px" }}>{[result.data.cv?.email,result.data.cv?.phone,result.data.cv?.location].filter(Boolean).join("  |  ")}</p>
-                  <p style={{ fontWeight:700,color:"#1A3FA8",margin:"12px 0 4px",fontSize:"11px",textTransform:"uppercase",letterSpacing:"0.05em" }}>Professional Summary</p>
-                  <p style={{ margin:"0 0 12px",fontSize:"13px" }}>{result.data.cv?.summary}</p>
-                  {result.data.cv?.experience?.length>0 && <>
-                    <p style={{ fontWeight:700,color:"#1A3FA8",margin:"12px 0 4px",fontSize:"11px",textTransform:"uppercase",letterSpacing:"0.05em" }}>Work Experience</p>
-                    {result.data.cv.experience.slice(0,2).map((e,i) => (
-                      <div key={i} style={{ marginBottom:"10px" }}>
-                        <p style={{ fontWeight:600,margin:"0 0 2px" }}>{e.title} | {e.company}</p>
-                        <p style={{ color:"var(--color-text-secondary)",fontSize:"12px",margin:"0 0 4px" }}>{e.startDate} – {e.endDate}</p>
-                        {(e.bullets||[]).slice(0,2).map((b,j)=><p key={j} style={{ margin:"0 0 2px",fontSize:"12px",paddingLeft:"12px" }}>• {b}</p>)}
+              {/* ── Two column layout: left=analysis, right=CV preview ── */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "start" }}>
+
+                {/* ── LEFT COLUMN ── */}
+                <div style={{ display: "grid", gap: "1rem" }}>
+
+                  {/* ATS Score */}
+                  <div style={{ ...card, borderColor: result.data.cv?.atsScore >= 85 ? "rgba(22,163,74,0.3)" : result.data.cv?.atsScore >= 70 ? "rgba(245,158,11,0.3)" : "rgba(220,38,38,0.3)" }}>
+                    <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "14px" }}>🎯 ATS Score</p>
+                    {/* Score ring */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem" }}>
+                      <div style={{ position: "relative", width: "90px", height: "90px", flexShrink: 0 }}>
+                        <svg width="90" height="90" viewBox="0 0 90 90">
+                          <circle cx="45" cy="45" r="38" fill="none" stroke="var(--color-background-secondary)" strokeWidth="8"/>
+                          <circle cx="45" cy="45" r="38" fill="none"
+                            stroke={result.data.cv?.atsScore >= 85 ? "#16A34A" : result.data.cv?.atsScore >= 70 ? "#D97706" : "#DC2626"}
+                            strokeWidth="8"
+                            strokeDasharray={2 * Math.PI * 38}
+                            strokeDashoffset={2 * Math.PI * 38 * (1 - (result.data.cv?.atsScore || 0) / 100)}
+                            strokeLinecap="round"
+                            transform="rotate(-90 45 45)"
+                            style={{ transition: "stroke-dashoffset 1s ease" }}
+                          />
+                        </svg>
+                        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                          <span style={{ fontWeight: 700, fontSize: "20px", color: result.data.cv?.atsScore >= 85 ? "#16A34A" : result.data.cv?.atsScore >= 70 ? "#D97706" : "#DC2626" }}>{result.data.cv?.atsScore || 0}%</span>
+                        </div>
                       </div>
-                    ))}
-                  </>}
-                  {result.data.cv?.skills?.length>0 && <>
-                    <p style={{ fontWeight:700,color:"#1A3FA8",margin:"12px 0 4px",fontSize:"11px",textTransform:"uppercase",letterSpacing:"0.05em" }}>Skills</p>
-                    <p style={{ fontSize:"12px",margin:0 }}>{result.data.cv.skills.join("  •  ")}</p>
-                  </>}
-                </div>
-              </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "14px", color: result.data.cv?.atsScore >= 85 ? "#16A34A" : result.data.cv?.atsScore >= 70 ? "#D97706" : "#DC2626" }}>
+                          {result.data.cv?.atsScore >= 85 ? "Excellent" : result.data.cv?.atsScore >= 70 ? "Good" : "Needs Work"}
+                        </p>
+                        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                          {result.data.cv?.atsScore >= 85 ? "Your CV is well-optimised for this role and should pass ATS screening." : result.data.cv?.atsScore >= 70 ? "Good match. A few more keywords would improve your score." : "Consider adding more keywords from the job description."}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Keyword pills */}
+                    {result.data.cv?.keywordsMatched?.length > 0 && (
+                      <div>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 6px" }}>Keywords matched</p>
+                        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                          {result.data.cv.keywordsMatched.map((k, i) => (
+                            <span key={i} style={{ padding: "2px 8px", borderRadius: "20px", fontSize: "11px", background: "rgba(22,163,74,0.12)", color: "#16A34A", fontWeight: 500 }}>✓ {k}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-              {/* Cover Letter Preview */}
-              <div style={card}>
-                <p style={{ fontWeight:600,margin:"0 0 1rem",fontSize:"15px" }}>✉️ Your Cover Letter</p>
-                <div style={{ background:"var(--color-background-secondary)",borderRadius:"var(--border-radius-md)",padding:"1.5rem",fontFamily:"Georgia, serif",fontSize:"13px",lineHeight:1.8,display:"flex",flexDirection:"column",gap:"12px" }}>
-                  <p style={{ margin:0,color:"var(--color-text-secondary)",fontSize:"12px" }}>Dear Hiring Manager,</p>
-                  <p style={{ margin:0 }}>{result.data.coverLetter?.opening}</p>
-                  <p style={{ margin:0 }}>{result.data.coverLetter?.body1}</p>
-                  <p style={{ margin:0 }}>{result.data.coverLetter?.body2}</p>
-                  <p style={{ margin:0 }}>{result.data.coverLetter?.closing}</p>
-                  <p style={{ margin:0,color:"var(--color-text-secondary)",fontSize:"12px" }}>Yours sincerely,<br /><strong>{result.data.cv?.name}</strong></p>
+                  {/* Skills to upgrade */}
+                  {result.data.skillsToUpgrade?.length > 0 && (
+                    <div style={{ ...card, borderColor: "rgba(245,158,11,0.25)", background: "rgba(245,158,11,0.03)" }}>
+                      <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "14px" }}>⚡ Skills to Develop for This Role</p>
+                      <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "0 0 12px" }}>These skills appear in the job description but weren't found in your CV:</p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {result.data.skillsToUpgrade.map((s, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "8px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }}>
+                            <span style={{ fontSize: "14px", flexShrink: 0 }}>{s.priority === "High" ? "🔴" : s.priority === "Medium" ? "🟡" : "🟢"}</span>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontWeight: 600, margin: "0 0 2px", fontSize: "13px" }}>{s.skill}</p>
+                              <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>{s.howToGet}</p>
+                            </div>
+                            <span style={{ fontSize: "10px", padding: "2px 7px", borderRadius: "20px", background: s.priority==="High"?"rgba(220,38,38,0.1)":s.priority==="Medium"?"rgba(245,158,11,0.1)":"rgba(22,163,74,0.1)", color: s.priority==="High"?"#DC2626":s.priority==="Medium"?"#D97706":"#16A34A", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>{s.priority}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Cover letter preview */}
+                  <div style={card}>
+                    <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "14px" }}>✉️ Cover Letter</p>
+                    <div style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1.25rem", fontFamily: "Georgia, serif", fontSize: "12px", lineHeight: 1.8, display: "flex", flexDirection: "column", gap: "10px", maxHeight: "320px", overflowY: "auto" }}>
+                      <p style={{ margin: 0, color: "var(--color-text-secondary)", fontSize: "11px" }}>Dear Hiring Manager,</p>
+                      <p style={{ margin: 0 }}>{result.data.coverLetter?.opening}</p>
+                      <p style={{ margin: 0 }}>{result.data.coverLetter?.body1}</p>
+                      <p style={{ margin: 0 }}>{result.data.coverLetter?.body2}</p>
+                      <p style={{ margin: 0 }}>{result.data.coverLetter?.closing}</p>
+                      <p style={{ margin: 0, color: "var(--color-text-secondary)", fontSize: "11px" }}>Yours sincerely,<br /><strong>{result.data.cv?.name}</strong></p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── RIGHT COLUMN: CV Preview ── */}
+                <div style={{ position: "sticky", top: "80px" }}>
+                  <div style={{ ...card, padding: "0", overflow: "hidden" }}>
+                    <div style={{ padding: "12px 16px", borderBottom: "0.5px solid var(--color-border-tertiary)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <p style={{ fontWeight: 600, margin: 0, fontSize: "14px" }}>📄 CV Preview</p>
+                      <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>Scroll to read</span>
+                    </div>
+                    {/* A4-style CV preview */}
+                    <div style={{ background: "#fff", color: "#1a1a2e", maxHeight: "700px", overflowY: "auto", padding: "32px 28px", fontFamily: "Arial, sans-serif", fontSize: "11px", lineHeight: 1.6 }}>
+                      {/* Header */}
+                      <div style={{ textAlign: "center", marginBottom: "16px", paddingBottom: "12px", borderBottom: "2px solid #1A3FA8" }}>
+                        <p style={{ fontWeight: 700, fontSize: "20px", margin: "0 0 4px", color: "#1a1a2e" }}>{result.data.cv?.name}</p>
+                        <p style={{ fontSize: "10px", color: "#6b7280", margin: "0 0 4px" }}>
+                          {[result.data.cv?.email, result.data.cv?.phone, result.data.cv?.location, result.data.cv?.linkedin].filter(Boolean).join("  |  ")}
+                        </p>
+                        {result.data.cv?.atsScore && (
+                          <p style={{ fontSize: "9px", color: "#16A34A", margin: 0, fontWeight: 600 }}>ATS Score: {result.data.cv.atsScore}%</p>
+                        )}
+                      </div>
+
+                      {/* Summary */}
+                      <div style={{ marginBottom: "14px" }}>
+                        <p style={{ fontWeight: 700, fontSize: "10px", color: "#1A3FA8", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 4px", borderBottom: "0.5px solid #1A3FA8", paddingBottom: "2px" }}>Professional Summary</p>
+                        <p style={{ margin: 0, fontSize: "10px", color: "#374151" }}>{result.data.cv?.summary}</p>
+                      </div>
+
+                      {/* Experience */}
+                      {result.data.cv?.experience?.length > 0 && (
+                        <div style={{ marginBottom: "14px" }}>
+                          <p style={{ fontWeight: 700, fontSize: "10px", color: "#1A3FA8", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px", borderBottom: "0.5px solid #1A3FA8", paddingBottom: "2px" }}>Work Experience</p>
+                          {result.data.cv.experience.map((e, i) => (
+                            <div key={i} style={{ marginBottom: "10px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                                <p style={{ fontWeight: 700, margin: "0 0 1px", fontSize: "11px" }}>{e.title}</p>
+                                <p style={{ fontSize: "9px", color: "#6b7280", margin: 0, whiteSpace: "nowrap" }}>{e.startDate} – {e.endDate}</p>
+                              </div>
+                              <p style={{ fontSize: "10px", color: "#6b7280", margin: "0 0 4px" }}>{e.company}{e.location ? " · " + e.location : ""}</p>
+                              {(e.bullets || []).map((b, j) => (
+                                <p key={j} style={{ margin: "0 0 2px", fontSize: "10px", paddingLeft: "10px", color: "#374151" }}>• {b}</p>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Education */}
+                      {result.data.cv?.education?.length > 0 && (
+                        <div style={{ marginBottom: "14px" }}>
+                          <p style={{ fontWeight: 700, fontSize: "10px", color: "#1A3FA8", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px", borderBottom: "0.5px solid #1A3FA8", paddingBottom: "2px" }}>Education</p>
+                          {result.data.cv.education.map((e, i) => (
+                            <div key={i} style={{ marginBottom: "6px" }}>
+                              <p style={{ fontWeight: 700, margin: "0 0 1px", fontSize: "10px" }}>{e.degree}</p>
+                              <p style={{ fontSize: "10px", color: "#6b7280", margin: 0 }}>{e.institution} · {e.year}{e.grade ? " · " + e.grade : ""}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Skills */}
+                      {result.data.cv?.skills?.length > 0 && (
+                        <div style={{ marginBottom: "14px" }}>
+                          <p style={{ fontWeight: 700, fontSize: "10px", color: "#1A3FA8", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px", borderBottom: "0.5px solid #1A3FA8", paddingBottom: "2px" }}>Skills</p>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                            {result.data.cv.skills.map((s, i) => (
+                              <span key={i} style={{ padding: "2px 8px", background: "#EFF6FF", color: "#1A3FA8", borderRadius: "4px", fontSize: "9px", fontWeight: 500 }}>{s}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Certifications */}
+                      {result.data.cv?.certifications?.length > 0 && (
+                        <div>
+                          <p style={{ fontWeight: 700, fontSize: "10px", color: "#1A3FA8", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px", borderBottom: "0.5px solid #1A3FA8", paddingBottom: "2px" }}>Certifications</p>
+                          {result.data.cv.certifications.map((c, i) => (
+                            <p key={i} style={{ margin: "0 0 2px", fontSize: "10px", paddingLeft: "10px" }}>• {c}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </>
+            </div>
           )}
-
-          <button onClick={() => { setResult(null); setStep(1); setJobUrl(""); setJobDesc(""); setError(""); setShowSignIn(false); }}
-            style={{ ...btnStyle(false), padding:"10px",fontSize:"13px",width:"100%" }}>
-            ↺ Generate for another job
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
