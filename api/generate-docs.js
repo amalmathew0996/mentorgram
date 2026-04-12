@@ -49,6 +49,13 @@ Return ONLY a valid JSON object with this structure:
     "atsScore": 92,
     "keywordsMatched": ["keyword1", "keyword2"]
   },
+  "skillsToUpgrade": [
+    {
+      "skill": "Skill name from job description not in CV",
+      "priority": "High or Medium or Low",
+      "howToGet": "One sentence on quickest way to get this skill (course, cert, project)"
+    }
+  ],
   "coverLetter": {
     "opening": "paragraph 1 — who you are and why this role",
     "body1": "paragraph 2 — your most relevant experience matching the JD",
