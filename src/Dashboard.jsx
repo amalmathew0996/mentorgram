@@ -192,6 +192,18 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
   useEffect(() => { loadProfile(); }, [user]);
 
+  // ✅ Fetch jobs if not already loaded
+  const [localJobs, setLocalJobs] = useState([]);
+  useEffect(() => {
+    if (allJobs && allJobs.length > 0) return; // already loaded by parent
+    fetch("/api/jobs-db?pageSize=2000")
+      .then(r => r.json())
+      .then(d => setLocalJobs(d.jobs || []))
+      .catch(() => {});
+  }, [allJobs]);
+
+  const jobs = (allJobs && allJobs.length > 0) ? allJobs : localJobs;
+
   async function loadProfile() {
     setLoading(true);
     try {
@@ -302,9 +314,24 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     } catch (e) { alert(e.message); setDeleteLoading(false); }
   }
 
-  const matchedJobs = allJobs.filter(j => {
-    const sm = sectors.length === 0 || sectors.includes(j.sector);
-    const lm = !location || j.location?.toLowerCase().includes(location.toLowerCase());
+  const matchedJobs = jobs.filter(j => {
+    // ✅ Smart sector match — also check title keywords for mis-categorised jobs
+    const titleLower = (j.title || "").toLowerCase();
+    const sectorByTitle = (() => {
+      if (/software|developer|devops|cloud|cyber|network|it.tech|helpdesk|full.stack|backend|frontend|react|python|java|aws|azure|linux|systems.eng|platform.eng/.test(titleLower)) return "Technology";
+      if (/data.sci|machine.learn|ai |data.eng|data.anal/.test(titleLower)) return "AI & Data";
+      if (/nurse|doctor|nhs|healthcare|medical|dental|care.work|clinical|therapist|pharmacist|midwife|paramedic/.test(titleLower)) return "Healthcare";
+      if (/financ|accountant|audit|banking|investment|payroll/.test(titleLower)) return "Finance";
+      if (/mechanical.eng|civil.eng|electrical.eng|embedded/.test(titleLower)) return "Engineering";
+      if (/teacher|teaching|lecturer|tutor|school|academic/.test(titleLower)) return "Education";
+      if (/chef|cook|hotel|restaurant|hospitality/.test(titleLower)) return "Hospitality";
+      if (/social.work|council|government|police|charity/.test(titleLower)) return "Public Sector";
+      if (/graphic.des|ui.des|ux.des|web.des|designer|creative|marketing|sales|hr |brand/.test(titleLower)) return "Business";
+      return null;
+    })();
+    const effectiveSector = j.sector || sectorByTitle || "Other";
+    const sm = sectors.length === 0 || sectors.includes(effectiveSector) || sectors.includes(sectorByTitle);
+    const lm = !location || (j.location || "").toLowerCase().includes(location.toLowerCase());
     const vm = visaStatus !== "I need visa sponsorship" || j.sponsorship === true;
     return sm && lm && vm;
   });
