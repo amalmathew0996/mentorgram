@@ -544,3 +544,18 @@ export default function CVGenerator({ user, cvText: propCvText, onNavigateToCV, 
               </div>
             </div>
           )}
+
+        </div>
+      )}
+
+      {/* ── Reset button ── */}
+      {step === 3 && (
+        <button onClick={() => { setResult(null); setStep(1); setJobUrl(""); setJobDesc(""); setError(""); setShowSignIn(false); setCvText(propCvText||""); setCvFileName(propCvText?"Profile CV":""); }}
+          style={{ ...btnStyle(false), padding:"10px",fontSize:"13px",width:"100%" }}>
+          ↺ Generate for another job
+        </button>
+      )}
+    </div>
+  </div>
+  );
+}
