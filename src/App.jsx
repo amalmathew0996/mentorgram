@@ -7,7 +7,7 @@ import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
 
 inject();
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "UK Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
 const JOBS_PER_PAGE = 20;
@@ -419,7 +419,21 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   }
 
   const filtered = allJobs.filter(j => {
-    const matchSector = sector === "All" || j.sector === sector;
+    const titleLower = (j.title || "").toLowerCase();
+    const sectorByTitle = (() => {
+      if (/software|developer|devops|cloud|cyber|network|sysadmin|system.admin|it.tech|helpdesk|desktop.support|full.stack|backend|frontend|react|python|java|aws|azure|linux|solutions.eng|platform.eng|systems.eng/.test(titleLower)) return "Technology";
+      if (/data.sci|machine.learn|ai |mlops|data.eng|data.anal/.test(titleLower)) return "AI & Data";
+      if (/nurse|doctor|gp |nhs|healthcare|medical|dental|care.work|clinical|therapist|pharmacist|midwife|paramedic|radiograph/.test(titleLower)) return "Healthcare";
+      if (/financ|accountant|audit|banking|investment|payroll/.test(titleLower)) return "Finance";
+      if (/mechanical.eng|civil.eng|electrical.eng|embedded/.test(titleLower)) return "Engineering";
+      if (/teacher|teaching|lecturer|tutor|school|academic/.test(titleLower)) return "Education";
+      if (/chef|cook|hotel|restaurant|hospitality/.test(titleLower)) return "Hospitality";
+      if (/social.work|council|government|police|charity|housing.off|planning.off/.test(titleLower)) return "Public Sector";
+      if (/graphic.des|ui.des|ux.des|web.des|product.des|creative.des|designer/.test(titleLower)) return "Business";
+      if (/marketing|sales|hr |human.res|product.manag/.test(titleLower)) return "Business";
+      return null;
+    })();
+    const matchSector = sector === "All" || j.sector === sector || sectorByTitle === sector;
     const matchVisa = visaType === "All Jobs"
       || (visaType === "✓ Visa Sponsorship" && j.sponsorship === true)
       || (visaType === "No Info" && j.sponsorship !== true);
@@ -482,13 +496,14 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
             {jobsLoading ? "Searching..." : "Search"}
           </button>
         </div>
-        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 10px" }}>
-          💡 Type to filter instantly · Click Search for live results from Indeed
-        </p>
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Marketing Manager", "Research Fellow", "Lecturer"].map(q => (
-            <button key={q} style={{ ...S.filterBtn(titleQuery === q), fontSize: "12px", padding: "4px 12px" }}
-              onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}>{q}</button>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center", marginTop: "10px" }}>
+          <span style={{ fontSize: "11px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>🔍 Try:</span>
+          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Graphic Designer", "IT Technician", "System Administrator"].map(q => (
+            <button key={q} onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}
+              style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", fontWeight: 400,
+                border: "0.5px dashed var(--color-border-secondary)", background: "transparent", color: "var(--color-text-secondary)" }}>
+              {q}
+            </button>
           ))}
         </div>
         {updatedAt && (
@@ -519,33 +534,53 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
         </div>
       )}
 
-      {/* Filters */}
-      <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }}>
-        {/* Sector dropdown */}
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Sector:</span>
-          <select
-            value={sector}
-            onChange={e => { setSector(e.target.value); setPage(1); }}
-            style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: sector !== "All" ? "#1A3FA8" : "var(--color-background-primary)", color: sector !== "All" ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", outline: "none" }}>
-            {SECTORS.map(s => <option key={s} value={s} style={{ background: "var(--color-background-primary)", color: "var(--color-text-primary)" }}>{s}</option>)}
-          </select>
+      {/* ✅ Visa + Sector pill filters */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
+        {/* Visa row */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "32px" }}>Visa</span>
+          {VISA_TYPES.map(v => {
+            const active = visaType === v;
+            const isSponsored = v === "✓ Visa Sponsorship";
+            return (
+              <button key={v} onClick={() => { setVisaType(v); setPage(1); }}
+                style={{ padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit", border: "none",
+                  background: active ? (isSponsored ? "#16A34A" : "#1A3FA8") : "var(--color-background-secondary)",
+                  color: active ? "#fff" : "var(--color-text-secondary)" }}>
+                {v}
+              </button>
+            );
+          })}
         </div>
-        {/* Visa filter */}
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>Visa:</span>
-          {VISA_TYPES.map(v => (
-            <button key={v} style={{ ...S.filterBtn(visaType === v), fontSize: "12px", padding: "5px 12px", background: visaType === v ? (v === "✓ Visa Sponsorship" ? "#16A34A" : "#1A3FA8") : "var(--color-background-primary)" }}
-              onClick={() => { setVisaType(v); setPage(1); }}>{v}</button>
-          ))}
+        {/* Divider */}
+        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "8px 0" }} />
+        {/* Sector row */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "32px", paddingTop: "6px" }}>Sector</span>
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flex: 1 }}>
+            {SECTORS.map(s => {
+              const active = sector === s;
+              const icons = { "All": "⚡", "Technology": "💻", "AI & Data": "🤖", "Healthcare": "🏥", "Finance": "💰", "Engineering": "⚙️", "Business": "💼", "Education": "🎓", "Hospitality": "🍽️", "Public Sector": "🏛" };
+              return (
+                <button key={s} onClick={() => { setSector(s); setPage(1); }}
+                  style={{ padding: "5px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit",
+                    border: active ? "none" : "0.5px solid var(--color-border-tertiary)",
+                    background: active ? "#1A3FA8" : "var(--color-background-secondary)",
+                    color: active ? "#fff" : "var(--color-text-secondary)" }}>
+                  {icons[s] || "📋"} {s}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        {/* Clear all filters */}
+        {/* Clear filters */}
         {(sector !== "All" || visaType !== "All Jobs" || employerType !== "All" || titleQuery || locationQuery) && (
-          <button
-            onClick={() => { setSector("All"); setVisaType("All Jobs"); setEmployerType("All"); setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", ""); }}
-            style={{ padding: "5px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
-            ✕ Clear all filters
-          </button>
+          <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "10px", paddingTop: "10px" }}>
+            <button onClick={() => { setSector("All"); setVisaType("All Jobs"); setEmployerType("All"); setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", ""); }}
+              style={{ padding: "5px 14px", borderRadius: "20px", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)" }}>
+              ✕ Clear all filters
+            </button>
+          </div>
         )}
       </div>
 
@@ -917,8 +952,6 @@ function GuidePage({ navTo }) {
     </div>
   );
 }
-
-// ─── Universities Page ─────────────────────────────────────────────────────
 
 // ─── CV Analyser Tab ───────────────────────────────────────────────────────
 function CVAnalyserTab({ user, navTo }) {
@@ -1412,7 +1445,7 @@ const PAGE_SLUGS = {
   "Home": "",
   "AI Mentor": "ai-mentor",
   "Education Paths": "education",
-  "UK Universities": "universities",
+  "Universities": "universities",
   "Sponsorship Jobs": "jobs",
   "Visa Sponsors": "visa-sponsors",
   "Contact": "contact",
@@ -1744,8 +1777,8 @@ export default function Mentorgram() {
         </div>
       );
 
-      // ✅ UPDATED: UK Universities page now includes German universities section with tab switcher
-      case "UK Universities": return (
+      // ✅ UPDATED: Universities page now includes German universities section with tab switcher
+      case "Universities": return (
         <UniversitiesPage setChatInput={setChatInput} navTo={navTo} user={user} />
       );
 
