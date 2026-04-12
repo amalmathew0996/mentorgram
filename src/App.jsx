@@ -4,10 +4,11 @@ import AuthPage from "./Auth.jsx";
 import SponsorsPage from "./Sponsors.jsx";
 import Dashboard from "./Dashboard.jsx";
 import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
+import CVGenerator from "./CVGenerator.jsx";
 
 inject();
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "CV Generator", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
 const JOBS_PER_PAGE = 20;
@@ -1448,6 +1449,7 @@ const PAGE_SLUGS = {
   "Universities": "universities",
   "Sponsorship Jobs": "jobs",
   "Visa Sponsors": "visa-sponsors",
+  "CV Generator": "cv-generator",
   "Contact": "contact",
   "My Profile": "profile",
   "Privacy Policy": "privacy",
@@ -1788,6 +1790,21 @@ export default function Mentorgram() {
         <JobsPage allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt} onFetchJobs={fetchJobs}
           onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }}
           profileFilter={profileFilter} onClearProfileFilter={() => setProfileFilter(null)} />
+      );
+
+      case "CV Generator": return user ? (
+        <CVGenerator
+          user={user}
+          cvText={(() => { try { return JSON.parse(localStorage.getItem("mg_cv_analysis") || "{}").result ? JSON.stringify(JSON.parse(localStorage.getItem("mg_cv_analysis")).result) : ""; } catch { return ""; } })()}
+          onNavigateToCV={() => navTo("My Profile")}
+        />
+      ) : (
+        <div style={{ textAlign: "center", padding: "4rem 1.5rem" }}>
+          <div style={{ fontSize: "48px", marginBottom: "1rem" }}>🔒</div>
+          <h2 style={{ margin: "0 0 0.5rem" }}>Sign in to use CV Generator</h2>
+          <p style={{ color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>Create a free account to generate ATS-optimised CVs and cover letters tailored to any job.</p>
+          <button onClick={() => navTo("My Profile")} style={{ padding: "12px 28px", background: "#1A3FA8", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Sign in / Register →</button>
+        </div>
       );
 
       case "Contact": return <ContactPage />;
