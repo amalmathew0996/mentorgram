@@ -1792,19 +1792,17 @@ export default function Mentorgram() {
           profileFilter={profileFilter} onClearProfileFilter={() => setProfileFilter(null)} />
       );
 
-      case "CV Generator": return user ? (
+      case "CV Generator": return (
         <CVGenerator
           user={user}
-          cvText={(() => { try { return JSON.parse(localStorage.getItem("mg_cv_analysis") || "{}").result ? JSON.stringify(JSON.parse(localStorage.getItem("mg_cv_analysis")).result) : ""; } catch { return ""; } })()}
+          cvText={(() => { try { const a=JSON.parse(localStorage.getItem("mg_cv_analysis")||"{}"); return a.result ? JSON.stringify(a.result) : ""; } catch { return ""; } })()}
           onNavigateToCV={() => navTo("My Profile")}
+          onSignIn={() => {
+            // ✅ Fix 2: store return page so after sign-in they come back here
+            localStorage.setItem("mg_return_page", "CV Generator");
+            navTo("My Profile");
+          }}
         />
-      ) : (
-        <div style={{ textAlign: "center", padding: "4rem 1.5rem" }}>
-          <div style={{ fontSize: "48px", marginBottom: "1rem" }}>🔒</div>
-          <h2 style={{ margin: "0 0 0.5rem" }}>Sign in to use CV Generator</h2>
-          <p style={{ color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>Create a free account to generate ATS-optimised CVs and cover letters tailored to any job.</p>
-          <button onClick={() => navTo("My Profile")} style={{ padding: "12px 28px", background: "#1A3FA8", color: "#fff", border: "none", borderRadius: "var(--border-radius-md)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Sign in / Register →</button>
-        </div>
       );
 
       case "Contact": return <ContactPage />;
@@ -1822,7 +1820,12 @@ export default function Mentorgram() {
           onNavigate={navTo}
         />
       ) : (
-        <AuthPage onLogin={(u) => { setUser(u); }} onNavToHome={() => navTo("Home")} />
+        <AuthPage onLogin={(u) => {
+              setUser(u);
+              // ✅ Fix 2: return to the page they were trying to access
+              const returnPage = localStorage.getItem("mg_return_page");
+              if (returnPage) { localStorage.removeItem("mg_return_page"); setTimeout(() => navTo(returnPage), 100); }
+            }} onNavToHome={() => navTo("Home")} />
       );
 
       default: return null;
