@@ -130,27 +130,48 @@ export default async function handler(req, res) {
     // ── Step 2: Call Groq to generate tailored CV + cover letter ─────────
     const prompt = `CANDIDATE CV:\n${cvText.slice(0, 4000)}\n\nJOB DESCRIPTION:\n${jd.slice(0, 3000)}\n\nGenerate a tailored ATS-optimised CV and cover letter for this candidate applying to this role.`;
 
-    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + groqKey },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.3,
-        max_tokens: 3000,
-        messages: [
-          { role: "system", content: GROQ_SYSTEM },
-          { role: "user", content: prompt },
-        ],
-      }),
-    });
+    // Try models in order — fallback if rate limited
+    const MODELS = [
+      "llama-3.3-70b-versatile",
+      "llama-3.1-70b-versatile",
+      "llama3-70b-8192",
+      "mixtral-8x7b-32768",
+      "llama3-8b-8192",
+    ];
 
-    if (!groqRes.ok) {
-      const err = await groqRes.text();
-      return res.status(500).json({ error: "AI error: " + groqRes.status + " " + err.slice(0, 100) });
+    let raw = "";
+    let lastErr = "";
+    for (const model of MODELS) {
+      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + groqKey },
+        body: JSON.stringify({
+          model: model,
+          temperature: 0.3,
+          max_tokens: 3000,
+          messages: [
+            { role: "system", content: GROQ_SYSTEM },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
+      if (groqRes.status === 429 || groqRes.status === 503) {
+        lastErr = "Rate limited on " + model;
+        continue; // try next model
+      }
+      if (!groqRes.ok) {
+        const err = await groqRes.text();
+        lastErr = "AI error " + groqRes.status + " on " + model + ": " + err.slice(0, 100);
+        continue;
+      }
+      const groqData = await groqRes.json();
+      raw = groqData.choices?.[0]?.message?.content || "";
+      if (raw) break; // success
     }
 
-    const groqData = await groqRes.json();
-    const raw = groqData.choices?.[0]?.message?.content || "";
+    if (!raw) {
+      return res.status(429).json({ error: "All AI models are currently busy. Please try again in 30 seconds. (" + lastErr + ")" });
+    }
     const first = raw.indexOf("{");
     const last = raw.lastIndexOf("}");
     if (first === -1 || last === -1) return res.status(500).json({ error: "AI returned unexpected format" });
