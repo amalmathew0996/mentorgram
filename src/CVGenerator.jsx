@@ -127,10 +127,10 @@ function doDownloadPDF(cv, cl) {
         function hdg(text) { chk(30); y -= 8; txt(text, { font: boldFont, size: 11, color: BLUE }); chk(4); page.drawLine({ start: { x: margin, y: y + 2 }, end: { x: pageW - margin, y: y + 2 }, thickness: 0.8, color: BLUE }); y -= 6; }
         var contact = [cv.email, cv.phone, cv.location].filter(Boolean).join("  |  ");
         var nameW = boldFont.widthOfTextAtSize(cv.name || "", 20);
-        page.drawText(cv.name || "", { x: (pageW - nameW) / 2, y: y, size: 20, font: boldFont, color: DARK }); y -= 26;
+        var nameX = (pageW - nameW) * 0.5; page.drawText(cv.name || "", { x: nameX, y: y, size: 20, font: boldFont, color: DARK }); y -= 26;
         var cW = normFont.widthOfTextAtSize(contact, 9);
-        page.drawText(contact, { x: Math.max(margin, (pageW - cW) / 2), y: y, size: 9, font: normFont, color: GRAY }); y -= 18;
-        if (cv.atsScore) { var t = "ATS Score: " + cv.atsScore + "%"; var aW = normFont.widthOfTextAtSize(t, 8); page.drawText(t, { x: Math.max(margin, (pageW - aW) / 2), y: y, size: 8, font: normFont, color: GREEN }); y -= 16; }
+        var contX = Math.max(margin, (pageW - cW) * 0.5); page.drawText(contact, { x: contX, y: y, size: 9, font: normFont, color: GRAY }); y -= 18;
+        if (cv.atsScore) { var t = "ATS Score: " + cv.atsScore + "%"; var aW = normFont.widthOfTextAtSize(t, 8); var atsX = Math.max(margin, (pageW - aW) * 0.5); page.drawText(t, { x: atsX, y: y, size: 8, font: normFont, color: GREEN }); y -= 16; }
         y -= 4;
         hdg("PROFESSIONAL SUMMARY"); txt(cv.summary || ""); y -= 4;
         if (cv.experience && cv.experience.length > 0) { hdg("WORK EXPERIENCE"); cv.experience.forEach(function(e) { y -= 4; txt(e.title + "  |  " + e.company, { font: boldFont, size: 10 }); txt(e.startDate + " - " + e.endDate, { size: 9, color: GRAY }); (e.bullets || []).forEach(function(bl) { txt("- " + bl, { size: 9, indent: 10 }); }); }); y -= 4; }
@@ -138,7 +138,7 @@ function doDownloadPDF(cv, cl) {
         if (cv.skills && cv.skills.length > 0) { hdg("SKILLS"); txt(cv.skills.join("  |  "), { size: 9 }); y -= 4; }
         newPage();
         var clTitle = "COVER LETTER"; var clW = boldFont.widthOfTextAtSize(clTitle, 16);
-        page.drawText(clTitle, { x: (pageW - clW) / 2, y: y, size: 16, font: boldFont, color: BLUE }); y -= 22;
+        var clX = (pageW - clW) * 0.5; page.drawText(clTitle, { x: clX, y: y, size: 16, font: boldFont, color: BLUE }); y -= 22;
         page.drawLine({ start: { x: margin, y: y + 4 }, end: { x: pageW - margin, y: y + 4 }, thickness: 0.8, color: BLUE }); y -= 16;
         txt(cv.name || "", { font: boldFont }); txt(contact, { color: GRAY, size: 9 }); y -= 10;
         txt("Dear Hiring Manager,"); y -= 6;
