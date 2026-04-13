@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 
 var CARD = { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" };
 var INP = { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" };
-var SPIN_CSS = ".cvgen-spin{animation:cvgen-spin 1s linear infinite}@keyframes cvgen-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}";
+var SPIN_CSS = ".cvgen-spin" + "{" + "animation:cvgen-spin 1s linear infinite" + "}" + "@keyframes cvgen-spin" + "{" + "from" + "{" + "transform:rotate" + "(0deg)" + "}" + "to" + "{" + "transform:rotate" + "(360deg)" + "}" + "}";
 
 function mkBtn(primary, col) {
   return { padding: "10px 22px", borderRadius: "var(--border-radius-md)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", background: primary ? (col || "#1A3FA8") : "transparent", color: primary ? "#fff" : "var(--color-text-primary)", border: primary ? "none" : "0.5px solid var(--color-border-secondary)" };
@@ -10,7 +10,7 @@ function mkBtn(primary, col) {
 
 function atsRingStyle(score, color) {
   var deg = (score || 0) * 3.6;
-  return { width: "90px", height: "90px", borderRadius: "50%", background: "conic-gradient(" + color + " " + deg + "deg, var(--color-background-secondary) 0deg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 };
+  return { width: "90px", height: "90px", borderRadius: "50%", background: "conic-gradient(" + color + " " + deg + "deg, var(--color-background-secondary) 0deg" + ")", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 };
 }
 
 function loadScript(src) {
@@ -229,11 +229,33 @@ export default function CVGenerator(props) {
     { n: 3, label: "Download", desc: "ATS-optimised CV and cover letter ready to send" },
   ];
 
+
+  var STY_HEADER_BG = "linear-gradient(135deg, rgba(26,63,168,0.08), rgba(22,163,74,0.04))";
+  var STY_HEADER_BORDER = "rgba(26,63,168,0.2)";
+  var STY_STEP_ACTIVE_BG = "rgba(26,63,168,0.05)";
+  var STY_STEP_DONE_BG = "rgba(22,163,74,0.04)";
+  var STY_STEP_ACTIVE_BORDER = "#1A3FA8";
+  var STY_STEP_DONE_BORDER = "rgba(22,163,74,0.4)";
+  var STY_TIP_BG = "rgba(26,63,168,0.06)";
+  var STY_SPIN_BORDER = "2px solid rgba(26,63,168,0.2)";
+  var STY_SIGNIN_BORDER = "rgba(26,63,168,0.25)";
+  var STY_DOWNLOAD_BG = "linear-gradient(135deg, rgba(22,163,74,0.08), transparent)";
+  var STY_DOWNLOAD_BORDER = "rgba(22,163,74,0.2)";
+  var STY_ATS_BORDER_GREEN = "rgba(22,163,74,0.3)";
+  var STY_ATS_BORDER_AMBER = "rgba(245,158,11,0.3)";
+  var STY_ATS_BORDER_RED = "rgba(220,38,38,0.3)";
+  var STY_KW_BG = "rgba(22,163,74,0.12)";
+  var STY_SKILL_BORDER = "rgba(245,158,11,0.25)";
+  var STY_SKILL_BG = "rgba(245,158,11,0.03)";
+  var STY_SKILL_ITEM_BG = "rgba(220,38,38,0.1)";
+  var STY_SKILL_MED_BG = "rgba(245,158,11,0.1)";
+  var STY_SKILL_LOW_BG = "rgba(22,163,74,0.1)";
+
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "2rem 1.5rem" }}>
       <style>{SPIN_CSS}</style>
 
-      <div style={{ ...CARD, marginBottom: "1.25rem", background: "linear-gradient(135deg, rgba(26,63,168,0.08), rgba(22,163,74,0.04))", borderColor: "rgba(26,63,168,0.2)" }}>
+      <div style={{ ...CARD, marginBottom: "1.25rem", background: STY_HEADER_BG, borderColor: STY_HEADER_BORDER }}>
         <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
           <span style={{ fontSize: "40px" }}>🎯</span>
           <div>
@@ -249,7 +271,7 @@ export default function CVGenerator(props) {
         {STEPS.map(function(s) {
           return (
             <div key={s.n} onClick={function() { if (s.n < step) setStep(s.n); }}
-              style={{ ...CARD, padding: "1rem", cursor: s.n < step ? "pointer" : "default", borderColor: step === s.n ? "#1A3FA8" : step > s.n ? "rgba(22,163,74,0.4)" : "var(--color-border-tertiary)", background: step === s.n ? "rgba(26,63,168,0.05)" : step > s.n ? "rgba(22,163,74,0.04)" : "var(--color-background-primary)" }}>
+              style={{ ...CARD, padding: "1rem", cursor: s.n < step ? "pointer" : "default", borderColor: step === s.n ? STY_STEP_ACTIVE_BORDER : step > s.n ? STY_STEP_DONE_BORDER : "var(--color-border-tertiary)", background: step === s.n ? STY_STEP_ACTIVE_BG : step > s.n ? STY_STEP_DONE_BG : "var(--color-background-primary)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
                 <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: step > s.n ? "#16A34A" : step === s.n ? "#1A3FA8" : "var(--color-background-secondary)", color: step >= s.n ? "#fff" : "var(--color-text-secondary)", fontSize: "12px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {step > s.n ? "+" : s.n}
@@ -264,7 +286,7 @@ export default function CVGenerator(props) {
 
       {step === 1 && (
         <div style={CARD}>
-          <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "1.25rem", padding: "10px 14px", background: "rgba(26,63,168,0.06)", borderRadius: "var(--border-radius-md)" }}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "1.25rem", padding: "10px 14px", background: STY_TIP_BG, borderRadius: "var(--border-radius-md)" }}>
             <span style={{ fontSize: "20px" }}>💡</span>
             <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
               Upload any CV - it does not need to be perfect. We just need basic details like your name, experience and skills to tailor it. Even an old or rough draft works.
@@ -341,7 +363,7 @@ export default function CVGenerator(props) {
               {["Analysing job description...", "Matching your skills to requirements...", "Optimising for ATS keywords...", "Writing your tailored cover letter..."].map(function(msg, i) {
                 return (
                   <div key={i} style={{ display: "flex", gap: "10px", alignItems: "center", padding: "8px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }}>
-                    <div className="cvgen-spin" style={{ width: "12px", height: "12px", border: "2px solid rgba(26,63,168,0.2)", borderTopColor: "#1A3FA8", borderRadius: "50%", flexShrink: 0 }} />
+                    <div className="cvgen-spin" style={{ width: "12px", height: "12px", border: STY_SPIN_BORDER, borderTopColor: "#1A3FA8", borderRadius: "50%", flexShrink: 0 }} />
                     <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>{msg}</span>
                   </div>
                 );
@@ -354,7 +376,7 @@ export default function CVGenerator(props) {
       {step === 3 && result && result.data && (
         <div>
           {showSignIn && !user ? (
-            <div style={{ ...CARD, textAlign: "center", padding: "2.5rem", borderColor: "rgba(26,63,168,0.25)" }}>
+            <div style={{ ...CARD, textAlign: "center", padding: "2.5rem", borderColor: STY_SIGNIN_BORDER }}>
               <div style={{ fontSize: "48px", marginBottom: "1rem" }}>🔒</div>
               <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: 600 }}>Sign in to download your documents</h3>
               <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem", lineHeight: 1.6 }}>Your tailored CV and cover letter are ready. Create a free account to download them.</p>
@@ -365,7 +387,7 @@ export default function CVGenerator(props) {
             </div>
           ) : (
             <div style={{ display: "grid", gap: "1rem" }}>
-              <div style={{ ...CARD, background: "linear-gradient(135deg, rgba(22,163,74,0.08), transparent)", borderColor: "rgba(22,163,74,0.2)" }}>
+              <div style={{ ...CARD, background: STY_DOWNLOAD_BG, borderColor: STY_DOWNLOAD_BORDER }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                   <div>
                     <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "15px" }}>✅ {result.jobTitle} at {result.company}</p>
@@ -386,7 +408,7 @@ export default function CVGenerator(props) {
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: "1rem", alignItems: "start" }}>
                 <div style={{ display: "grid", gap: "1rem" }}>
 
-                  <div style={{ ...CARD, borderColor: atsScore >= 85 ? "rgba(22,163,74,0.3)" : atsScore >= 70 ? "rgba(245,158,11,0.3)" : "rgba(220,38,38,0.3)" }}>
+                  <div style={{ ...CARD, borderColor: atsScore >= 85 ? STY_ATS_BORDER_GREEN : atsScore >= 70 ? STY_ATS_BORDER_AMBER : STY_ATS_BORDER_RED }}>
                     <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "14px" }}>🎯 ATS Score</p>
                     <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem" }}>
                       <div style={atsRingStyle(atsScore, atsColor)}>
@@ -404,7 +426,7 @@ export default function CVGenerator(props) {
                         <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 6px" }}>Keywords matched</p>
                         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
                           {cv.keywordsMatched.map(function(k, i) {
-                            return <span key={i} style={{ padding: "2px 8px", borderRadius: "20px", fontSize: "11px", background: "rgba(22,163,74,0.12)", color: "#16A34A", fontWeight: 500 }}>✓ {k}</span>;
+                            return <span key={i} style={{ padding: "2px 8px", borderRadius: "20px", fontSize: "11px", background: STY_KW_BG, color: "#16A34A", fontWeight: 500 }}>✓ {k}</span>;
                           })}
                         </div>
                       </div>
@@ -412,14 +434,14 @@ export default function CVGenerator(props) {
                   </div>
 
                   {result.data.skillsToUpgrade && result.data.skillsToUpgrade.length > 0 && (
-                    <div style={{ ...CARD, borderColor: "rgba(245,158,11,0.25)", background: "rgba(245,158,11,0.03)" }}>
+                    <div style={{ ...CARD, borderColor: STY_SKILL_BORDER, background: STY_SKILL_BG }}>
                       <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "14px" }}>⚡ Skills to Develop for This Role</p>
                       <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "0 0 12px" }}>These skills appear in the job but were not found in your CV:</p>
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                         {result.data.skillsToUpgrade.map(function(s, i) {
                           var icon = s.priority === "High" ? "🔴" : s.priority === "Medium" ? "🟡" : "🟢";
                           var badgeColor = s.priority === "High" ? "#DC2626" : s.priority === "Medium" ? "#D97706" : "#16A34A";
-                          var badgeBg = s.priority === "High" ? "rgba(220,38,38,0.1)" : s.priority === "Medium" ? "rgba(245,158,11,0.1)" : "rgba(22,163,74,0.1)";
+                          var badgeBg = s.priority === "High" ? STY_SKILL_ITEM_BG : s.priority === "Medium" ? STY_SKILL_MED_BG : STY_SKILL_LOW_BG;
                           return (
                             <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "8px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }}>
                               <span style={{ fontSize: "14px", flexShrink: 0 }}>{icon}</span>
