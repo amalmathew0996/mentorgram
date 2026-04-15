@@ -1403,15 +1403,15 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
 
   return (
     <div style={S.section}>
-      <h2 style={S.sectionTitle}>University Finder</h2>
-      <p style={{ color: "var(--color-text-secondary)", margin: "0 0 1.5rem", fontSize: "15px" }}>Explore top UK and German universities — entry requirements, scholarships and CV matching.</p>
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>University Finder</h2>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "15px", margin: "0 0 1.75rem" }}>Explore top UK and German universities — entry requirements, scholarships and CV matching.</p>
 
-      {/* ── Country filter pills — centred ── */}
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "2rem" }}>
-        <div style={{ display: "inline-flex", gap: "6px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "5px", flexWrap: "wrap", justifyContent: "center" }}>
+        {/* ── Country tabs — equal width, centred ── */}
+        <div style={{ display: "inline-flex", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "5px", gap: "4px" }}>
           {["UK", "Germany"].map(key => (
             <button key={key} onClick={() => setActiveTab(key)}
-              style={{ padding: "8px 24px", borderRadius: "var(--border-radius-md)", border: "none", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.18s",
+              style={{ width: "180px", padding: "10px 0", borderRadius: "var(--border-radius-md)", border: "none", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.18s",
                 background: activeTab === key ? tabAccents[key] : "transparent",
                 color: activeTab === key ? "#fff" : "var(--color-text-secondary)",
                 boxShadow: activeTab === key ? "0 2px 8px rgba(0,0,0,0.15)" : "none" }}>
