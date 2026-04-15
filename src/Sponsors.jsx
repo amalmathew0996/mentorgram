@@ -208,8 +208,8 @@ export default function SponsorsPage() {
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "2rem 1.5rem" }}>
       <div ref={topRef}>
         {/* Header */}
-        <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.5rem", flexWrap: "wrap" }}>
+        <div style={{ marginBottom: "1.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
             <h2 style={{ fontSize: "1.8rem", fontWeight: 500, margin: 0, textAlign: "center" }}>Licensed Visa Sponsors</h2>
             <span style={{ ...S.tag("green") }}>🏛️ Home Office Register</span>
             {total > 0 && <span style={{ ...S.tag("purple") }}>{total.toLocaleString()} sponsors</span>}
