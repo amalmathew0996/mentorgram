@@ -23,12 +23,56 @@ const EDUCATION_SYSTEMS = [
 ];
 
 const UK_UNIVERSITIES = [
-  { name: "University of Oxford", rank: "#1 UK", focus: "Research & Humanities", entry: "AAA at A-Level", intl: "IELTS 7.0+", scholarships: "Rhodes, Clarendon" },
-  { name: "University of Cambridge", rank: "#2 UK", focus: "STEM & Research", entry: "A*AA at A-Level", intl: "IELTS 7.5+", scholarships: "Gates Cambridge" },
-  { name: "Imperial College London", rank: "#3 UK", focus: "Engineering & Medicine", entry: "A*AA at A-Level", intl: "IELTS 6.5+", scholarships: "Imperial Bursaries" },
-  { name: "University of Edinburgh", rank: "#5 UK", focus: "Medicine & Law", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Edinburgh Global" },
-  { name: "University of Manchester", rank: "#8 UK", focus: "Business & Technology", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "President's Award" },
-  { name: "King's College London", rank: "#6 UK", focus: "Medicine & Law", entry: "AAB at A-Level", intl: "IELTS 7.0+", scholarships: "King's Scholarships" },
+  { name: "University of Oxford", rank: "#1 UK", focus: "Research & Humanities", entry: "AAA at A-Level", intl: "IELTS 7.0+", scholarships: "Rhodes, Clarendon", website: "https://www.ox.ac.uk", city: "Oxford" },
+  { name: "University of Cambridge", rank: "#2 UK", focus: "STEM & Research", entry: "A*AA at A-Level", intl: "IELTS 7.5+", scholarships: "Gates Cambridge", website: "https://www.cam.ac.uk", city: "Cambridge" },
+  { name: "Imperial College London", rank: "#3 UK", focus: "Engineering & Medicine", entry: "A*AA at A-Level", intl: "IELTS 6.5+", scholarships: "Imperial Bursaries", website: "https://www.imperial.ac.uk", city: "London" },
+  { name: "UCL (University College London)", rank: "#4 UK", focus: "Multidisciplinary Research", entry: "A*AA at A-Level", intl: "IELTS 6.5+", scholarships: "UCL Global Undergraduate Award", website: "https://www.ucl.ac.uk", city: "London" },
+  { name: "University of Edinburgh", rank: "#5 UK", focus: "Medicine & Law", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Edinburgh Global", website: "https://www.ed.ac.uk", city: "Edinburgh" },
+  { name: "King's College London", rank: "#6 UK", focus: "Medicine & Law", entry: "AAB at A-Level", intl: "IELTS 7.0+", scholarships: "King's Scholarships", website: "https://www.kcl.ac.uk", city: "London" },
+  { name: "University of Manchester", rank: "#7 UK", focus: "Business & Technology", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "President's Award", website: "https://www.manchester.ac.uk", city: "Manchester" },
+  { name: "London School of Economics", rank: "#8 UK", focus: "Economics & Social Sciences", entry: "AAA at A-Level", intl: "IELTS 7.0+", scholarships: "LSE Excellence Awards", website: "https://www.lse.ac.uk", city: "London" },
+  { name: "University of Bristol", rank: "#9 UK", focus: "Engineering & Arts", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Think Big Scholarship", website: "https://www.bristol.ac.uk", city: "Bristol" },
+  { name: "University of Warwick", rank: "#10 UK", focus: "Business & Science", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Warwick Scholarship", website: "https://www.warwick.ac.uk", city: "Coventry" },
+  { name: "University of Glasgow", rank: "#11 UK", focus: "Medicine & Engineering", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "International Leadership Scholarship", website: "https://www.gla.ac.uk", city: "Glasgow" },
+  { name: "University of Birmingham", rank: "#12 UK", focus: "Medicine & Business", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "Global Masters Scholarship", website: "https://www.birmingham.ac.uk", city: "Birmingham" },
+  { name: "University of Sheffield", rank: "#13 UK", focus: "Engineering & Science", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "Sheffield Excellence Scholarship", website: "https://www.sheffield.ac.uk", city: "Sheffield" },
+  { name: "University of Leeds", rank: "#14 UK", focus: "Business & Arts", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Leeds International Scholarship", website: "https://www.leeds.ac.uk", city: "Leeds" },
+  { name: "University of Exeter", rank: "#15 UK", focus: "Business & Law", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "Global Excellence Scholarship", website: "https://www.exeter.ac.uk", city: "Exeter" },
+  { name: "University of Southampton", rank: "#16 UK", focus: "Engineering & Computing", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.soton.ac.uk", city: "Southampton" },
+  { name: "Newcastle University", rank: "#17 UK", focus: "Medicine & Engineering", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "Global Scholarship", website: "https://www.ncl.ac.uk", city: "Newcastle" },
+  { name: "University of Nottingham", rank: "#18 UK", focus: "Science & Business", entry: "AAB at A-Level", intl: "IELTS 6.0+", scholarships: "Nottingham Developing Solutions", website: "https://www.nottingham.ac.uk", city: "Nottingham" },
+  { name: "University of Liverpool", rank: "#19 UK", focus: "Medicine & Law", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "Vice-Chancellor's International Award", website: "https://www.liverpool.ac.uk", city: "Liverpool" },
+  { name: "Durham University", rank: "#20 UK", focus: "Science & Humanities", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Durham International Scholarship", website: "https://www.dur.ac.uk", city: "Durham" },
+  { name: "University of York", rank: "#21 UK", focus: "Science & Social Policy", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "York Humanitarian Scholarship", website: "https://www.york.ac.uk", city: "York" },
+  { name: "Cardiff University", rank: "#22 UK", focus: "Medicine & Engineering", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "International Excellence Scholarship", website: "https://www.cardiff.ac.uk", city: "Cardiff" },
+  { name: "University of Bath", rank: "#23 UK", focus: "Engineering & Business", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Chancellor's Scholarship", website: "https://www.bath.ac.uk", city: "Bath" },
+  { name: "University of St Andrews", rank: "#24 UK", focus: "Science & Arts", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "St Andrews Scholarship", website: "https://www.st-andrews.ac.uk", city: "St Andrews" },
+  { name: "Queen Mary University of London", rank: "#25 UK", focus: "Medicine & Law", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "Principal's Scholarship", website: "https://www.qmul.ac.uk", city: "London" },
+  { name: "University of Aberdeen", rank: "#26 UK", focus: "Medicine & Law", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Global Talent Scholarship", website: "https://www.abdn.ac.uk", city: "Aberdeen" },
+  { name: "University of Leicester", rank: "#27 UK", focus: "Medicine & Space Science", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.le.ac.uk", city: "Leicester" },
+  { name: "Loughborough University", rank: "#28 UK", focus: "Engineering & Sport", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Loughborough Global Award", website: "https://www.lboro.ac.uk", city: "Loughborough" },
+  { name: "University of Reading", rank: "#29 UK", focus: "Business & Agriculture", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.reading.ac.uk", city: "Reading" },
+  { name: "University of Surrey", rank: "#30 UK", focus: "Engineering & Hospitality", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.surrey.ac.uk", city: "Guildford" },
+  { name: "Brunel University London", rank: "#31 UK", focus: "Engineering & Design", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "Brunel International Excellence Scholarship", website: "https://www.brunel.ac.uk", city: "London" },
+  { name: "City, University of London", rank: "#32 UK", focus: "Business & Law", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "City Excellence Scholarship", website: "https://www.city.ac.uk", city: "London" },
+  { name: "Heriot-Watt University", rank: "#33 UK", focus: "Engineering & Business", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "Heriot-Watt International Scholarship", website: "https://www.hw.ac.uk", city: "Edinburgh" },
+  { name: "University of Strathclyde", rank: "#34 UK", focus: "Technology & Business", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Excellence Awards", website: "https://www.strath.ac.uk", city: "Glasgow" },
+  { name: "Aston University", rank: "#35 UK", focus: "Business & Engineering", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "Aston Excellence Scholarship", website: "https://www.aston.ac.uk", city: "Birmingham" },
+  { name: "University of Kent", rank: "#36 UK", focus: "Law & Social Sciences", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "Kent Excellence Scholarship", website: "https://www.kent.ac.uk", city: "Canterbury" },
+  { name: "University of East Anglia", rank: "#37 UK", focus: "Environmental Science & Creative Writing", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "International Scholarship", website: "https://www.uea.ac.uk", city: "Norwich" },
+  { name: "Coventry University", rank: "#38 UK", focus: "Business & Engineering", entry: "CCC at A-Level", intl: "IELTS 6.0+", scholarships: "Global Leaders Scholarship", website: "https://www.coventry.ac.uk", city: "Coventry" },
+  { name: "University of Portsmouth", rank: "#39 UK", focus: "Computing & Criminology", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.port.ac.uk", city: "Portsmouth" },
+  { name: "De Montfort University", rank: "#40 UK", focus: "Arts & Technology", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.dmu.ac.uk", city: "Leicester" },
+  { name: "Middlesex University", rank: "#41 UK", focus: "Business & Arts", entry: "CCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Scholarship", website: "https://www.mdx.ac.uk", city: "London" },
+  { name: "University of Greenwich", rank: "#42 UK", focus: "Business & Computing", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.gre.ac.uk", city: "London" },
+  { name: "Anglia Ruskin University", rank: "#43 UK", focus: "Health & Social Care", entry: "CCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.aru.ac.uk", city: "Cambridge" },
+  { name: "University of Hertfordshire", rank: "#44 UK", focus: "Business & Engineering", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Scholarship", website: "https://www.herts.ac.uk", city: "Hatfield" },
+  { name: "Kingston University London", rank: "#45 UK", focus: "Art & Design", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Award", website: "https://www.kingston.ac.uk", city: "London" },
+  { name: "University of the West of England", rank: "#46 UK", focus: "Business & Law", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "UWE Excellence Scholarship", website: "https://www.uwe.ac.uk", city: "Bristol" },
+  { name: "Northumbria University", rank: "#47 UK", focus: "Law & Design", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.northumbria.ac.uk", city: "Newcastle" },
+  { name: "University of Huddersfield", rank: "#48 UK", focus: "Engineering & Music", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.hud.ac.uk", city: "Huddersfield" },
+  { name: "University of Lincoln", rank: "#49 UK", focus: "Business & Computing", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "Lincoln International Scholarship", website: "https://www.lincoln.ac.uk", city: "Lincoln" },
+  { name: "Keele University", rank: "#50 UK", focus: "Medicine & Science", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Keele International Scholarship", website: "https://www.keele.ac.uk", city: "Staffordshire" },
 ];
 
 // ✅ Full German universities list — 155 institutions across all types
@@ -1321,10 +1365,21 @@ function IntakeCalendar({ country }) {
 
 function UniversitiesPage({ setChatInput, navTo, user }) {
   const [activeTab, setActiveTab] = useState("UK");
+  const [ukSearch, setUkSearch] = useState("");
+  const [ukPage, setUkPage] = useState(1);
   const [deFilter, setDeFilter] = useState("All");
   const [deSearch, setDeSearch] = useState("");
   const [dePage, setDePage] = useState(1);
+  const UK_PER_PAGE = 12;
   const DE_PER_PAGE = 24;
+
+  const filteredUK = UK_UNIVERSITIES.filter(u => {
+    const q = ukSearch.toLowerCase().trim();
+    return !q || u.name.toLowerCase().includes(q) || (u.focus || "").toLowerCase().includes(q) || (u.city || "").toLowerCase().includes(q);
+  });
+  const totalUKPages = Math.max(1, Math.ceil(filteredUK.length / UK_PER_PAGE));
+  const safeUKPage = Math.min(ukPage, totalUKPages);
+  const paginatedUK = filteredUK.slice((safeUKPage - 1) * UK_PER_PAGE, safeUKPage * UK_PER_PAGE);
 
   const publicCount  = GERMAN_UNIVERSITIES.filter(u => u.type === "Public").length;
   const privateCount = GERMAN_UNIVERSITIES.filter(u => u.type === "Private").length;
@@ -1373,29 +1428,80 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
           {/* ── Intake Calendar ── */}
           <IntakeCalendar country="UK" />
 
+          {/* Search */}
+          <div style={{ position: "relative", marginBottom: "1rem", display: "flex", alignItems: "center" }}>
+            <input
+              style={{ padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" }}
+              placeholder="🔍 Search universities by name, subject or city..."
+              value={ukSearch}
+              onChange={e => { setUkSearch(e.target.value); setUkPage(1); }}
+            />
+            {ukSearch && <button onClick={() => { setUkSearch(""); setUkPage(1); }} style={{ position: "absolute", right: "10px", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: "18px", lineHeight: 1, padding: 0 }}>×</button>}
+          </div>
+
+          <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
+            Showing <strong>{paginatedUK.length}</strong> of <strong>{filteredUK.length}</strong> universities
+            {ukSearch && <span> · matching "{ukSearch}"</span>}
+          </p>
+
           <div style={S.grid2}>
-            {UK_UNIVERSITIES.map(u => (
-              <div key={u.name} style={S.card}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
-                  <p style={{ fontWeight: 500, margin: 0, fontSize: "15px" }}>{u.name}</p>
-                  <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "rgba(26,63,168,0.15)", color: "#1A3FA8" }}>{u.rank}</span>
-                </div>
-                <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: "0 0 10px" }}>{u.focus}</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {[["UK entry", u.entry], ["International", u.intl], ["Scholarships", u.scholarships]].map(([l, v]) => (
-                    <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
-                      <span style={{ color: "var(--color-text-secondary)" }}>{l}</span>
-                      <span style={{ color: l === "Scholarships" ? "#1A3FA8" : "inherit" }}>{v}</span>
+            {paginatedUK.map(u => (
+              <div key={u.name} style={{ ...S.card, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px", gap: "8px" }}>
+                    <div>
+                      <p style={{ fontWeight: 600, margin: "0 0 2px", fontSize: "14px", lineHeight: 1.3 }}>{u.name}</p>
+                      {u.city && <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>📍 {u.city}</p>}
                     </div>
-                  ))}
+                    <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 600, background: "rgba(26,63,168,0.15)", color: "#1A3FA8", whiteSpace: "nowrap", flexShrink: 0 }}>{u.rank}</span>
+                  </div>
+                  <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: "0 0 10px" }}>{u.focus}</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "12px" }}>
+                    {[["UK entry", u.entry], ["International", u.intl], ["Scholarships", u.scholarships]].map(([l, v]) => (
+                      <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", gap: "8px" }}>
+                        <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>{l}</span>
+                        <span style={{ color: l === "Scholarships" ? "#1A3FA8" : "inherit", textAlign: "right" }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <button style={{ marginTop: "12px", padding: "8px 16px", fontSize: "13px", width: "100%", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", cursor: "pointer", fontFamily: "inherit" }}
-                  onClick={() => { setChatInput("Tell me more about " + u.name + " — courses, tips and scholarships"); navTo("AI Mentor"); }}>
-                  Ask AI Mentor ↗
-                </button>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  {u.website && (
+                    <a href={u.website} target="_blank" rel="noopener noreferrer"
+                      style={{ flex: 1, padding: "7px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, textAlign: "center", textDecoration: "none", border: "0.5px solid rgba(26,63,168,0.3)", color: "#1A3FA8", background: "transparent" }}>
+                      Visit ↗
+                    </a>
+                  )}
+                  <button style={{ flex: 1, padding: "7px 10px", fontSize: "12px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", cursor: "pointer", fontFamily: "inherit" }}
+                    onClick={() => { setChatInput("Tell me more about " + u.name + " — courses, tips and scholarships"); navTo("AI Mentor"); }}>
+                    Ask Mentor ↗
+                  </button>
+                </div>
               </div>
             ))}
           </div>
+
+          {filteredUK.length === 0 && (
+            <div style={{ ...S.card, textAlign: "center", padding: "2.5rem" }}>
+              <p style={{ fontSize: "1.5rem", margin: "0 0 0.75rem" }}>🔍</p>
+              <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No universities found</p>
+              <button style={{ padding: "8px 20px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", cursor: "pointer", fontFamily: "inherit", fontSize: "13px" }} onClick={() => setUkSearch("")}>Clear search</button>
+            </div>
+          )}
+
+          {totalUKPages > 1 && (
+            <div style={{ marginTop: "1.5rem" }}>
+              <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
+                {safeUKPage > 1 && <button style={S.pageBtn(false)} onClick={() => setUkPage(p => p - 1)}>← Prev</button>}
+                {Array.from({ length: Math.min(totalUKPages, 7) }, (_, i) => {
+                  const p = totalUKPages <= 7 ? i + 1 : safeUKPage <= 4 ? i + 1 : safeUKPage >= totalUKPages - 3 ? totalUKPages - 6 + i : safeUKPage - 3 + i;
+                  return <button key={p} style={S.pageBtn(p === safeUKPage)} onClick={() => setUkPage(p)}>{p}</button>;
+                })}
+                {safeUKPage < totalUKPages && <button style={S.pageBtn(false)} onClick={() => setUkPage(p => p + 1)}>Next →</button>}
+              </div>
+              <p style={{ textAlign: "center", fontSize: "12px", color: "var(--color-text-secondary)", marginTop: "0.5rem" }}>Page {safeUKPage} of {totalUKPages} · {filteredUK.length} universities</p>
+            </div>
+          )}
         </div>
       )}
 
