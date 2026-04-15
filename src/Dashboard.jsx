@@ -354,7 +354,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
   const cvResult = cvAnalysis?.result;
   // Build cv text from analysis result for the generator
-  const cvTextForGen = cvResult ? JSON.stringify(cvResult) : "";
+  const cvTextForGen = ""; // User uploads CV fresh in generator
   const cvMapped = cvResult ? mapCVResultToProfile(cvResult) : null;
 
   if (loading) return (
