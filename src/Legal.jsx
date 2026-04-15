@@ -14,7 +14,7 @@ const S = {
 export function PrivacyPage() {
   return (
     <div style={S.page}>
-      <h1 style={S.h1}>Privacy Policy</h1>
+      <h1 style={{ ...S.h1, textAlign: "center" }}>Privacy Policy</h1>
       <p style={S.updated}>Last updated: March 2026 · Mentorgram AI Limited</p>
       <div style={S.card}>
 
@@ -110,7 +110,7 @@ export function PrivacyPage() {
 export function TermsPage() {
   return (
     <div style={S.page}>
-      <h1 style={S.h1}>Terms & Conditions</h1>
+      <h1 style={{ ...S.h1, textAlign: "center" }}>Terms & Conditions</h1>
       <p style={S.updated}>Last updated: March 2026 · Mentorgram AI Limited</p>
       <div style={S.card}>
 
