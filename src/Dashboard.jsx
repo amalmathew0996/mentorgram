@@ -1,3 +1,4 @@
+import CVGenerator from "./CVGenerator.jsx";
 import { useState, useEffect, useRef } from "react";
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -141,6 +142,10 @@ function mapCVResultToProfile(result) {
     careerPaths: careers,
     universities: unis,
   };
+}
+
+function CVBuilderInline({ cvText }) {
+  return <CVGenerator cvText={cvText} onNavigateToCV={null} />;
 }
 
 export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, onNavigate }) {
@@ -343,10 +348,13 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     { id: "cv",       label: "CV Analysis", icon: "📄", badge: cvAnalysis ? "✓" : null },
     { id: "profile",  label: "My Profile",  icon: "👤" },
     { id: "matches",  label: "Job Matches", icon: "🎯", count: matchedJobs.length },
+    { id: "cvgen",    label: "CV Builder",   icon: "✍️" },
     { id: "security", label: "Security",    icon: "🔒" },
   ];
 
   const cvResult = cvAnalysis?.result;
+  // Build cv text from analysis result for the generator
+  const cvTextForGen = cvResult ? JSON.stringify(cvResult) : "";
   const cvMapped = cvResult ? mapCVResultToProfile(cvResult) : null;
 
   if (loading) return (
@@ -778,6 +786,22 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── CV BUILDER ── */}
+      {tab === "cvgen" && (
+        <div>
+          {!cvResult ? (
+            <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
+              <p style={{ fontSize: "2.5rem", margin: "0 0 1rem" }}>✍️</p>
+              <p style={{ fontWeight: 600, margin: "0 0 8px", fontSize: "16px" }}>Generate a tailored CV for any job</p>
+              <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: "0 0 1.5rem", lineHeight: 1.6 }}>First analyse your CV in the CV Analysis tab, then come back here to generate ATS-optimised CVs and cover letters for any job in seconds.</p>
+              <button onClick={() => setTab("cv")} style={{ ...btn(true), background: "#7C3AED", padding: "10px 24px" }}>Go to CV Analysis →</button>
+            </div>
+          ) : (
+            <CVBuilderInline cvText={cvTextForGen} />
           )}
         </div>
       )}
