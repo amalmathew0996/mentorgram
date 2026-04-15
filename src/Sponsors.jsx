@@ -209,10 +209,12 @@ export default function SponsorsPage() {
       <div ref={topRef}>
         {/* Header */}
         <div style={{ marginBottom: "1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-            <h2 style={{ fontSize: "1.8rem", fontWeight: 500, margin: 0, textAlign: "center" }}>Licensed Visa Sponsors</h2>
-            <span style={{ ...S.tag("green") }}>🏛️ Home Office Register</span>
-            {total > 0 && <span style={{ ...S.tag("purple") }}>{total.toLocaleString()} sponsors</span>}
+          <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
+            <h2 style={{ fontSize: "1.8rem", fontWeight: 500, margin: "0 0 10px" }}>Licensed Visa Sponsors</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
+              <span style={{ ...S.tag("green") }}>🏛️ Home Office Register</span>
+              {total > 0 && <span style={{ padding: "3px 12px", borderRadius: "20px", fontSize: "13px", fontWeight: 600, background: "rgba(26,63,168,0.15)", color: "#1A3FA8", border: "0.5px solid rgba(26,63,168,0.3)" }}>{total.toLocaleString()} sponsors</span>}
+            </div>
           </div>
           <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: "15px", textAlign: "center" }}>
             Every employer licensed by the UK Home Office to sponsor Skilled Worker and Health & Care visas — sourced live from the official GOV.UK register.
