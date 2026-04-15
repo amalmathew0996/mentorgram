@@ -213,7 +213,7 @@ export default function SponsorsPage() {
             <h2 style={{ fontSize: "1.8rem", fontWeight: 500, margin: "0 0 10px" }}>Licensed Visa Sponsors</h2>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
               <span style={{ ...S.tag("green") }}>🏛️ Home Office Register</span>
-              {total > 0 && <span style={{ padding: "3px 12px", borderRadius: "20px", fontSize: "13px", fontWeight: 600, background: "rgba(26,63,168,0.15)", color: "#1A3FA8", border: "0.5px solid rgba(26,63,168,0.3)" }}>{total.toLocaleString()} sponsors</span>}
+              {total > 0 && <span style={{ padding: "3px 12px", borderRadius: "20px", fontSize: "13px", fontWeight: 600, background: "#1A3FA8", color: "#fff" }}>{total.toLocaleString()} sponsors</span>}
             </div>
           </div>
           <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: "15px", textAlign: "center" }}>
