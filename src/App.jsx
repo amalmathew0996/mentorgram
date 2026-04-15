@@ -1255,6 +1255,70 @@ function CVAnalyserTab({ user, navTo }) {
 }
 
 // ─── Universities Page ─────────────────────────────────────────────────────
+// ─── Intake Calendar Component ──────────────────────────────────────────────
+function IntakeCalendar({ country }) {
+  const isDE = country === "Germany";
+  const intakes = isDE ? [
+    { intake: "Winter Semester", period: "Oct – Mar", deadline: "July 15", prepStart: "Jan – Feb", color: "#1A3FA8", icon: "❄️",
+      steps: ["Research programmes (Jan–Feb)", "Prepare documents (Mar–Apr)", "Language test if needed (Apr–May)", "Submit application by July 15", "Receive offer (Aug)", "Apply for student visa (Aug–Sep)", "Arrive & enrol (Oct)"] },
+    { intake: "Summer Semester", period: "Apr – Sep", deadline: "January 15", prepStart: "Jul – Aug (prior year)", color: "#16A34A", icon: "🌸",
+      steps: ["Research programmes (Jul–Aug)", "Prepare documents (Sep–Oct)", "Language test if needed (Oct–Nov)", "Submit application by Jan 15", "Receive offer (Feb)", "Apply for student visa (Feb–Mar)", "Arrive & enrol (Apr)"] },
+  ] : [
+    { intake: "September Intake", period: "Sep – Jun", deadline: "Jan 31 (UCAS)", prepStart: "12–18 months before", color: "#1A3FA8", icon: "🎓",
+      steps: ["Research courses & unis (Jan–Mar)", "Attend open days (Apr–Jun)", "Write personal statement (Jun–Aug)", "Submit UCAS by Jan 31", "Receive offers (Feb–May)", "Confirm place (May)", "Apply for student visa (Jun–Aug)", "Arrive & enrol (Sep)"] },
+    { intake: "January Intake", period: "Jan – May", deadline: "Oct / Nov", prepStart: "6–12 months before", color: "#7C3AED", icon: "🌟",
+      steps: ["Check if your course has Jan entry", "Apply direct to university", "Receive offer (Oct–Nov)", "Apply for student visa (Nov–Dec)", "Arrive & enrol (Jan)"] },
+    { intake: "Postgraduate (Masters)", period: "Sep or Jan", deadline: "Rolling admissions", prepStart: "9–12 months before", color: "#FF4500", icon: "📚",
+      steps: ["Research programmes (9–12 months before)", "Request references (6–9 months before)", "Write statement of purpose", "Apply to universities", "Receive offer & CAS letter", "Apply for student visa", "Enrol"] },
+  ];
+
+  return (
+    <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "1.5rem" }}>
+      <div style={{ marginBottom: "1.25rem" }}>
+        <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>📅 Intake Calendar — {isDE ? "Germany" : "United Kingdom"}</h3>
+        <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Key application deadlines and when to start preparing</p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" }}>
+        {intakes.map(function(item, i) {
+          return (
+            <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", borderLeft: "3px solid " + item.color }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                <span style={{ fontSize: "22px" }}>{item.icon}</span>
+                <div>
+                  <p style={{ fontWeight: 700, margin: "0 0 2px", fontSize: "14px" }}>{item.intake}</p>
+                  <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{item.period}</p>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
+                <div style={{ background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", padding: "8px 10px" }}>
+                  <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Deadline</p>
+                  <p style={{ fontWeight: 700, fontSize: "13px", margin: 0, color: item.color }}>{item.deadline}</p>
+                </div>
+                <div style={{ background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", padding: "8px 10px" }}>
+                  <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Start preparing</p>
+                  <p style={{ fontWeight: 600, fontSize: "12px", margin: 0 }}>{item.prepStart}</p>
+                </div>
+              </div>
+              <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 6px" }}>Timeline</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                {item.steps.map(function(step, j) {
+                  return (
+                    <div key={j} style={{ display: "flex", gap: "7px", alignItems: "flex-start" }}>
+                      <div style={{ width: "16px", height: "16px", borderRadius: "50%", background: item.color, color: "#fff", fontSize: "9px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "2px" }}>{j + 1}</div>
+                      <p style={{ fontSize: "11px", margin: 0, lineHeight: 1.5 }}>{step}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
 function UniversitiesPage({ setChatInput, navTo, user }) {
   const [activeTab, setActiveTab] = useState("UK");
   const [deFilter, setDeFilter] = useState("All");
@@ -1287,24 +1351,28 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
       <h2 style={S.sectionTitle}>University Finder</h2>
       <p style={{ color: "var(--color-text-secondary)", margin: "0 0 1.5rem", fontSize: "15px" }}>Explore top UK and German universities — entry requirements, scholarships and CV matching.</p>
 
-      <div style={{ display: "flex", gap: "6px", marginBottom: "2rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "5px", width: "fit-content", flexWrap: "wrap" }}>
-        {tabKeys.map(key => (
-          <button key={key} onClick={() => setActiveTab(key)}
-            style={{ padding: "8px 18px", borderRadius: "var(--border-radius-md)", border: "none", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.18s",
-              background: activeTab === key ? tabAccents[key] : "transparent",
-              color: activeTab === key ? "#fff" : "var(--color-text-secondary)",
-              boxShadow: activeTab === key ? "0 2px 8px rgba(0,0,0,0.15)" : "none" }}>
-            {tabLabels[key]}
-            {key === "CV Matcher" && activeTab !== key && (
-              <span style={{ marginLeft: "5px", fontSize: "9px", padding: "1px 5px", borderRadius: "4px", background: "rgba(124,58,237,0.15)", color: "#7C3AED", fontWeight: 700 }}>NEW</span>
-            )}
-          </button>
-        ))}
+      {/* ── Country filter pills — centred ── */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: "2rem" }}>
+        <div style={{ display: "inline-flex", gap: "6px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "5px", flexWrap: "wrap", justifyContent: "center" }}>
+          {["UK", "Germany"].map(key => (
+            <button key={key} onClick={() => setActiveTab(key)}
+              style={{ padding: "8px 24px", borderRadius: "var(--border-radius-md)", border: "none", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.18s",
+                background: activeTab === key ? tabAccents[key] : "transparent",
+                color: activeTab === key ? "#fff" : "var(--color-text-secondary)",
+                boxShadow: activeTab === key ? "0 2px 8px rgba(0,0,0,0.15)" : "none" }}>
+              {tabLabels[key]}
+            </button>
+          ))}
+        </div>
       </div>
 
       {activeTab === "UK" && (
         <div>
           <p style={{ color: "var(--color-text-secondary)", fontSize: "15px", margin: "0 0 1.5rem" }}>Top UK universities ranked by reputation, research output and student experience.</p>
+
+          {/* ── Intake Calendar ── */}
+          <IntakeCalendar country="UK" />
+
           <div style={S.grid2}>
             {UK_UNIVERSITIES.map(u => (
               <div key={u.name} style={S.card}>
@@ -1349,6 +1417,9 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
               </div>
             ))}
           </div>
+
+          {/* ── Intake Calendar ── */}
+          <IntakeCalendar country="Germany" />
 
           <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, minWidth: "200px", display: "flex", alignItems: "center" }}>
@@ -1438,64 +1509,7 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
       {activeTab !== "CV Matcher" && (
         <div style={{ marginTop: "2.5rem", display: "grid", gap: "1.5rem" }}>
 
-          {/* Intake Calendar */}
-          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
-              <div>
-                <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>📅 Intake Calendar {activeTab === "Germany" ? "— Germany" : "— United Kingdom"}</h3>
-                <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Key application dates and when to start preparing</p>
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
-              {(activeTab === "Germany" ? [
-                { intake: "Winter Semester", period: "October – March", deadline: "July 15", prepStart: "January – February", color: "#1A3FA8", icon: "❄️",
-                  steps: ["Research programmes (Jan–Feb)", "Prepare documents (Mar–Apr)", "Language test if needed (Apr–May)", "Submit application by July 15", "Receive offer (Aug)", "Apply for student visa (Aug–Sep)", "Arrive & enrol (October)"] },
-                { intake: "Summer Semester", period: "April – September", deadline: "January 15", prepStart: "July – August (prior year)", color: "#16A34A", icon: "🌸",
-                  steps: ["Research programmes (Jul–Aug)", "Prepare documents (Sep–Oct)", "Language test if needed (Oct–Nov)", "Submit application by Jan 15", "Receive offer (Feb)", "Apply for student visa (Feb–Mar)", "Arrive & enrol (April)"] },
-              ] : [
-                { intake: "September Intake", period: "September – June", deadline: "January 31 (UCAS)", prepStart: "12–18 months before", color: "#1A3FA8", icon: "🎓",
-                  steps: ["Research courses & unis (Jan–Mar)", "Attend open days (Apr–Jun)", "Write personal statement (Jun–Aug)", "Submit UCAS by Jan 31", "Receive offers (Feb–May)", "Confirm place (May)", "Apply for student visa (Jun–Aug)", "Arrive & enrol (September)"] },
-                { intake: "January Intake", period: "January – May", deadline: "October/November", prepStart: "6–12 months before", color: "#7C3AED", icon: "🌟",
-                  steps: ["Check if your course has Jan entry (not all do)", "Apply direct to university", "Receive offer (Oct–Nov)", "Apply for student visa (Nov–Dec)", "Arrive & enrol (January)"] },
-                { intake: "Postgraduate (Masters)", period: "September or January", deadline: "Varies by uni (rolling)", prepStart: "9–12 months before", color: "#FF4500", icon: "📚",
-                  steps: ["Research programmes (9–12 months before)", "Request references (6–9 months before)", "Write statement of purpose (6 months before)", "Apply to universities (rolling admissions)", "Receive offer & accept", "CAS letter from uni", "Apply for student visa", "Enrol"] },
-              ])
-              .map(function(item, i) {
-                return (
-                  <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", borderLeft: "3px solid " + item.color }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                      <span style={{ fontSize: "24px" }}>{item.icon}</span>
-                      <div>
-                        <p style={{ fontWeight: 700, margin: "0 0 2px", fontSize: "14px" }}>{item.intake}</p>
-                        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{item.period}</p>
-                      </div>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
-                      <div style={{ background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", padding: "8px 10px" }}>
-                        <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Application deadline</p>
-                        <p style={{ fontWeight: 600, fontSize: "13px", margin: 0, color: item.color }}>{item.deadline}</p>
-                      </div>
-                      <div style={{ background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", padding: "8px 10px" }}>
-                        <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Start preparing</p>
-                        <p style={{ fontWeight: 600, fontSize: "13px", margin: 0 }}>{item.prepStart}</p>
-                      </div>
-                    </div>
-                    <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 6px" }}>Step-by-step timeline</p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      {item.steps.map(function(step, j) {
-                        return (
-                          <div key={j} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                            <div style={{ width: "18px", height: "18px", borderRadius: "50%", background: item.color, color: "#fff", fontSize: "10px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "1px" }}>{j + 1}</div>
-                            <p style={{ fontSize: "12px", margin: 0, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{step}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+
 
           {/* Latest University News */}
           <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
@@ -1564,8 +1578,39 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
         </div>
       )}
 
+      {/* ── CV Matcher promo card — always shown below ── */}
+      {activeTab !== "CV Matcher" && (
+        <div style={{ marginTop: "2rem", background: "linear-gradient(135deg, rgba(124,58,237,0.08), rgba(26,63,168,0.06))", border: "0.5px solid rgba(124,58,237,0.25)", borderRadius: "var(--border-radius-lg)", padding: "2rem", textAlign: "center" }}>
+          <div style={{ fontSize: "48px", marginBottom: "1rem" }}>🎯</div>
+          <h3 style={{ margin: "0 0 8px", fontSize: "1.2rem", fontWeight: 600 }}>Find the university and course that matches your experience</h3>
+          <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem", lineHeight: 1.7, maxWidth: "540px", marginLeft: "auto", marginRight: "auto" }}>
+            Upload your CV and our AI will analyse your background, skills and qualifications — then recommend the best matching courses across UK and German universities tailored specifically to you.
+          </p>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap", marginBottom: "1.25rem" }}>
+            {["🎓 Undergraduate", "📚 Masters", "🔬 PhD"].map(function(level) {
+              return <span key={level} style={{ padding: "5px 14px", borderRadius: "20px", fontSize: "12px", background: "rgba(124,58,237,0.12)", color: "#7C3AED", fontWeight: 500 }}>{level}</span>;
+            })}
+          </div>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={function() { setActiveTab("CV Matcher"); }}
+              style={{ padding: "12px 32px", borderRadius: "var(--border-radius-md)", background: "#7C3AED", color: "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              ✨ Match My CV to Universities
+            </button>
+          </div>
+        </div>
+      )}
+
       {activeTab === "CV Matcher" && (
-        <CVAnalyserTab user={user} navTo={navTo} />
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+            <button onClick={function() { setActiveTab("UK"); }}
+              style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", background: "var(--color-background-secondary)", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-tertiary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }}>
+              ← Back to universities
+            </button>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--color-text-secondary)" }}>CV Matcher — find courses tailored to your background</p>
+          </div>
+          <CVAnalyserTab user={user} navTo={navTo} />
+        </div>
       )}
     </div>
   );
