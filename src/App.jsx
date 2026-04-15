@@ -517,8 +517,8 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   return (
     <div style={S.section}>
       <div ref={topRef}>
-        <h2 style={S.sectionTitle}>Sponsorship jobs</h2>
-        <p style={{ ...S.sectionSub, marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — updated live.</p>
+        <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>Sponsorship jobs</h2>
+        <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — updated live.</p>
       </div>
 
       {/* Search box */}
@@ -830,8 +830,8 @@ function ContactPage() {
   return (
     <div style={S.section}>
       <div style={{ maxWidth: "540px", margin: "0 auto" }}>
-        <h2 style={S.sectionTitle}>Get in touch</h2>
-        <p style={S.sectionSub}>Have questions about Mentorgram? We'd love to hear from you.</p>
+        <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>Get in touch</h2>
+        <p style={{ ...S.sectionSub, textAlign: "center" }}>Have questions about Mentorgram? We'd love to hear from you.</p>
 
         {status === "success" ? (
           <div style={{ textAlign: "center", padding: "2rem 1rem", position: "relative", overflow: "hidden" }}>
@@ -2135,8 +2135,8 @@ export default function Mentorgram() {
 
       case "Education Paths": return (
         <div style={S.section}>
-          <h2 style={S.sectionTitle}>Education pathways</h2>
-          <p style={S.sectionSub}>Supporting students from all major education systems worldwide.</p>
+          <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>Education pathways</h2>
+          <p style={{ ...S.sectionSub, textAlign: "center" }}>Supporting students from all major education systems worldwide.</p>
           <div style={S.grid2}>
             {EDUCATION_SYSTEMS.map(e => (
               <div key={e.country} style={S.card}>
