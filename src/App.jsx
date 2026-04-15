@@ -1773,7 +1773,7 @@ export default function Mentorgram() {
   }
 
   const [activePage, setActivePage] = useState(getInitialPage);
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I'm your Mentorgram AI Mentor 👋 I can help with education pathways, UK university applications, career guidance, and visa-sponsored jobs. What would you like to explore?" }]);
+  const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I'm the Mentorgram AI Mentor 👋\n\nI'm here to help you navigate studying and working in the UK and Germany — completely free. I can help you with:\n\n• UK university applications and UCAS\n• Finding visa sponsorship jobs\n• Career planning and CV advice\n• German universities and DAAD scholarships\n• Student visa guidance\n\nMentorgram also has a live jobs board with 15,000+ visa sponsorship roles, a University Finder and a CV Generator — all free at mentorgramai.com 🚀\n\nWhat would you like to explore today?" }]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [allJobs, setAllJobs] = useState(() => {
@@ -2168,8 +2168,28 @@ export default function Mentorgram() {
                   background: m.role === "user" ? "#1A3FA8" : "var(--color-background-primary)",
                   color: m.role === "user" ? "#fff" : "var(--color-text-primary)",
                   border: m.role === "user" ? "none" : "0.5px solid var(--color-border-tertiary)",
-                  fontSize: "14px", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>
-                  {m.content}
+                  fontSize: "14px", lineHeight: 1.65 }}>
+                  {m.role === "user" ? m.content : m.content.split("\n").map((line, li) => {
+                    const trimmed = line.trim();
+                    // Bold: **text**
+                    const parseBold = (text) => {
+                      const parts = text.split(/\*\*(.*?)\*\*/g);
+                      return parts.map((p, pi) => pi % 2 === 1 ? <strong key={pi}>{p}</strong> : p);
+                    };
+                    // Bullet: lines starting with * + - •
+                    if (/^[\*\+\-•]\s/.test(trimmed)) {
+                      return <div key={li} style={{ display: "flex", gap: "8px", marginTop: "4px" }}><span style={{ color: "#1A3FA8", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>•</span><span>{parseBold(trimmed.slice(2))}</span></div>;
+                    }
+                    // Numbered: 1. 2. etc
+                    if (/^\d+\.\s/.test(trimmed)) {
+                      const num = trimmed.match(/^(\d+)\.\s/)[1];
+                      return <div key={li} style={{ display: "flex", gap: "8px", marginTop: "4px" }}><span style={{ color: "#1A3FA8", fontWeight: 700, flexShrink: 0, minWidth: "16px" }}>{num}.</span><span>{parseBold(trimmed.replace(/^\d+\.\s/, ""))}</span></div>;
+                    }
+                    // Empty line
+                    if (!trimmed) return <div key={li} style={{ height: "6px" }} />;
+                    // Normal line
+                    return <div key={li} style={{ marginTop: li === 0 ? 0 : "4px" }}>{parseBold(trimmed)}</div>;
+                  })}
                 </div>
                 {m.role === "user" && (
                   <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "12px", flexShrink: 0, marginTop: "2px" }}>
