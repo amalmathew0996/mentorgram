@@ -2165,7 +2165,7 @@ export default function Mentorgram() {
       case "CV Generator": return (
         <CVGenerator
           user={user}
-          cvText={(() => { try { const a=JSON.parse(localStorage.getItem("mg_cv_analysis")||"{}"); return a.result ? JSON.stringify(a.result) : ""; } catch { return ""; } })()}
+          cvText=""
           onNavigateToCV={() => navTo("My Profile")}
           onSignIn={() => {
             // ✅ Fix 2: store return page so after sign-in they come back here
