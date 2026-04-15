@@ -1434,6 +1434,136 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
         </div>
       )}
 
+      {/* ── University News + Intake Calendar (shown on UK + Germany tabs) ── */}
+      {activeTab !== "CV Matcher" && (
+        <div style={{ marginTop: "2.5rem", display: "grid", gap: "1.5rem" }}>
+
+          {/* Intake Calendar */}
+          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
+              <div>
+                <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>📅 Intake Calendar {activeTab === "Germany" ? "— Germany" : "— United Kingdom"}</h3>
+                <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Key application dates and when to start preparing</p>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
+              {(activeTab === "Germany" ? [
+                { intake: "Winter Semester", period: "October – March", deadline: "July 15", prepStart: "January – February", color: "#1A3FA8", icon: "❄️",
+                  steps: ["Research programmes (Jan–Feb)", "Prepare documents (Mar–Apr)", "Language test if needed (Apr–May)", "Submit application by July 15", "Receive offer (Aug)", "Apply for student visa (Aug–Sep)", "Arrive & enrol (October)"] },
+                { intake: "Summer Semester", period: "April – September", deadline: "January 15", prepStart: "July – August (prior year)", color: "#16A34A", icon: "🌸",
+                  steps: ["Research programmes (Jul–Aug)", "Prepare documents (Sep–Oct)", "Language test if needed (Oct–Nov)", "Submit application by Jan 15", "Receive offer (Feb)", "Apply for student visa (Feb–Mar)", "Arrive & enrol (April)"] },
+              ] : [
+                { intake: "September Intake", period: "September – June", deadline: "January 31 (UCAS)", prepStart: "12–18 months before", color: "#1A3FA8", icon: "🎓",
+                  steps: ["Research courses & unis (Jan–Mar)", "Attend open days (Apr–Jun)", "Write personal statement (Jun–Aug)", "Submit UCAS by Jan 31", "Receive offers (Feb–May)", "Confirm place (May)", "Apply for student visa (Jun–Aug)", "Arrive & enrol (September)"] },
+                { intake: "January Intake", period: "January – May", deadline: "October/November", prepStart: "6–12 months before", color: "#7C3AED", icon: "🌟",
+                  steps: ["Check if your course has Jan entry (not all do)", "Apply direct to university", "Receive offer (Oct–Nov)", "Apply for student visa (Nov–Dec)", "Arrive & enrol (January)"] },
+                { intake: "Postgraduate (Masters)", period: "September or January", deadline: "Varies by uni (rolling)", prepStart: "9–12 months before", color: "#FF4500", icon: "📚",
+                  steps: ["Research programmes (9–12 months before)", "Request references (6–9 months before)", "Write statement of purpose (6 months before)", "Apply to universities (rolling admissions)", "Receive offer & accept", "CAS letter from uni", "Apply for student visa", "Enrol"] },
+              ])
+              .map(function(item, i) {
+                return (
+                  <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", borderLeft: "3px solid " + item.color }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                      <span style={{ fontSize: "24px" }}>{item.icon}</span>
+                      <div>
+                        <p style={{ fontWeight: 700, margin: "0 0 2px", fontSize: "14px" }}>{item.intake}</p>
+                        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{item.period}</p>
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
+                      <div style={{ background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", padding: "8px 10px" }}>
+                        <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Application deadline</p>
+                        <p style={{ fontWeight: 600, fontSize: "13px", margin: 0, color: item.color }}>{item.deadline}</p>
+                      </div>
+                      <div style={{ background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", padding: "8px 10px" }}>
+                        <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Start preparing</p>
+                        <p style={{ fontWeight: 600, fontSize: "13px", margin: 0 }}>{item.prepStart}</p>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 6px" }}>Step-by-step timeline</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {item.steps.map(function(step, j) {
+                        return (
+                          <div key={j} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                            <div style={{ width: "18px", height: "18px", borderRadius: "50%", background: item.color, color: "#fff", fontSize: "10px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "1px" }}>{j + 1}</div>
+                            <p style={{ fontSize: "12px", margin: 0, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{step}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Latest University News */}
+          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
+              <div>
+                <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>📰 Latest University News</h3>
+                <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Important updates for international students in {new Date().getFullYear()}</p>
+              </div>
+              <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 600, background: "rgba(26,63,168,0.12)", color: "#1A3FA8" }}>Updated {new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "10px" }}>
+              {(activeTab === "Germany" ? [
+                { tag: "Visa", color: "#1A3FA8", bg: "rgba(26,63,168,0.08)", title: "Blocked Account Requirement Updated", body: "Germany now requires international students to show €11,904 in a blocked account (Sperrkonto) for 2024/25 — up from previous years. This covers living costs for one year.", link: "https://www.daad.de/en/study-and-research-in-germany/plan-your-studies/blocked-account/" },
+                { tag: "Applications", color: "#16A34A", bg: "rgba(22,163,74,0.08)", title: "Uni-Assist Goes Digital", body: "Uni-Assist has fully digitised its application portal. All documents must now be uploaded online — no postal applications accepted. Check individual university portals too.", link: "https://www.uni-assist.de/en/" },
+                { tag: "Scholarships", color: "#7C3AED", bg: "rgba(124,58,237,0.08)", title: "DAAD Scholarships 2025/26 Now Open", body: "The German Academic Exchange Service has opened applications for its 2025/26 scholarship programmes. Over 100,000 students supported annually across all levels.", link: "https://www.daad.de/en/study-and-research-in-germany/scholarships/" },
+                { tag: "Language", color: "#FF4500", bg: "rgba(255,69,0,0.08)", title: "More English-Taught Programmes", body: "German universities now offer 1,500+ English-taught Masters programmes. No German required for many STEM and business courses at top universities.", link: "https://www.daad.de/en/study-and-research-in-germany/plan-your-studies/finding-the-right-degree-programme/" },
+              ] : [
+                { tag: "Visa", color: "#DC2626", bg: "rgba(220,38,38,0.08)", title: "Student Visa: New Requirements 2024", body: "UKVI now requires evidence of English language proficiency at B2 level or above. Maintenance funds threshold raised — students need £1,334/month for London studies.", link: "https://www.gov.uk/student-visa" },
+                { tag: "Fees", color: "#D97706", bg: "rgba(217,119,6,0.08)", title: "Tuition Fees Rise for 2025/26", body: "UK universities can now charge up to £9,535/year for undergraduate courses (up from £9,250). International fees vary widely — always check individual university pages.", link: "https://www.ucas.com/money-and-student-life/money/student-finance" },
+                { tag: "UCAS", color: "#1A3FA8", bg: "rgba(26,63,168,0.08)", title: "UCAS Deadline: January 2025", body: "The main UCAS deadline for 2025 entry was January 31. Late applications may still be considered through Clearing. Equal Consideration deadline passed — apply directly.", link: "https://www.ucas.com/ucas/undergraduate/getting-started/when-apply" },
+                { tag: "Scholarships", color: "#16A34A", bg: "rgba(22,163,74,0.08)", title: "Chevening Scholarships Now Open", body: "The UK government's flagship scholarship programme for future leaders is open for 2025/26. Fully funded Masters for students from 160+ countries. Deadline November 2024.", link: "https://www.chevening.org/" },
+                { tag: "Jobs", color: "#7C3AED", bg: "rgba(124,58,237,0.08)", title: "Graduate Route Visa: 2 Year Stay", body: "International graduates can still stay in the UK for 2 years (3 for PhDs) to work after graduating. The Graduate Route visa remains available for 2024 graduates.", link: "https://www.gov.uk/graduate-visa" },
+              ]).map(function(item, i) {
+                return (
+                  <a key={i} href={item.link} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "block", textDecoration: "none", padding: "1rem", borderRadius: "var(--border-radius-lg)", background: item.bg, border: "0.5px solid " + item.color + "33", transition: "transform 0.15s" }}
+                    onMouseEnter={function(e) { e.currentTarget.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={function(e) { e.currentTarget.style.transform = "none"; }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px", gap: "8px" }}>
+                      <span style={{ padding: "2px 8px", borderRadius: "20px", fontSize: "10px", fontWeight: 700, background: item.color, color: "#fff", whiteSpace: "nowrap" }}>{item.tag}</span>
+                      <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>↗</span>
+                    </div>
+                    <p style={{ fontWeight: 600, fontSize: "13px", margin: "0 0 6px", color: "var(--color-text-primary)", lineHeight: 1.4 }}>{item.title}</p>
+                    <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>{item.body}</p>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Preparation Tips */}
+          <div style={{ background: "linear-gradient(135deg, rgba(26,63,168,0.06), rgba(124,58,237,0.04))", border: "0.5px solid rgba(26,63,168,0.15)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
+            <h3 style={{ margin: "0 0 1rem", fontSize: "1rem", fontWeight: 600 }}>✅ Your Application Checklist</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
+              {[
+                { icon: "📄", title: "Academic Transcripts", desc: "Certified copies of all grades — get them translated if not in English/German" },
+                { icon: "🌐", title: "Language Certificate", desc: activeTab === "Germany" ? "IELTS 6.0+ or TestDaF for German-taught courses" : "IELTS 6.0–7.0+ depending on course and university" },
+                { icon: "✍️", title: "Personal Statement", desc: "2–3 pages explaining your motivation, background and career goals" },
+                { icon: "📬", title: "References", desc: "2 academic or professional referees who know your work well" },
+                { icon: "🛂", title: "Valid Passport", desc: "Must be valid for the full duration of your studies — renew early if needed" },
+                { icon: "💰", title: "Proof of Funds", desc: activeTab === "Germany" ? "€11,904 in a blocked account (Sperrkonto)" : "£1,334/month maintenance funds (more for London)" },
+              ].map(function(item, i) {
+                return (
+                  <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "10px 12px", background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)" }}>
+                    <span style={{ fontSize: "20px", flexShrink: 0 }}>{item.icon}</span>
+                    <div>
+                      <p style={{ fontWeight: 600, margin: "0 0 3px", fontSize: "13px" }}>{item.title}</p>
+                      <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+        </div>
+      )}
+
       {activeTab === "CV Matcher" && (
         <CVAnalyserTab user={user} navTo={navTo} />
       )}
