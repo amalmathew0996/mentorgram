@@ -679,14 +679,23 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
       {/* Loading skeletons */}
       {jobsLoading && (
         <div style={S.grid2}>
+          <style>{"@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}.shimmer-line{background:linear-gradient(90deg,var(--color-background-secondary) 25%,var(--color-background-primary) 50%,var(--color-background-secondary) 75%);background-size:400px 100%;animation:shimmer 1.4s ease infinite}"}</style>
           {[...Array(6)].map((_, i) => (
-            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ height: "16px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "70%" }} />
-              <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "40%" }} />
-              <div style={{ height: "12px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "55%" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
-                <div style={{ height: "14px", background: "var(--color-background-secondary)", borderRadius: "4px", width: "30%" }} />
-                <div style={{ height: "32px", width: "70px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }} />
+            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ flex: 1 }}>
+                  <div className="shimmer-line" style={{ height: "16px", borderRadius: "6px", width: "70%", marginBottom: "8px" }} />
+                  <div className="shimmer-line" style={{ height: "12px", borderRadius: "6px", width: "45%" }} />
+                </div>
+                <div className="shimmer-line" style={{ height: "22px", width: "80px", borderRadius: "20px", marginLeft: "10px" }} />
+              </div>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <div className="shimmer-line" style={{ height: "20px", width: "80px", borderRadius: "20px" }} />
+                <div className="shimmer-line" style={{ height: "20px", width: "100px", borderRadius: "20px" }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
+                <div className="shimmer-line" style={{ height: "14px", borderRadius: "6px", width: "35%" }} />
+                <div className="shimmer-line" style={{ height: "32px", width: "70px", borderRadius: "var(--border-radius-md)" }} />
               </div>
             </div>
           ))}
@@ -699,9 +708,9 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
           {paginated.map((j, i) => (
             <div key={i}
               className={clickedJob === i ? "job-card-click" : ""}
-              style={{ ...S.card, display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", transition: "box-shadow 0.2s, border-color 0.2s", minHeight: "190px" }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(26,63,168,0.12)"; e.currentTarget.style.borderColor = "rgba(26,63,168,0.3)"; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = "var(--color-border-tertiary)"; }}
+              style={{ ...S.card, display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", transition: "box-shadow 0.25s, border-color 0.25s, transform 0.25s", minHeight: "190px" }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 30px rgba(26,63,168,0.18)"; e.currentTarget.style.borderColor = "rgba(26,63,168,0.4)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = "var(--color-border-tertiary)"; e.currentTarget.style.transform = "translateY(0)"; }}
               onClick={() => { setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}>
 
               {/* Title + sponsorship badge */}
@@ -1932,7 +1941,7 @@ export default function Mentorgram() {
       setMobileMenu(false);
       setSelectedJob(null);
       setPageTransition(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "instant" });
       const slug = PAGE_SLUGS[page] || "";
       window.history.pushState(null, "", slug ? `/${slug}` : "/");
       if (window.va) window.va("pageview", { path: slug ? `/${slug}` : "/" });
@@ -1955,7 +1964,8 @@ export default function Mentorgram() {
             @keyframes orb1 { 0%,100% { transform:translate(0,0); } 33% { transform:translate(60px,-40px); } 66% { transform:translate(-30px,50px); } }
             @keyframes orb2 { 0%,100% { transform:translate(0,0); } 33% { transform:translate(-50px,60px); } 66% { transform:translate(40px,-30px); } }
             @keyframes orb3 { 0%,100% { transform:translate(0,0); } 50% { transform:translate(30px,40px); } }
-            @keyframes particle { 0% { transform:translateY(0) rotate(0deg); opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { transform:translateY(-600px) rotate(720deg); opacity:0; } }
+            @keyframes particle { 0% { transform:translateY(0) rotate(0deg) scale(0); opacity:0; } 10% { opacity:0.8; transform:translateY(-20px) rotate(45deg) scale(1); } 90% { opacity:0.6; } 100% { transform:translateY(-700px) rotate(900deg) scale(0); opacity:0; } }
+            @keyframes orbPulse { 0%,100% { opacity:0.6; transform:scale(1); } 50% { opacity:1; transform:scale(1.08); } }
             .hero-badge { animation:fadeIn 0.6s ease forwards; }
             .hero-title { animation:fadeUp 0.7s ease 0.1s both; }
             .hero-sub { animation:fadeUp 0.7s ease 0.2s both; }
@@ -1980,17 +1990,21 @@ export default function Mentorgram() {
             .particle:nth-child(5){left:65%;animation-duration:9s;animation-delay:1.5s;width:6px;height:6px}
             .particle:nth-child(6){left:75%;animation-duration:12s;animation-delay:3s;width:4px;height:4px}
             .particle:nth-child(7){left:85%;animation-duration:8s;animation-delay:2.5s;width:5px;height:5px}
-            .particle:nth-child(8){left:90%;animation-duration:10s;animation-delay:4s;width:3px;height:3px}
+            .particle:nth-child(8){left:90%;animation-duration:10s;animation-delay:4s}
+            .particle:nth-child(9){left:25%;animation-duration:9s;animation-delay:3.5s}
+            .particle:nth-child(10){left:55%;animation-duration:12s;animation-delay:1s}
+            .particle:nth-child(11){left:70%;animation-duration:8s;animation-delay:2s}
+            .particle:nth-child(12){left:45%;animation-duration:11s;animation-delay:5s}
           `}</style>
 
           <div style={{ position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-              <div className="orb1" style={{ position: "absolute", top: "5%", left: "10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,63,168,0.18) 0%, transparent 70%)", filter: "blur(40px)" }} />
-              <div className="orb2" style={{ position: "absolute", top: "10%", right: "5%", width: "350px", height: "350px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%)", filter: "blur(40px)" }} />
+              <div className="orb1" style={{ position: "absolute", top: "5%", left: "10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,63,168,0.22) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb1 12s ease-in-out infinite, orbPulse 4s ease-in-out infinite" }} />
+              <div className="orb2" style={{ position: "absolute", top: "10%", right: "5%", width: "350px", height: "350px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb2 15s ease-in-out infinite, orbPulse 6s ease-in-out 2s infinite" }} />
               <div className="orb3" style={{ position: "absolute", bottom: "5%", left: "40%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,63,168,0.1) 0%, transparent 70%)", filter: "blur(50px)" }} />
               <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(26,63,168,1) 1px,transparent 1px),linear-gradient(90deg,rgba(26,63,168,1) 1px,transparent 1px)", backgroundSize: "60px 60px", opacity: 0.04 }} />
               <div style={{ position: "absolute", inset: 0 }}>
-                {[...Array(8)].map((_, i) => <div key={i} className="particle" style={{ background: i % 2 === 0 ? "rgba(26,63,168,0.5)" : "rgba(29,158,117,0.5)" }} />)}
+                {[...Array(12)].map((_, i) => <div key={i} className="particle" style={{ background: i % 3 === 0 ? "rgba(26,63,168,0.6)" : i % 3 === 1 ? "rgba(29,158,117,0.6)" : "rgba(255,69,0,0.4)", width: (4 + (i % 4)) + "px", height: (4 + (i % 4)) + "px" }} />)}
               </div>
             </div>
 
@@ -2007,11 +2021,34 @@ export default function Mentorgram() {
                 <button className="hero-btn-outline" style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1rem", margin: "3rem 0 0" }}>
-                {[["5","Countries Covered","🌍"],["Free","To Use","✨"],["500+","Visa Sponsors","🏢"],["1,000+","Live Jobs","💼"]].map(([n,l,icon]) => (
-                  <div key={l} className="stat-card" style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)" }}>
-                    <div style={{ fontSize: "22px", marginBottom: "6px" }}>{icon}</div>
-                    <p style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px" }}>{n}</p>
-                    <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{l}</p>
+                {[{n:"5",target:5,label:"Countries Covered",icon:"🌍",suffix:""},{n:"Free",target:null,label:"To Use",icon:"✨",suffix:""},{n:"500+",target:500,label:"Visa Sponsors",icon:"🏢",suffix:"+"},{n:"15,000+",target:15000,label:"Live Jobs",icon:"💼",suffix:"+"}].map((s,idx) => (
+                  <div key={s.label} className="stat-card"
+                    style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)", cursor: "default" }}
+                    ref={el => {
+                      if (!el || !s.target || el._counted) return;
+                      el._counted = true;
+                      const obs = new IntersectionObserver(entries => {
+                        if (!entries[0].isIntersecting) return;
+                        obs.disconnect();
+                        const display = el.querySelector(".stat-num");
+                        if (!display) return;
+                        const duration = 1800;
+                        const start = performance.now();
+                        function tick(now) {
+                          const p = Math.min((now - start) / duration, 1);
+                          const ease = 1 - Math.pow(1 - p, 3);
+                          const val = Math.round(ease * s.target);
+                          display.textContent = val >= 1000 ? (val >= 10000 ? Math.round(val/1000) + "k" : val.toLocaleString()) + s.suffix : val + s.suffix;
+                          if (p < 1) requestAnimationFrame(tick);
+                          else display.textContent = s.n;
+                        }
+                        requestAnimationFrame(tick);
+                      }, { threshold: 0.3 });
+                      obs.observe(el);
+                    }}>
+                    <div style={{ fontSize: "22px", marginBottom: "6px" }}>{s.icon}</div>
+                    <p className="stat-num" style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px" }}>{s.n}</p>
+                    <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -2234,11 +2271,11 @@ export default function Mentorgram() {
       </div>
       <main onClick={() => mobileMenu && setMobileMenu(false)} style={{ paddingBottom: cookieConsent ? 0 : "80px" }}>
         <style>{`
-          @keyframes pageIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-          @keyframes pageOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
+          @keyframes pageIn { from { opacity: 0; transform: translateY(16px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+          @keyframes pageOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-10px) scale(0.99); } }
           @keyframes jobCardPop { 0% { transform: scale(1); } 40% { transform: scale(0.97); } 70% { transform: scale(1.02); } 100% { transform: scale(1); } }
-          .page-enter { animation: pageIn 0.3s ease forwards; }
-          .page-exit { animation: pageOut 0.2s ease forwards; }
+          .page-enter { animation: pageIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards; }
+          .page-exit { animation: pageOut 0.22s ease forwards; }
           .job-card-click { animation: jobCardPop 0.35s ease forwards; }
           .nav-btn { transition: all 0.15s ease; }
           .nav-btn:hover { transform: translateY(-1px); }
