@@ -354,9 +354,28 @@ export default function CVGenerator(props) {
                   <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
                     <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "14px" }}>ATS Score</p>
                     <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem" }}>
-                      <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: atsRingBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: atsRingBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, animation: "atsRingIn 1.2s cubic-bezier(0.22,1,0.36,1) forwards" }}>
+        <style>{"@keyframes atsRingIn{from{transform:scale(0.5) rotate(-180deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}"}</style>
                         <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: "var(--color-background-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <span style={{ fontWeight: 700, fontSize: "18px", color: atsColor }}>{atsScore || 0}%</span>
+                          <span style={{ fontWeight: 700, fontSize: "18px", color: atsColor, animation: "atsNumIn 1.5s cubic-bezier(0.22,1,0.36,1) forwards" }}
+            ref={el => {
+              if (!el || !atsScore || el._animated) return;
+              el._animated = true;
+              const target = atsScore;
+              const dur = 1400;
+              const start = performance.now();
+              function tick(now) {
+                const p = Math.min((now - start) / dur, 1);
+                const ease = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(ease * target) + "%";
+                if (p < 1) requestAnimationFrame(tick);
+                else el.textContent = target + "%";
+              }
+              requestAnimationFrame(tick);
+            }}>
+            <style>{"@keyframes atsNumIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}"}</style>
+            {atsScore || 0}%
+          </span>
                         </div>
                       </div>
                       <div style={{ flex: 1 }}>
