@@ -208,13 +208,13 @@ export default function SponsorsPage() {
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "2rem 1.5rem" }}>
       <div ref={topRef}>
         {/* Header */}
-        <div style={{ marginBottom: "1.5rem" }}>
+        <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.5rem", flexWrap: "wrap" }}>
-            <h2 style={{ fontSize: "1.8rem", fontWeight: 500, margin: 0 }}>Licensed Visa Sponsors</h2>
+            <h2 style={{ fontSize: "1.8rem", fontWeight: 500, margin: 0, textAlign: "center" }}>Licensed Visa Sponsors</h2>
             <span style={{ ...S.tag("green") }}>🏛️ Home Office Register</span>
             {total > 0 && <span style={{ ...S.tag("purple") }}>{total.toLocaleString()} sponsors</span>}
           </div>
-          <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: "15px" }}>
+          <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: "15px", textAlign: "center" }}>
             Every employer licensed by the UK Home Office to sponsor Skilled Worker and Health & Care visas — sourced live from the official GOV.UK register.
           </p>
         </div>
