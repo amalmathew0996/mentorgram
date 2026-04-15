@@ -1365,6 +1365,8 @@ function IntakeCalendar({ country }) {
 
 function UniversitiesPage({ setChatInput, navTo, user }) {
   const [activeTab, setActiveTab] = useState("UK");
+  const [tabAnimating, setTabAnimating] = useState(false);
+  const [displayTab, setDisplayTab] = useState("UK");
   const [ukSearch, setUkSearch] = useState("");
   const [ukPage, setUkPage] = useState(1);
   const [deFilter, setDeFilter] = useState("All");
@@ -1410,8 +1412,16 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
         {/* ── Country tabs — equal width, centred ── */}
         <div style={{ display: "inline-flex", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "5px", gap: "4px" }}>
           {["UK", "Germany"].map(key => (
-            <button key={key} onClick={() => setActiveTab(key)}
-              style={{ width: "180px", padding: "10px 0", borderRadius: "var(--border-radius-md)", border: "none", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.18s",
+            <button key={key} onClick={() => {
+              if (key === activeTab || tabAnimating) return;
+              setTabAnimating(true);
+              setTimeout(() => {
+                setActiveTab(key);
+                setDisplayTab(key);
+                setTabAnimating(false);
+              }, 220);
+            }}
+              style={{ width: "180px", padding: "10px 0", borderRadius: "var(--border-radius-md)", border: "none", fontSize: "14px", fontWeight: 500, cursor: tabAnimating ? "default" : "pointer", fontFamily: "inherit", transition: "all 0.25s",
                 background: activeTab === key ? tabAccents[key] : "transparent",
                 color: activeTab === key ? "#fff" : "var(--color-text-secondary)",
                 boxShadow: activeTab === key ? "0 2px 8px rgba(0,0,0,0.15)" : "none" }}>
@@ -1420,6 +1430,12 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
           ))}
         </div>
       </div>
+
+      <div style={{
+        animation: tabAnimating ? "uniTabOut 0.2s ease forwards" : "uniTabIn 0.25s ease forwards",
+        opacity: tabAnimating ? 0 : 1,
+      }}>
+      <style>{"@keyframes uniTabIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes uniTabOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-8px)}}"}</style>
 
       {activeTab === "UK" && (
         <div>
@@ -1683,6 +1699,8 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
 
         </div>
       )}
+
+      </div>
 
       {/* ── CV Matcher promo card — always shown below ── */}
       {activeTab !== "CV Matcher" && (
