@@ -4,10 +4,11 @@ import AuthPage from "./Auth.jsx";
 import SponsorsPage from "./Sponsors.jsx";
 import Dashboard from "./Dashboard.jsx";
 import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
+import CVGenerator from "./CVGenerator.jsx";
 
 inject();
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "Visa Sponsors", "Contact", "My Profile"];
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "CV Generator", "Visa Sponsors", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
 const JOBS_PER_PAGE = 20;
@@ -1448,6 +1449,7 @@ const PAGE_SLUGS = {
   "Universities": "universities",
   "Sponsorship Jobs": "jobs",
   "Visa Sponsors": "visa-sponsors",
+  "CV Generator": "cv-generator",
   "Contact": "contact",
   "My Profile": "profile",
   "Privacy Policy": "privacy",
@@ -1466,7 +1468,18 @@ export default function Mentorgram() {
   const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I'm your Mentorgram AI Mentor 👋 I can help with education pathways, UK university applications, career guidance, and visa-sponsored jobs. What would you like to explore?" }]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
-  const [allJobs, setAllJobs] = useState([]);
+  const [allJobs, setAllJobs] = useState(() => {
+    // ✅ Load from sessionStorage cache for instant display on revisit
+    try {
+      const cached = sessionStorage.getItem("mg_jobs_cache");
+      if (cached) {
+        const { jobs, ts } = JSON.parse(cached);
+        // Use cache if less than 10 minutes old
+        if (jobs && Date.now() - ts < 10 * 60 * 1000) return jobs;
+      }
+    } catch {}
+    return [];
+  });
   const [jobsLoading, setJobsLoading] = useState(false);
   const [updatedAt, setUpdatedAt] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -1518,54 +1531,77 @@ export default function Mentorgram() {
   }, [pendingJobId, allJobs]);
 
   useEffect(() => {
-    if (activePage === "Sponsorship Jobs" && !selectedJob && allJobs.length <= 75) {
-      fetchJobs("", "");
+    if (activePage === "Sponsorship Jobs" && !selectedJob) {
+      // If we have cached jobs, still refresh in background but don't show loading
+      if (allJobs.length > 0) {
+        fetchJobs("", ""); // silent background refresh
+      } else {
+        fetchJobs("", "");
+      }
     }
   }, [activePage]);
 
+  function dedupe(jobs) {
+    const seen = new Set();
+    return jobs.filter(j => {
+      if (!j.url || seen.has(j.url)) return false;
+      seen.add(j.url);
+      return true;
+    });
+  }
+
+  function applyFilter(jobs, q, loc) {
+    if (!q && !loc) return jobs;
+    return jobs.filter(j => {
+      const matchQ = !q || (j.title||"").toLowerCase().includes(q.toLowerCase()) ||
+        (j.company||"").toLowerCase().includes(q.toLowerCase()) ||
+        (j.sector||"").toLowerCase().includes(q.toLowerCase());
+      const matchL = !loc || (j.location||"").toLowerCase().includes(loc.toLowerCase());
+      return matchQ && matchL;
+    });
+  }
+
   async function fetchJobs(q, loc) {
     setJobsLoading(true);
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (loc) params.set("location", loc);
+
+    // ── Step 1: Load DB jobs first (fast — Supabase) ──────────────────────
     try {
-      const params = new URLSearchParams();
-      if (q) params.set("q", q);
-      if (loc) params.set("location", loc);
-      params.set("pageSize", "5000");
-
-      let dbJobs = [];
-      let rssJobs = [];
-
-      const [dbRes, rssRes, indeedRes] = await Promise.allSettled([
-        fetch(`/api/jobs-db?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
-        fetch(`/api/jobsacuk?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
-        fetch(`/api/jobs?${params}`).then(r => r.json()).catch(() => ({ jobs: [] })),
-      ]);
-
-      dbJobs     = dbRes.status     === "fulfilled" ? (dbRes.value?.jobs     || []) : [];
-      rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
-      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
-
-      const allSources = [...dbJobs, ...rssJobs, ...indeedJobs];
-
-      const seen = new Set();
-      const combined = allSources.filter(j => {
-        if (!j.url || seen.has(j.url)) return false;
-        seen.add(j.url);
-        return true;
-      });
-
-      const filtered = (q || loc) ? combined.filter(j => {
-        const matchQ = !q || j.title.toLowerCase().includes(q.toLowerCase()) ||
-          j.company.toLowerCase().includes(q.toLowerCase()) ||
-          j.sector.toLowerCase().includes(q.toLowerCase());
-        const matchL = !loc || j.location.toLowerCase().includes(loc.toLowerCase());
-        return matchQ && matchL;
-      }) : combined;
-
-      if (filtered.length > 0) {
+      const dbParams = new URLSearchParams(params);
+      dbParams.set("pageSize", "2000");
+      const dbData = await fetch("/api/jobs-db?" + dbParams).then(r => r.json()).catch(() => ({ jobs: [] }));
+      const dbJobs = dbData.jobs || [];
+      if (dbJobs.length > 0) {
+        const filtered = applyFilter(dedupe(dbJobs), q, loc);
         setAllJobs(filtered);
         setUpdatedAt(new Date().toISOString());
+        setJobsLoading(false); // ✅ Show jobs immediately, keep loading in background
+        try { sessionStorage.setItem("mg_jobs_cache", JSON.stringify({ jobs: filtered, ts: Date.now() })); } catch {}
       }
-    } catch { /* keep existing jobs */ }
+    } catch { /* continue */ }
+
+    // ── Step 2: Load RSS + Indeed in background (slower) ──────────────────
+    try {
+      const [rssRes, indeedRes] = await Promise.allSettled([
+        fetch("/api/jobsacuk?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
+        fetch("/api/jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
+      ]);
+      const rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
+      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
+
+      if (rssJobs.length > 0 || indeedJobs.length > 0) {
+        setAllJobs(prev => {
+          const combined = dedupe([...prev, ...rssJobs, ...indeedJobs]);
+          const result = applyFilter(combined, q, loc);
+          try { sessionStorage.setItem("mg_jobs_cache", JSON.stringify({ jobs: result, ts: Date.now() })); } catch {}
+          return result;
+        });
+        setUpdatedAt(new Date().toISOString());
+      }
+    } catch { /* keep existing */ }
+
     setJobsLoading(false);
   }
 
@@ -1790,6 +1826,19 @@ export default function Mentorgram() {
           profileFilter={profileFilter} onClearProfileFilter={() => setProfileFilter(null)} />
       );
 
+      case "CV Generator": return (
+        <CVGenerator
+          user={user}
+          cvText={(() => { try { const a=JSON.parse(localStorage.getItem("mg_cv_analysis")||"{}"); return a.result ? JSON.stringify(a.result) : ""; } catch { return ""; } })()}
+          onNavigateToCV={() => navTo("My Profile")}
+          onSignIn={() => {
+            // ✅ Fix 2: store return page so after sign-in they come back here
+            localStorage.setItem("mg_return_page", "CV Generator");
+            navTo("My Profile");
+          }}
+        />
+      );
+
       case "Contact": return <ContactPage />;
       case "Visa Sponsors": return <SponsorsPage />;
       case "Privacy Policy": return <PrivacyPage />;
@@ -1805,7 +1854,12 @@ export default function Mentorgram() {
           onNavigate={navTo}
         />
       ) : (
-        <AuthPage onLogin={(u) => { setUser(u); }} onNavToHome={() => navTo("Home")} />
+        <AuthPage onLogin={(u) => {
+              setUser(u);
+              // ✅ Fix 2: return to the page they were trying to access
+              const returnPage = localStorage.getItem("mg_return_page");
+              if (returnPage) { localStorage.removeItem("mg_return_page"); setTimeout(() => navTo(returnPage), 100); }
+            }} onNavToHome={() => navTo("Home")} />
       );
 
       default: return null;
