@@ -1884,7 +1884,7 @@ function AIMentorChat({ user }) {
 
 // ─── Premium Page ─────────────────────────────────────────────────────────
 function PremiumPage({ navTo, user }) {
-  var TELEGRAM_LINK = "https://t.me/+YOUR_CHANNEL_LINK";
+  var STRIPE_LINK = "https://buy.stripe.com/4gM14o1jZ0EJgVp3gh0RG00";
   var perks = [
     { icon: "📋", title: "5 curated jobs every Friday", desc: "Hand-picked visa sponsorship roles — no noise, just quality" },
     { icon: "🎯", title: "Matched to your profile", desc: "Jobs filtered by your sector, location and visa needs" },
@@ -1928,7 +1928,7 @@ function PremiumPage({ navTo, user }) {
             <span style={{ fontSize: "15px", color: "var(--color-text-secondary)", marginLeft: "4px" }}>/month</span>
             <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>Billed monthly · Cancel anytime in Telegram</p>
           </div>
-          <a href={TELEGRAM_LINK} target="_blank" rel="noopener noreferrer"
+          <a href={STRIPE_LINK} target="_blank" rel="noopener noreferrer"
             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px 28px", borderRadius: "12px", background: "linear-gradient(135deg,#229ED9,#1a7fb5)", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(34,158,217,0.35)" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
             Join Telegram — £6.99/month
@@ -2000,7 +2000,7 @@ function PremiumPage({ navTo, user }) {
           <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#fff", margin: "0 0 8px" }}>Ready to land your UK visa job?</p>
           <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", margin: "0 0 1.5rem" }}>Join hundreds of international professionals getting weekly job alerts.</p>
           <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-            <a href={TELEGRAM_LINK} target="_blank" rel="noopener noreferrer"
+            <a href={STRIPE_LINK} target="_blank" rel="noopener noreferrer"
               style={{ padding: "12px 28px", borderRadius: "12px", background: "#FF4500", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(255,69,0,0.4)" }}>
               Join for £6.99/month →
             </a>
@@ -2378,10 +2378,10 @@ export default function Mentorgram() {
                 <h2 style={{ fontSize: "1.6rem", fontWeight: 700, color: "#fff", margin: "0 0 0.75rem", lineHeight: 1.3 }}>Get 5 visa jobs delivered to your phone every Friday</h2>
                 <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.75)", margin: "0 0 1.5rem", lineHeight: 1.7 }}>Join our premium Telegram channel — curated sponsorship jobs matched to your profile, delivered weekly.</p>
                 <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-                  <button onClick={() => navTo("Premium")}
-                    style={{ padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#FF4500", color: "#fff", border: "none", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                  <a href="https://buy.stripe.com/4gM14o1jZ0EJgVp3gh0RG00" target="_blank" rel="noopener noreferrer"
+                    style={{ padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#FF4500", color: "#fff", fontSize: "15px", fontWeight: 700, textDecoration: "none" }}>
                     Join for £6.99/month →
-                  </button>
+                  </a>
                   <button onClick={() => navTo("Premium")}
                     style={{ padding: "12px 20px", borderRadius: "var(--border-radius-md)", background: "rgba(255,255,255,0.1)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
                     Learn more
