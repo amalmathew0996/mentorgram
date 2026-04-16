@@ -1918,16 +1918,7 @@ export default function Mentorgram() {
   }
 
   const [activePage, setActivePage] = useState(getInitialPage);
-  const [messages, setMessages] = useState(function() {
-    try {
-      var u = JSON.parse(localStorage.getItem("mg_user") || "null");
-      if (u && u.id) {
-        var saved = localStorage.getItem("mg_chat_history_" + u.id);
-        if (saved) { var parsed = JSON.parse(saved); if (parsed && parsed.length > 0) return parsed; }
-      }
-    } catch(e) {}
-    return [{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor 👋\n\nI am here to help you navigate studying and working in the UK and Germany — completely free!\n\n• UK universities and UCAS applications\n• Visa sponsorship jobs\n• Career planning and CV advice\n• German universities and DAAD scholarships\n• Student visa guidance\n\nWhat would you like to explore?" }];
-  });
+  const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor 👋\n\nI am here to help you with UK universities, visa sponsorship jobs, career planning and much more. What would you like to explore?" }]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [allJobs, setAllJobs] = useState(() => {
@@ -1959,6 +1950,14 @@ export default function Mentorgram() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  useEffect(() => {
+    if (!user) return;
+    try {
+      var saved = localStorage.getItem("mg_chat_history_" + user.id);
+      if (saved) { var parsed = JSON.parse(saved); if (parsed && parsed.length > 0) setMessages(parsed); }
+    } catch(e) {}
+  }, [user]);
 
   // ✅ UPDATED: hash handler now uses job ID instead of decoding base64
   useEffect(() => {
