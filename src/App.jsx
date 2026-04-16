@@ -8,7 +8,7 @@ import CVGenerator from "./CVGenerator.jsx";
 
 inject();
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "CV Generator", "Visa Sponsors", "Contact", "My Profile"];
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "CV Generator", "Visa Sponsors", "Premium", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
 const JOBS_PER_PAGE = 20;
@@ -1749,6 +1749,183 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
   );
 }
 
+// ─── Premium Page ─────────────────────────────────────────────────────────
+function PremiumPage({ navTo, user }) {
+  const TELEGRAM_LINK = "https://t.me/+YOUR_CHANNEL_LINK"; // Replace with your actual paid channel link
+  const WHATSAPP_LINK = "https://whatsapp.com/channel/YOUR_CHANNEL"; // Replace with WhatsApp link
+
+  const telegramPerks = [
+    "📋 5 curated visa sponsorship jobs every Friday",
+    "🎯 Jobs matched to your sector and location",
+    "⚡ Early access — jobs posted before they go viral",
+    "🏥 NHS, Tech, Finance, Engineering & more sectors",
+    "🔔 Instant alerts for high-demand roles",
+    "💬 Community of 1,000+ international job seekers",
+    "❌ Cancel anytime directly in Telegram",
+  ];
+
+  const whatsappPerks = [
+    "📋 5 curated visa sponsorship jobs every Friday",
+    "🎯 Jobs matched to your sector and location",
+    "⚡ Early access — jobs posted before they go viral",
+    "💬 Direct Q&A with the Mentorgram team",
+    "🤝 More personal, smaller exclusive group",
+    "📱 Delivered straight to your WhatsApp",
+    "❌ Cancel anytime",
+  ];
+
+  return (
+    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem 1.5rem" }}>
+
+      {/* Hero */}
+      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <div style={{ display: "inline-block", padding: "4px 14px", borderRadius: "20px", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", color: "#fff", fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "1rem" }}>
+          ⭐ Premium Membership
+        </div>
+        <h1 style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700, margin: "0 0 1rem", lineHeight: 1.2 }}>
+          Get the Best Visa Jobs<br />
+          <span style={{ background: "linear-gradient(135deg,#1A3FA8,#FF4500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Delivered to You Weekly</span>
+        </h1>
+        <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", maxWidth: "560px", margin: "0 auto", lineHeight: 1.7 }}>
+          Stop scrolling through hundreds of jobs. Get 5 hand-picked, visa sponsorship roles matched to your profile — delivered directly to your phone every Friday.
+        </p>
+      </div>
+
+      {/* Pricing cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", marginBottom: "3rem" }}>
+
+        {/* Telegram */}
+        <div style={{ background: "var(--color-background-primary)", border: "2px solid #1A3FA8", borderRadius: "var(--border-radius-lg)", padding: "2rem", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: "16px", right: "16px", background: "#1A3FA8", color: "#fff", padding: "3px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 700 }}>
+            MOST POPULAR
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
+            <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "#229ED9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
+            </div>
+            <div>
+              <p style={{ fontWeight: 700, margin: 0, fontSize: "18px" }}>Telegram Premium</p>
+              <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Weekly job alerts on Telegram</p>
+            </div>
+          </div>
+          <div style={{ marginBottom: "1.5rem" }}>
+            <span style={{ fontSize: "3rem", fontWeight: 800, color: "var(--color-text-primary)" }}>£6.99</span>
+            <span style={{ fontSize: "15px", color: "var(--color-text-secondary)", marginLeft: "6px" }}>/month</span>
+            <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>Billed monthly · Cancel anytime in Telegram</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "1.5rem" }}>
+            {telegramPerks.map(function(p, i) {
+              return (
+                <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                  <span style={{ color: "#16A34A", fontWeight: 700, flexShrink: 0 }}>✓</span>
+                  <span style={{ fontSize: "13px", lineHeight: 1.5 }}>{p}</span>
+                </div>
+              );
+            })}
+          </div>
+          <a href={TELEGRAM_LINK} target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxSizing: "border-box" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
+            Join Telegram — £6.99/month
+          </a>
+        </div>
+
+        {/* WhatsApp */}
+        <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "2rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
+            <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "#25D366", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            </div>
+            <div>
+              <p style={{ fontWeight: 700, margin: 0, fontSize: "18px" }}>WhatsApp Premium</p>
+              <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Weekly job alerts on WhatsApp</p>
+            </div>
+          </div>
+          <div style={{ marginBottom: "1.5rem" }}>
+            <span style={{ fontSize: "3rem", fontWeight: 800, color: "var(--color-text-primary)" }}>£7.99</span>
+            <span style={{ fontSize: "15px", color: "var(--color-text-secondary)", marginLeft: "6px" }}>/month</span>
+            <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>Billed monthly · Cancel anytime</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "1.5rem" }}>
+            {whatsappPerks.map(function(p, i) {
+              return (
+                <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                  <span style={{ color: "#16A34A", fontWeight: 700, flexShrink: 0 }}>✓</span>
+                  <span style={{ fontSize: "13px", lineHeight: 1.5 }}>{p}</span>
+                </div>
+              );
+            })}
+          </div>
+          <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: "#25D366", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxSizing: "border-box" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Join WhatsApp — £7.99/month
+          </a>
+          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", textAlign: "center", margin: "8px 0 0" }}>Coming soon — join waitlist below</p>
+        </div>
+      </div>
+
+      {/* Social proof */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "2rem", textAlign: "center" }}>
+        <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "15px" }}>💬 What members say</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
+          {[
+            { quote: "Got an interview within 2 weeks of joining. The jobs are actually relevant to my profile.", name: "Priya S.", role: "Software Engineer", country: "🇮🇳" },
+            { quote: "Finally a service that understands what visa sponsorship jobs look like. Worth every penny.", name: "David O.", role: "NHS Nurse", country: "🇳🇬" },
+            { quote: "Saved me hours of searching every week. The Friday alerts are the first thing I check.", name: "Fatima K.", role: "Data Analyst", country: "🇵🇰" },
+          ].map(function(t, i) {
+            return (
+              <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1.25rem", textAlign: "left" }}>
+                <p style={{ fontSize: "13px", lineHeight: 1.7, margin: "0 0 10px", color: "var(--color-text-primary)", fontStyle: "italic" }}>"{t.quote}"</p>
+                <p style={{ fontSize: "12px", fontWeight: 600, margin: 0 }}>{t.country} {t.name} · {t.role}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* FAQ */}
+      <div style={{ marginBottom: "2rem" }}>
+        <h2 style={{ fontSize: "1.2rem", fontWeight: 600, margin: "0 0 1rem", textAlign: "center" }}>Frequently asked questions</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {[
+            { q: "How do I join the Telegram group?", a: "Click 'Join Telegram' above. You'll be taken to our Telegram channel where you can subscribe for £6.99/month directly through Telegram's built-in payment system." },
+            { q: "How are jobs selected?", a: "Every week we manually curate the best visa sponsorship jobs from 15,000+ listings on our platform — filtering for quality, salary, and genuine sponsorship offers." },
+            { q: "Can I cancel anytime?", a: "Yes — cancel directly inside Telegram or WhatsApp at any time. No questions asked, no hidden fees." },
+            { q: "What sectors are covered?", a: "Technology, Healthcare/NHS, Finance, Engineering, Education, Business and more. We cover all major sectors that offer UK visa sponsorship." },
+            { q: "Is this different from the free jobs board?", a: "Yes — the free jobs board has 15,000+ jobs for you to search yourself. Premium gives you a personalised, curated shortlist delivered to your phone so you never miss the best opportunities." },
+          ].map(function(item, i) {
+            return (
+              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-md)", padding: "1rem 1.25rem" }}>
+                <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: "14px" }}>Q: {item.q}</p>
+                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>{item.a}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Bottom CTA */}
+      <div style={{ background: "linear-gradient(135deg, rgba(26,63,168,0.08), rgba(255,69,0,0.04))", border: "0.5px solid rgba(26,63,168,0.2)", borderRadius: "var(--border-radius-lg)", padding: "2rem", textAlign: "center" }}>
+        <p style={{ fontWeight: 700, fontSize: "1.1rem", margin: "0 0 8px" }}>Ready to land your UK visa sponsorship job?</p>
+        <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem" }}>Join hundreds of international professionals getting weekly job alerts.</p>
+        <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+          <a href={TELEGRAM_LINK} target="_blank" rel="noopener noreferrer"
+            style={{ padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700 }}>
+            Join Telegram £6.99/mo
+          </a>
+          <button onClick={() => navTo("Sponsorship Jobs")}
+            style={{ padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+            Browse free jobs first
+          </button>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+
 // ─── Page routing (outside component) ──────────────────────────────────────
 const PAGE_SLUGS = {
   "Home": "",
@@ -1758,6 +1935,7 @@ const PAGE_SLUGS = {
   "Sponsorship Jobs": "jobs",
   "Visa Sponsors": "visa-sponsors",
   "CV Generator": "cv-generator",
+  "Premium": "premium",
   "Contact": "contact",
   "My Profile": "profile",
   "Privacy Policy": "privacy",
@@ -2089,6 +2267,28 @@ export default function Mentorgram() {
             </div>
           </div>
 
+          {/* Premium banner */}
+          <div style={{ padding: "3rem 1.5rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)" }}>
+            <div style={{ maxWidth: "700px", margin: "0 auto", background: "linear-gradient(135deg, #1A3FA8, #0d2478)", borderRadius: "var(--border-radius-lg)", padding: "2.5rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(255,69,0,0.15)", filter: "blur(40px)" }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ display: "inline-block", padding: "3px 14px", borderRadius: "20px", background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "1rem" }}>⭐ Premium</div>
+                <h2 style={{ fontSize: "1.6rem", fontWeight: 700, color: "#fff", margin: "0 0 0.75rem", lineHeight: 1.3 }}>Get 5 visa jobs delivered to your phone every Friday</h2>
+                <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.75)", margin: "0 0 1.5rem", lineHeight: 1.7 }}>Join our premium Telegram channel — curated sponsorship jobs matched to your profile, delivered weekly.</p>
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+                  <button onClick={() => navTo("Premium")}
+                    style={{ padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#FF4500", color: "#fff", border: "none", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    Join for £6.99/month →
+                  </button>
+                  <button onClick={() => navTo("Premium")}
+                    style={{ padding: "12px 20px", borderRadius: "var(--border-radius-md)", background: "rgba(255,255,255,0.1)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+                    Learn more
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div style={{ padding: "4rem 1.5rem", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
             <div style={{ maxWidth: "540px", margin: "0 auto", textAlign: "center" }}>
               <h2 style={S.sectionTitle}>Join the waitlist</h2>
@@ -2272,6 +2472,7 @@ export default function Mentorgram() {
         />
       );
 
+      case "Premium": return <PremiumPage navTo={navTo} user={user} />;
       case "Contact": return <ContactPage />;
       case "Visa Sponsors": return <SponsorsPage />;
       case "Privacy Policy": return <PrivacyPage />;
