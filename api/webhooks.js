@@ -70,7 +70,7 @@ async function handleTelegram(body) {
           "⚠️ This link is one-time use — join now before it expires!\n\n";
       }
 
-      welcomeMsg += "📋 You will receive 5 curated UK visa sponsorship jobs every Friday matched to your profile.\n\n" +
+      welcomeMsg += "📋 You will receive 10 curated UK visa sponsorship jobs every Friday.\n\n" +
         "🌐 Update your preferences at mentorgramai.com\n\n" +
         "Type /stop at any time to unsubscribe.";
 
