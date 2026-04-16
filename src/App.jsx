@@ -8,7 +8,7 @@ import CVGenerator from "./CVGenerator.jsx";
 
 inject();
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "CV Generator", "Visa Sponsors", "Contact", "My Profile"];
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "CV Generator", "Visa Sponsors", "Premium", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
 const JOBS_PER_PAGE = 20;
@@ -1749,6 +1749,359 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
   );
 }
 
+// ─── AI Mentor Chat ──────────────────────────────────────
+function AIMentorChat({ user }) {
+  var s1 = useState([{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor. I can help with UK universities, visa sponsorship jobs, career planning and much more. What would you like to explore?" }]);
+  var messages = s1[0], setMessages = s1[1];
+  var s2 = useState(""); var chatInput = s2[0], setChatInput = s2[1];
+  var s3 = useState(false); var loading = s3[0], setLoading = s3[1];
+  var endRef = useRef(null);
+
+  useEffect(function() {
+    if (messages.length > 1 && endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(function() {
+    if (!user || !user.id) return;
+    try {
+      var saved = localStorage.getItem("mg_chat_" + user.id);
+      if (saved) { var p = JSON.parse(saved); if (p && p.length > 0) setMessages(p); }
+    } catch(e) {}
+  }, []);
+
+  function clearChat() {
+    setMessages([{ role: "assistant", content: "Hi! Starting fresh. What would you like to know?" }]);
+    try { if (user && user.id) localStorage.removeItem("mg_chat_" + user.id); } catch(e) {}
+  }
+
+  async function send() {
+    var msg = chatInput.trim();
+    if (!msg || loading) return;
+    setChatInput("");
+    var next = [...messages, { role: "user", content: msg }];
+    setMessages(next);
+    setLoading(true);
+    try {
+      var res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next })
+      });
+      var data = await res.json();
+      var final = [...next, { role: "assistant", content: data.reply || "Sorry, please try again." }];
+      setMessages(final);
+      try { if (user && user.id) localStorage.setItem("mg_chat_" + user.id, JSON.stringify(final.slice(-30))); } catch(e) {}
+    } catch(e) {
+      setMessages([...next, { role: "assistant", content: "Sorry, trouble connecting. Please try again." }]);
+    }
+    setLoading(false);
+  }
+
+  var PROMPTS = ["UK universities and UCAS", "Skilled Worker visa", "Find sponsorship jobs", "Career path planning", "German universities"];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)" }}>
+      <style>{"@keyframes mgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}@keyframes mgDot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}"}</style>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0 8px", borderBottom: "0.5px solid var(--color-border-tertiary)", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "22px" }}>🤖</span>
+          <div>
+            <p style={{ fontWeight: 600, margin: 0, fontSize: "14px" }}>Mentorgram AI Mentor</p>
+            <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>Free for all users</p>
+          </div>
+        </div>
+        {messages.length > 1 && (
+          <button onClick={clearChat} style={{ fontSize: "11px", padding: "4px 10px", borderRadius: "6px", border: "0.5px solid var(--color-border-tertiary)", background: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontFamily: "inherit" }}>New chat</button>
+        )}
+      </div>
+
+      {messages.length <= 1 && (
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", padding: "10px 0", flexShrink: 0 }}>
+          {PROMPTS.map(function(q) {
+            return (
+              <button key={q} onClick={function() { setChatInput(q); }}
+                style={{ padding: "5px 12px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)" }}>
+                {q}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", padding: "10px 0", minHeight: 0 }}>
+        {messages.map(function(m, i) {
+          var isUser = m.role === "user";
+          return (
+            <div key={i} style={{ display: "flex", gap: "8px", justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-end", animation: "mgIn 0.2s ease" }}>
+              {!isUser && <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0 }}>🤖</div>}
+              <div style={{ maxWidth: "78%", padding: "9px 13px", fontSize: "14px", lineHeight: 1.6,
+                borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                background: isUser ? "#1A3FA8" : "var(--color-background-primary)",
+                color: isUser ? "#fff" : "var(--color-text-primary)",
+                border: isUser ? "none" : "0.5px solid var(--color-border-tertiary)" }}>
+                {m.content.split("\n").map(function(line, li) {
+                  if (line.startsWith("* ") || line.startsWith("- ")) return <div key={li} style={{ display: "flex", gap: "6px", marginTop: "3px" }}><span style={{ color: isUser ? "#fff" : "#1A3FA8", fontWeight: 700 }}>•</span><span>{line.slice(2)}</span></div>;
+                  if (!line.trim()) return <div key={li} style={{ height: "4px" }} />;
+                  var parts = line.split(/\*\*([^*]+)\*\*/g);
+                  return <div key={li} style={{ marginTop: li > 0 ? "2px" : 0 }}>{parts.map(function(p, pi) { return pi % 2 === 1 ? <strong key={pi}>{p}</strong> : p; })}</div>;
+                })}
+              </div>
+              {isUser && <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "11px", flexShrink: 0 }}>
+                {user && user.email ? user.email[0].toUpperCase() : "U"}
+              </div>}
+            </div>
+          );
+        })}
+        {loading && (
+          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+            <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px" }}>🤖</div>
+            <div style={{ padding: "10px 14px", borderRadius: "16px 16px 16px 4px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", display: "flex", gap: "4px", alignItems: "center" }}>
+              {[0,1,2].map(function(j) { return <div key={j} style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#1A3FA8", animation: "mgDot 1.2s ease infinite", animationDelay: (j * 0.2) + "s" }} />; })}
+            </div>
+          </div>
+        )}
+        <div ref={endRef} />
+      </div>
+
+      <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: "10px", paddingBottom: "8px", flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+          <textarea value={chatInput} onChange={function(e) { setChatInput(e.target.value); }}
+            onKeyDown={function(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+            placeholder="Ask me anything..." rows={1}
+            style={{ flex: 1, padding: "10px 14px", borderRadius: "20px", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", resize: "none", lineHeight: 1.5, maxHeight: "100px", overflowY: "auto" }}
+            onInput={function(e) { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; }} />
+          <button onClick={send} disabled={loading || !chatInput.trim()}
+            style={{ width: "40px", height: "40px", borderRadius: "50%", border: "none", cursor: loading || !chatInput.trim() ? "default" : "pointer", fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s",
+              background: loading || !chatInput.trim() ? "var(--color-background-secondary)" : "#1A3FA8",
+              color: loading || !chatInput.trim() ? "var(--color-text-secondary)" : "#fff" }}>
+            ↑
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Premium Success Page ─────────────────────────────────────────────────
+function PremiumSuccessPage({ navTo, user }) {
+  var connected = (typeof window !== 'undefined' && window.__tgConnected) || false;
+  var userId = user ? user.id : "";
+  var botLink = "https://t.me/MentorgramAIBot?start=" + userId;
+
+  return (
+    <div style={{ maxWidth: "560px", margin: "0 auto", padding: "3rem 1.25rem", textAlign: "center" }}>
+      <style>{"@keyframes popIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}"}</style>
+
+      {/* Success icon */}
+      <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,#16A34A,#14532d)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem", fontSize: "36px", animation: "popIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards", boxShadow: "0 8px 30px rgba(22,163,74,0.3)" }}>
+        ✅
+      </div>
+
+      <h1 style={{ fontSize: "1.8rem", fontWeight: 800, margin: "0 0 0.75rem" }}>Payment successful!</h1>
+      <p style={{ fontSize: "15px", color: "var(--color-text-secondary)", margin: "0 0 2rem", lineHeight: 1.7 }}>
+        Welcome to Mentorgram Premium 🎉 You will receive 5 curated visa sponsorship jobs every Friday.
+      </p>
+
+      {/* Step indicator */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#16A34A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700 }}>✓</div>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#16A34A" }}>Payment done</span>
+        </div>
+        <div style={{ flex: 1, height: "2px", background: "var(--color-border-tertiary)", maxWidth: "60px" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#229ED9", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700 }}>2</div>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#229ED9" }}>Connect Telegram</span>
+        </div>
+      </div>
+
+      {/* Connect card */}
+      <div style={{ background: "var(--color-background-primary)", border: "2px solid #229ED9", borderRadius: "16px", padding: "2rem", marginBottom: "1.5rem" }}>
+        <div style={{ fontSize: "48px", marginBottom: "1rem" }}>📱</div>
+        <h2 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 0.75rem" }}>One last step — connect Telegram</h2>
+        <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
+          Click below to open Telegram and start our bot. This is how we will deliver your weekly jobs — it only takes 10 seconds.
+        </p>
+
+        {user ? (
+          <a href={botLink} target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 28px", borderRadius: "12px", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(34,158,217,0.35)", marginBottom: "1rem" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
+            Connect Telegram Now
+          </a>
+        ) : (
+          <button onClick={function() { localStorage.setItem("mg_return_page", "Premium Success"); navTo("My Profile"); }}
+            style={{ width: "100%", padding: "14px", borderRadius: "12px", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: "1rem" }}>
+            Sign in first to connect Telegram
+          </button>
+        )}
+
+        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>
+          Opens Telegram app → tap Start → done! Your first jobs arrive this Friday.
+        </p>
+      </div>
+
+      {/* What happens next */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px", padding: "1.25rem", marginBottom: "1.5rem", textAlign: "left" }}>
+        <p style={{ fontWeight: 600, margin: "0 0 0.75rem", fontSize: "14px" }}>What happens next:</p>
+        {[
+          { icon: "📱", text: "Connect Telegram above (takes 10 seconds)" },
+          { icon: "✅", text: "Our bot confirms you are connected" },
+          { icon: "📋", text: "Every Friday you receive 5 curated visa sponsorship jobs" },
+          { icon: "🎯", text: "Jobs matched to your sectors and UK location preferences" },
+        ].map(function(item, i) {
+          return (
+            <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: i < 3 ? "8px" : 0 }}>
+              <span style={{ fontSize: "18px", flexShrink: 0 }}>{item.icon}</span>
+              <p style={{ fontSize: "13px", margin: 0, lineHeight: 1.5 }}>{item.text}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      <button onClick={function() { navTo("Sponsorship Jobs"); }}
+        style={{ padding: "10px 24px", borderRadius: "12px", background: "transparent", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit" }}>
+        Browse jobs while you wait →
+      </button>
+    </div>
+  );
+}
+
+
+// ─── Premium Page ─────────────────────────────────────────────────────────
+function PremiumPage({ navTo, user }) {
+  var STRIPE_LINK = "https://buy.stripe.com/4gM14o1jZ0EJgVp3gh0RG00";
+  var perks = [
+    { icon: "📋", title: "5 curated jobs every Friday", desc: "Hand-picked visa sponsorship roles — no noise, just quality" },
+    { icon: "🎯", title: "Matched to your profile", desc: "Jobs filtered by your sector, location and visa needs" },
+    { icon: "⚡", title: "Early access", desc: "See jobs before they get hundreds of applications" },
+    { icon: "🏥", title: "All major sectors", desc: "NHS, Tech, Finance, Engineering, Education and more" },
+    { icon: "💬", title: "Community of job seekers", desc: "Connect with 1,000+ international professionals" },
+    { icon: "❌", title: "Cancel anytime", desc: "No contracts, cancel directly inside Telegram" },
+  ];
+  var testimonials = [
+    { quote: "Got an interview within 2 weeks. The jobs are actually relevant to my profile.", name: "Priya S.", role: "Software Engineer", flag: "🇮🇳" },
+    { quote: "Finally a service that understands visa sponsorship. Worth every penny.", name: "David O.", role: "NHS Nurse", flag: "🇳🇬" },
+    { quote: "Saved me hours every week. Friday alerts are the first thing I check.", name: "Fatima K.", role: "Data Analyst", flag: "🇵🇰" },
+  ];
+  return (
+    <div style={{ maxWidth: "860px", margin: "0 auto", padding: "2rem 1.25rem" }}>
+
+      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 16px", borderRadius: "20px", background: "rgba(26,63,168,0.1)", border: "0.5px solid rgba(26,63,168,0.3)", marginBottom: "1.25rem" }}>
+          <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#1A3FA8" }}>⭐ Premium Membership</span>
+        </div>
+        <h1 style={{ fontSize: "clamp(1.8rem,4vw,2.6rem)", fontWeight: 800, margin: "0 0 1rem", lineHeight: 1.2 }}>
+          Stop searching.<br />
+          <span style={{ background: "linear-gradient(135deg,#1A3FA8,#FF4500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Let the jobs come to you.</span>
+        </h1>
+        <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", maxWidth: "500px", margin: "0 auto 2rem", lineHeight: 1.7 }}>
+          Get 5 hand-picked UK visa sponsorship jobs delivered to your Telegram every Friday — matched to your profile.
+        </p>
+        <div style={{ display: "inline-block", background: "var(--color-background-primary)", border: "2px solid #1A3FA8", borderRadius: "20px", padding: "2rem 2.5rem", position: "relative", boxShadow: "0 20px 60px rgba(26,63,168,0.15)", minWidth: "300px" }}>
+          <div style={{ position: "absolute", top: "-14px", left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#1A3FA8,#0d2478)", color: "#fff", padding: "4px 20px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>MOST POPULAR</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "1rem" }}>
+            <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#229ED9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
+            </div>
+            <div style={{ textAlign: "left" }}>
+              <p style={{ fontWeight: 700, margin: 0, fontSize: "16px" }}>Telegram Premium</p>
+              <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Weekly visa job alerts</p>
+            </div>
+          </div>
+          <div style={{ marginBottom: "1.25rem" }}>
+            <span style={{ fontSize: "3.5rem", fontWeight: 800, lineHeight: 1 }}>£6.99</span>
+            <span style={{ fontSize: "15px", color: "var(--color-text-secondary)", marginLeft: "4px" }}>/month</span>
+            <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>Billed monthly · Cancel anytime in Telegram</p>
+          </div>
+          <a href={STRIPE_LINK} target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px 28px", borderRadius: "12px", background: "linear-gradient(135deg,#229ED9,#1a7fb5)", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(34,158,217,0.35)" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
+            Join Telegram — £6.99/month
+          </a>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "3rem" }}>
+        <h2 style={{ textAlign: "center", fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.5rem" }}>Everything included</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
+          {perks.map(function(p, i) {
+            return (
+              <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start", padding: "1rem 1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px" }}>
+                <span style={{ fontSize: "22px", flexShrink: 0 }}>{p.icon}</span>
+                <div>
+                  <p style={{ fontWeight: 600, margin: "0 0 3px", fontSize: "13px" }}>{p.title}</p>
+                  <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.5 }}>{p.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "3rem" }}>
+        <h2 style={{ textAlign: "center", fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.5rem" }}>What members say</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
+          {testimonials.map(function(t, i) {
+            return (
+              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px", padding: "1.25rem" }}>
+                <p style={{ fontSize: "28px", color: "#1A3FA8", lineHeight: 1, margin: "0 0 8px", opacity: 0.4 }}>"</p>
+                <p style={{ fontSize: "13px", lineHeight: 1.7, margin: "0 0 12px", fontStyle: "italic" }}>{t.quote}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "13px" }}>{t.name[0]}</div>
+                  <div>
+                    <p style={{ fontWeight: 600, margin: 0, fontSize: "13px" }}>{t.flag} {t.name}</p>
+                    <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "3rem" }}>
+        <h2 style={{ textAlign: "center", fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.5rem" }}>Common questions</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {[
+            { q: "How do I join?", a: "Click Join Telegram above. You will be taken to our channel where you subscribe for £6.99/month directly through Telegram's built-in payments." },
+            { q: "How are jobs selected?", a: "Every week we curate the best visa sponsorship roles from 15,000+ listings — filtering for quality, salary and genuine sponsorship." },
+            { q: "Can I cancel anytime?", a: "Yes — cancel directly inside Telegram. No questions asked, no hidden fees." },
+            { q: "What sectors are covered?", a: "Technology, Healthcare/NHS, Finance, Engineering, Education, Business and all major sectors offering UK visa sponsorship." },
+            { q: "Is this different from the free jobs board?", a: "Yes — the free board has 15,000+ jobs to search. Premium delivers a personalised shortlist to your phone every Friday." },
+          ].map(function(item, i) {
+            return (
+              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px", padding: "1rem 1.25rem" }}>
+                <p style={{ fontWeight: 600, margin: "0 0 5px", fontSize: "14px" }}>{item.q}</p>
+                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>{item.a}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ background: "linear-gradient(135deg,#1A3FA8,#0d2478)", borderRadius: "20px", padding: "2.5rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(255,69,0,0.15)", filter: "blur(40px)" }} />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#fff", margin: "0 0 8px" }}>Ready to land your UK visa job?</p>
+          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", margin: "0 0 1.5rem" }}>Join hundreds of international professionals getting weekly job alerts.</p>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+            <a href={STRIPE_LINK} target="_blank" rel="noopener noreferrer"
+              style={{ padding: "12px 28px", borderRadius: "12px", background: "#FF4500", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(255,69,0,0.4)" }}>
+              Join for £6.99/month →
+            </a>
+            <button onClick={function() { navTo("Sponsorship Jobs"); }}
+              style={{ padding: "12px 24px", borderRadius: "12px", background: "rgba(255,255,255,0.1)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit" }}>
+              Browse free jobs first
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
 // ─── Page routing (outside component) ──────────────────────────────────────
 const PAGE_SLUGS = {
   "Home": "",
@@ -1758,6 +2111,8 @@ const PAGE_SLUGS = {
   "Sponsorship Jobs": "jobs",
   "Visa Sponsors": "visa-sponsors",
   "CV Generator": "cv-generator",
+  "Premium": "premium",
+  "Premium Success": "premium-success",
   "Contact": "contact",
   "My Profile": "profile",
   "Privacy Policy": "privacy",
@@ -1773,7 +2128,7 @@ export default function Mentorgram() {
   }
 
   const [activePage, setActivePage] = useState(getInitialPage);
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I'm the Mentorgram AI Mentor 👋\n\nI'm here to help you navigate studying and working in the UK and Germany — completely free. I can help you with:\n\n• UK university applications and UCAS\n• Finding visa sponsorship jobs\n• Career planning and CV advice\n• German universities and DAAD scholarships\n• Student visa guidance\n\nMentorgram also has a live jobs board with 15,000+ visa sponsorship roles, a University Finder and a CV Generator — all free at mentorgramai.com 🚀\n\nWhat would you like to explore today?" }]);
+  const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor 👋\n\nI am here to help you with UK universities, visa sponsorship jobs, career planning and much more. What would you like to explore?" }]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [allJobs, setAllJobs] = useState(() => {
@@ -1805,6 +2160,14 @@ export default function Mentorgram() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  useEffect(() => {
+    if (!user) return;
+    try {
+      var saved = localStorage.getItem("mg_chat_history_" + user.id);
+      if (saved) { var parsed = JSON.parse(saved); if (parsed && parsed.length > 0) setMessages(parsed); }
+    } catch(e) {}
+  }, [user]);
 
   // ✅ UPDATED: hash handler now uses job ID instead of decoding base64
   useEffect(() => {
@@ -1927,7 +2290,11 @@ export default function Mentorgram() {
         body: JSON.stringify({ messages: updatedMessages })
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "Could you rephrase that?" }]);
+      setMessages(prev => {
+        const updated = [...prev, { role: "assistant", content: data.reply || "Could you rephrase that?" }];
+        try { localStorage.setItem("mg_chat_history_" + (user && user.id ? user.id : "guest"), JSON.stringify(updated.slice(-30))); } catch {}
+        return updated;
+      });
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Sorry, trouble connecting. Please try again." }]);
     }
@@ -2089,6 +2456,28 @@ export default function Mentorgram() {
             </div>
           </div>
 
+          {/* Premium banner */}
+          <div style={{ padding: "3rem 1.5rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)" }}>
+            <div style={{ maxWidth: "700px", margin: "0 auto", background: "linear-gradient(135deg, #1A3FA8, #0d2478)", borderRadius: "var(--border-radius-lg)", padding: "2.5rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(255,69,0,0.15)", filter: "blur(40px)" }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ display: "inline-block", padding: "3px 14px", borderRadius: "20px", background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "1rem" }}>⭐ Premium</div>
+                <h2 style={{ fontSize: "1.6rem", fontWeight: 700, color: "#fff", margin: "0 0 0.75rem", lineHeight: 1.3 }}>Get 5 visa jobs delivered to your phone every Friday</h2>
+                <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.75)", margin: "0 0 1.5rem", lineHeight: 1.7 }}>Join our premium Telegram channel — curated sponsorship jobs matched to your profile, delivered weekly.</p>
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+                  <a href="https://buy.stripe.com/4gM14o1jZ0EJgVp3gh0RG00" target="_blank" rel="noopener noreferrer"
+                    style={{ padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#FF4500", color: "#fff", fontSize: "15px", fontWeight: 700, textDecoration: "none" }}>
+                    Join for £6.99/month →
+                  </a>
+                  <button onClick={() => navTo("Premium")}
+                    style={{ padding: "12px 20px", borderRadius: "var(--border-radius-md)", background: "rgba(255,255,255,0.1)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+                    Learn more
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div style={{ padding: "4rem 1.5rem", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
             <div style={{ maxWidth: "540px", margin: "0 auto", textAlign: "center" }}>
               <h2 style={S.sectionTitle}>Join the waitlist</h2>
@@ -2106,130 +2495,23 @@ export default function Mentorgram() {
         </div>
       );
 
-      case "AI Mentor": return !user ? (
-        <div style={{ maxWidth: "480px", margin: "0 auto", padding: "5rem 1.5rem", textAlign: "center" }}>
-          <div style={{ fontSize: "56px", marginBottom: "1rem" }}>🤖</div>
-          <h2 style={{ fontSize: "1.6rem", fontWeight: 600, margin: "0 0 0.75rem" }}>AI Mentor</h2>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "15px", lineHeight: 1.7, margin: "0 0 2rem" }}>
-            Get personalised guidance on UK universities, visa sponsorship jobs, career paths and more — completely free for registered users.
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem", textAlign: "left" }}>
-            {["UK university admissions & UCAS guidance", "Visa sponsorship jobs and Skilled Worker visa", "Career planning for high-demand UK sectors", "German university applications & DAAD scholarships", "Personalised study and career roadmaps"].map((f, i) => (
-              <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                <span style={{ color: "#16A34A", fontWeight: 700, flexShrink: 0 }}>✓</span>
-                <span style={{ fontSize: "14px" }}>{f}</span>
-              </div>
-            ))}
-          </div>
-          <button onClick={() => navTo("My Profile")} style={{ width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-            Sign in to chat — it's free
-          </button>
-          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 0" }}>Free account · No credit card needed</p>
-        </div>
-      ) : (
-        <div style={{ maxWidth: "780px", margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", height: "calc(100vh - 120px)" }}>
-          {/* Header */}
-          <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
-            <div style={{ fontSize: "40px", marginBottom: "8px" }}>🤖</div>
-            <h2 style={{ fontSize: "1.4rem", fontWeight: 600, margin: "0 0 4px" }}>AI Mentor</h2>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Your personal career and education advisor — ask anything about UK study, visas or jobs</p>
-          </div>
-
-          {/* Quick prompts */}
-          {messages.length <= 1 && (
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", marginBottom: "1.25rem" }}>
-              {[
-                "How do I apply to UK universities?",
-                "What is the Skilled Worker visa?",
-                "How do I find visa sponsorship jobs?",
-                "What courses are in demand in the UK?",
-                "How much does it cost to study in the UK?",
-                "Help me plan my career path",
-              ].map(q => (
-                <button key={q} onClick={() => { setChatInput(q); }}
-                  style={{ padding: "6px 14px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)", transition: "all 0.15s" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#1A3FA8"; e.currentTarget.style.color = "#1A3FA8"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-secondary)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}>
-                  {q}
-                </button>
-              ))}
+      case "AI Mentor": return (
+        <div style={{ maxWidth: "780px", margin: "0 auto", padding: "1rem" }}>
+          {!user ? (
+            <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
+              <p style={{ fontSize: "48px" }}>🤖</p>
+              <h2 style={{ margin: "0 0 1rem" }}>AI Mentor</h2>
+              <p style={{ color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>Sign in to chat with your AI Mentor for free.</p>
+              <button onClick={() => { localStorage.setItem("mg_return_page", "AI Mentor"); navTo("My Profile"); }}
+                style={{ padding: "12px 28px", background: "#1A3FA8", color: "#fff", border: "none", borderRadius: "8px", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                Sign in — it is free
+              </button>
             </div>
+          ) : (
+            <AIMentorChat user={user} />
           )}
-
-          {/* Messages */}
-          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", paddingBottom: "1rem", minHeight: 0 }}>
-            <style>{"@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}"}</style>
-            {messages.map((m, i) => (
-              <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", justifyContent: m.role === "user" ? "flex-end" : "flex-start", animation: "msgIn 0.25s ease forwards" }}>
-                {m.role === "assistant" && (
-                  <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0, marginTop: "2px" }}>🤖</div>
-                )}
-                <div style={{ maxWidth: "75%", padding: "10px 14px", borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  background: m.role === "user" ? "#1A3FA8" : "var(--color-background-primary)",
-                  color: m.role === "user" ? "#fff" : "var(--color-text-primary)",
-                  border: m.role === "user" ? "none" : "0.5px solid var(--color-border-tertiary)",
-                  fontSize: "14px", lineHeight: 1.65 }}>
-                  {m.role === "user" ? m.content : m.content.split("\n").map((line, li) => {
-                    const trimmed = line.trim();
-                    // Bold: **text**
-                    const parseBold = (text) => {
-                      const parts = text.split(/\*\*(.*?)\*\*/g);
-                      return parts.map((p, pi) => pi % 2 === 1 ? <strong key={pi}>{p}</strong> : p);
-                    };
-                    // Bullet: lines starting with * + - •
-                    if (/^[\*\+\-•]\s/.test(trimmed)) {
-                      return <div key={li} style={{ display: "flex", gap: "8px", marginTop: "4px" }}><span style={{ color: "#1A3FA8", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>•</span><span>{parseBold(trimmed.slice(2))}</span></div>;
-                    }
-                    // Numbered: 1. 2. etc
-                    if (/^\d+\.\s/.test(trimmed)) {
-                      const num = trimmed.match(/^(\d+)\.\s/)[1];
-                      return <div key={li} style={{ display: "flex", gap: "8px", marginTop: "4px" }}><span style={{ color: "#1A3FA8", fontWeight: 700, flexShrink: 0, minWidth: "16px" }}>{num}.</span><span>{parseBold(trimmed.replace(/^\d+\.\s/, ""))}</span></div>;
-                    }
-                    // Empty line
-                    if (!trimmed) return <div key={li} style={{ height: "6px" }} />;
-                    // Normal line
-                    return <div key={li} style={{ marginTop: li === 0 ? 0 : "4px" }}>{parseBold(trimmed)}</div>;
-                  })}
-                </div>
-                {m.role === "user" && (
-                  <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "12px", flexShrink: 0, marginTop: "2px" }}>
-                    {user ? (user.user_metadata?.full_name || user.email || "U")[0].toUpperCase() : "U"}
-                  </div>
-                )}
-              </div>
-            ))}
-            {chatLoading && (
-              <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>🤖</div>
-                <div style={{ padding: "12px 16px", borderRadius: "18px 18px 18px 4px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", display: "flex", gap: "5px", alignItems: "center" }}>
-                  <style>{"@keyframes dot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}"}</style>
-                  {[0,1,2].map(i => <div key={i} style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#1A3FA8", animation: "dot 1.2s ease infinite", animationDelay: (i * 0.2) + "s" }} />)}
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", paddingTop: "1rem", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-            <textarea
-              value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-              placeholder="Ask about UK universities, visa sponsorship, career paths..."
-              rows={1}
-              style={{ flex: 1, padding: "12px 16px", borderRadius: "24px", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", resize: "none", lineHeight: 1.5, maxHeight: "120px", overflowY: "auto" }}
-              onInput={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }}
-            />
-            <button onClick={sendMessage} disabled={chatLoading || !chatInput.trim()}
-              style={{ width: "44px", height: "44px", borderRadius: "50%", background: chatLoading || !chatInput.trim() ? "var(--color-background-secondary)" : "#1A3FA8", color: chatLoading || !chatInput.trim() ? "var(--color-text-secondary)" : "#fff", border: "none", cursor: chatLoading || !chatInput.trim() ? "default" : "pointer", fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
-              ↑
-            </button>
-          </div>
-          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", textAlign: "center", margin: "6px 0 0" }}>Press Enter to send · Shift+Enter for new line · Powered by Groq (free)</p>
         </div>
       );
-
       case "Education Paths": return (
         <div style={S.section}>
           <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>Education pathways</h2>
@@ -2263,7 +2545,7 @@ export default function Mentorgram() {
         <CVGenerator
           user={user}
           cvText=""
-          onNavigateToCV={() => navTo("My Profile")}
+          onNavigateToCV={() => { localStorage.setItem("mg_return_page", "CV Generator"); navTo("My Profile"); }}
           onSignIn={() => {
             // ✅ Fix 2: store return page so after sign-in they come back here
             localStorage.setItem("mg_return_page", "CV Generator");
@@ -2272,6 +2554,8 @@ export default function Mentorgram() {
         />
       );
 
+      case "Premium": return <PremiumPage navTo={navTo} user={user} />;
+      case "Premium Success": return <PremiumSuccessPage navTo={navTo} user={user} />;
       case "Contact": return <ContactPage />;
       case "Visa Sponsors": return <SponsorsPage />;
       case "Privacy Policy": return <PrivacyPage />;
@@ -2339,7 +2623,7 @@ export default function Mentorgram() {
       </nav>
       <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
         {NAV_LINKS.filter(l => l !== "My Profile").map(l => {
-          const isDisabled = l === "AI Mentor";
+          const isDisabled = false;
           return (
             <button key={l}
               style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: isDisabled ? "default" : "pointer", fontSize: "15px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: isDisabled ? "var(--color-border-secondary)" : activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: activePage === l ? 500 : 400, opacity: isDisabled ? 0.5 : 1 }}
