@@ -1751,17 +1751,17 @@ function UniversitiesPage({ setChatInput, navTo, user }) {
 
 // ─── AI Mentor Chat ──────────────────────────────────────
 function AIMentorChat({ user }) {
-  var s1 = React.useState([{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor. I can help with UK universities, visa sponsorship jobs, career planning and much more. What would you like to explore?" }]);
+  var s1 = useState([{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor. I can help with UK universities, visa sponsorship jobs, career planning and much more. What would you like to explore?" }]);
   var messages = s1[0], setMessages = s1[1];
-  var s2 = React.useState(""); var chatInput = s2[0], setChatInput = s2[1];
-  var s3 = React.useState(false); var loading = s3[0], setLoading = s3[1];
-  var endRef = React.useRef(null);
+  var s2 = useState(""); var chatInput = s2[0], setChatInput = s2[1];
+  var s3 = useState(false); var loading = s3[0], setLoading = s3[1];
+  var endRef = useRef(null);
 
-  React.useEffect(function() {
+  useEffect(function() {
     if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  React.useEffect(function() {
+  useEffect(function() {
     if (!user || !user.id) return;
     try {
       var saved = localStorage.getItem("mg_chat_" + user.id);
