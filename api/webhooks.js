@@ -59,13 +59,22 @@ async function handleTelegram(body) {
         method: "PATCH",
         body: JSON.stringify({ telegram_chat_id: String(chatId), updated_at: new Date().toISOString() }),
       });
-      await sendTelegram(chatId,
-        "✅ <b>Connected to Mentorgram!</b>\n\n" +
-        "Hi " + firstName + "! 👋 You will now receive weekly UK visa sponsorship job alerts every Friday.\n\n" +
-        "📋 Jobs will be matched to your profile sectors and preferences.\n\n" +
-        "🌐 Visit mentorgramai.com to update your preferences.\n\n" +
-        "Type /stop at any time to unsubscribe."
-      );
+      // Generate a one-time invite link to the premium channel
+      var inviteLink = await getChannelInviteLink();
+
+      var welcomeMsg = "✅ <b>Connected to Mentorgram!</b>\n\n" +
+        "Hi " + firstName + "! 👋 Welcome to Mentorgram Premium!\n\n";
+
+      if (inviteLink) {
+        welcomeMsg += "👉 <b>Join your Premium Jobs channel here:</b>\n" + inviteLink + "\n\n" +
+          "⚠️ This link is one-time use — join now before it expires!\n\n";
+      }
+
+      welcomeMsg += "📋 You will receive 5 curated UK visa sponsorship jobs every Friday matched to your profile.\n\n" +
+        "🌐 Update your preferences at mentorgramai.com\n\n" +
+        "Type /stop at any time to unsubscribe.";
+
+      await sendTelegram(chatId, welcomeMsg);
     } else {
       await sendTelegram(chatId,
         "👋 <b>Welcome to Mentorgram AI!</b>\n\n" +
