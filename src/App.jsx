@@ -2072,7 +2072,11 @@ export default function Mentorgram() {
         body: JSON.stringify({ messages: updatedMessages })
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "Could you rephrase that?" }]);
+      setMessages(prev => {
+        const updated = [...prev, { role: "assistant", content: data.reply || "Could you rephrase that?" }];
+        try { localStorage.setItem("mg_chat_history_" + (user && user.id ? user.id : "guest"), JSON.stringify(updated.slice(-30))); } catch {}
+        return updated;
+      });
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Sorry, trouble connecting. Please try again." }]);
     }
@@ -2274,49 +2278,53 @@ export default function Mentorgram() {
       );
 
       case "AI Mentor": return !user ? (
-        <div style={{ maxWidth: "480px", margin: "0 auto", padding: "5rem 1.5rem", textAlign: "center" }}>
-          <div style={{ fontSize: "56px", marginBottom: "1rem" }}>🤖</div>
-          <h2 style={{ fontSize: "1.6rem", fontWeight: 600, margin: "0 0 0.75rem" }}>AI Mentor</h2>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "15px", lineHeight: 1.7, margin: "0 0 2rem" }}>
-            Get personalised guidance on UK universities, visa sponsorship jobs, career paths and more — completely free for registered users.
+        <div style={{ maxWidth: "480px", margin: "0 auto", padding: "3rem 1.25rem", textAlign: "center" }}>
+          <div style={{ fontSize: "48px", marginBottom: "0.75rem" }}>🤖</div>
+          <h2 style={{ fontSize: "1.4rem", fontWeight: 600, margin: "0 0 0.75rem" }}>AI Mentor</h2>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: "0 0 1.5rem" }}>
+            Get personalised guidance on UK universities, visa sponsorship jobs and career paths — completely free for registered users.
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem", textAlign: "left" }}>
-            {["UK university admissions & UCAS guidance", "Visa sponsorship jobs and Skilled Worker visa", "Career planning for high-demand UK sectors", "German university applications & DAAD scholarships", "Personalised study and career roadmaps"].map((f, i) => (
-              <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem", textAlign: "left" }}>
+            {["UK university admissions and UCAS guidance", "Visa sponsorship jobs and Skilled Worker visa", "Career planning for high-demand UK sectors", "German university applications and DAAD scholarships", "Personalised study and career roadmaps"].map((f, i) => (
+              <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
                 <span style={{ color: "#16A34A", fontWeight: 700, flexShrink: 0 }}>✓</span>
-                <span style={{ fontSize: "14px" }}>{f}</span>
+                <span style={{ fontSize: "13px" }}>{f}</span>
               </div>
             ))}
           </div>
-          <button onClick={() => { localStorage.setItem("mg_return_page", "AI Mentor"); navTo("My Profile"); }} style={{ width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-            Sign in to chat — it's free
+          <button onClick={() => { localStorage.setItem("mg_return_page", "AI Mentor"); navTo("My Profile"); }}
+            style={{ width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+            Sign in to chat — it is free
           </button>
           <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 0" }}>Free account · No credit card needed</p>
         </div>
       ) : (
-        <div style={{ maxWidth: "780px", margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", height: "calc(100vh - 120px)" }}>
+        <div style={{ maxWidth: "780px", margin: "0 auto", padding: "1rem 1rem 0", display: "flex", flexDirection: "column", height: "calc(100vh - 70px)" }}>
+          <style>{"@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes dot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}"}</style>
+
           {/* Header */}
-          <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
-            <div style={{ fontSize: "40px", marginBottom: "8px" }}>🤖</div>
-            <h2 style={{ fontSize: "1.4rem", fontWeight: 600, margin: "0 0 4px" }}>AI Mentor</h2>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Your personal career and education advisor — ask anything about UK study, visas or jobs</p>
+          <div style={{ textAlign: "center", paddingBottom: "0.75rem", borderBottom: "0.5px solid var(--color-border-tertiary)", marginBottom: "0.75rem", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <span style={{ fontSize: "24px" }}>🤖</span>
+              <div>
+                <p style={{ fontWeight: 600, margin: 0, fontSize: "15px" }}>Mentorgram AI Mentor</p>
+                <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>Ask anything about UK study, visas or jobs</p>
+              </div>
+              {messages.length > 1 && (
+                <button onClick={() => setMessages([{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor. How can I help you today?" }])}
+                  style={{ marginLeft: "auto", fontSize: "11px", color: "var(--color-text-secondary)", background: "none", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontFamily: "inherit", padding: "4px 10px" }}>
+                  New chat
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Quick prompts */}
           {messages.length <= 1 && (
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", marginBottom: "1.25rem" }}>
-              {[
-                "How do I apply to UK universities?",
-                "What is the Skilled Worker visa?",
-                "How do I find visa sponsorship jobs?",
-                "What courses are in demand in the UK?",
-                "How much does it cost to study in the UK?",
-                "Help me plan my career path",
-              ].map(q => (
-                <button key={q} onClick={() => { setChatInput(q); }}
-                  style={{ padding: "6px 14px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)", transition: "all 0.15s" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#1A3FA8"; e.currentTarget.style.color = "#1A3FA8"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-secondary)"; e.currentTarget.style.color = "var(--color-text-secondary)"; }}>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center", marginBottom: "0.75rem", flexShrink: 0 }}>
+              {["How do I apply to UK universities?", "What is the Skilled Worker visa?", "How do I find visa sponsorship jobs?", "What courses are in demand?", "Cost of studying in the UK?", "Plan my career path"].map(q => (
+                <button key={q} onClick={() => setChatInput(q)}
+                  style={{ padding: "5px 12px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)" }}>
                   {q}
                 </button>
               ))}
@@ -2324,53 +2332,37 @@ export default function Mentorgram() {
           )}
 
           {/* Messages */}
-          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", paddingBottom: "1rem", minHeight: 0 }}>
-            <style>{"@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}"}</style>
+          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingBottom: "0.5rem", minHeight: 0 }}>
             {messages.map((m, i) => (
-              <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", justifyContent: m.role === "user" ? "flex-end" : "flex-start", animation: "msgIn 0.25s ease forwards" }}>
+              <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-end", justifyContent: m.role === "user" ? "flex-end" : "flex-start", animation: "msgIn 0.25s ease forwards" }}>
                 {m.role === "assistant" && (
-                  <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0, marginTop: "2px" }}>🤖</div>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0 }}>🤖</div>
                 )}
-                <div style={{ maxWidth: "75%", padding: "10px 14px", borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                <div style={{ maxWidth: "78%", padding: "9px 13px", borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                   background: m.role === "user" ? "#1A3FA8" : "var(--color-background-primary)",
                   color: m.role === "user" ? "#fff" : "var(--color-text-primary)",
                   border: m.role === "user" ? "none" : "0.5px solid var(--color-border-tertiary)",
-                  fontSize: "14px", lineHeight: 1.65 }}>
+                  fontSize: "14px", lineHeight: 1.6 }}>
                   {m.role === "user" ? m.content : m.content.split("\n").map((line, li) => {
-                    const trimmed = line.trim();
-                    // Bold: **text**
-                    const parseBold = (text) => {
-                      const parts = text.split(/\*\*(.*?)\*\*/g);
-                      return parts.map((p, pi) => pi % 2 === 1 ? <strong key={pi}>{p}</strong> : p);
-                    };
-                    // Bullet: lines starting with * + - •
-                    if (/^[\*\+\-•]\s/.test(trimmed)) {
-                      return <div key={li} style={{ display: "flex", gap: "8px", marginTop: "4px" }}><span style={{ color: "#1A3FA8", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>•</span><span>{parseBold(trimmed.slice(2))}</span></div>;
-                    }
-                    // Numbered: 1. 2. etc
-                    if (/^\d+\.\s/.test(trimmed)) {
-                      const num = trimmed.match(/^(\d+)\.\s/)[1];
-                      return <div key={li} style={{ display: "flex", gap: "8px", marginTop: "4px" }}><span style={{ color: "#1A3FA8", fontWeight: 700, flexShrink: 0, minWidth: "16px" }}>{num}.</span><span>{parseBold(trimmed.replace(/^\d+\.\s/, ""))}</span></div>;
-                    }
-                    // Empty line
-                    if (!trimmed) return <div key={li} style={{ height: "6px" }} />;
-                    // Normal line
-                    return <div key={li} style={{ marginTop: li === 0 ? 0 : "4px" }}>{parseBold(trimmed)}</div>;
+                    const parts = line.split(/**(.+?)**/g).map((part, pi) => pi % 2 === 1 ? <strong key={pi}>{part}</strong> : part);
+                    if (line.startsWith("* ") || line.startsWith("- ")) return <div key={li} style={{ display: "flex", gap: "6px", marginTop: li > 0 ? "3px" : 0 }}><span style={{ color: "#1A3FA8", fontWeight: 700, flexShrink: 0 }}>•</span><span>{parts}</span></div>;
+                    if (/^d+.s/.test(line)) return <div key={li} style={{ display: "flex", gap: "6px", marginTop: li > 0 ? "3px" : 0 }}><span style={{ color: "#1A3FA8", fontWeight: 700, flexShrink: 0, minWidth: "14px" }}>{line.match(/^d+/)[0]}.</span><span>{line.replace(/^d+.s/, "")}</span></div>;
+                    if (!line.trim()) return <div key={li} style={{ height: "5px" }} />;
+                    return <div key={li} style={{ marginTop: li > 0 ? "3px" : 0 }}>{parts}</div>;
                   })}
                 </div>
                 {m.role === "user" && (
-                  <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "12px", flexShrink: 0, marginTop: "2px" }}>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "11px", flexShrink: 0 }}>
                     {user ? (user.user_metadata?.full_name || user.email || "U")[0].toUpperCase() : "U"}
                   </div>
                 )}
               </div>
             ))}
             {chatLoading && (
-              <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>🤖</div>
-                <div style={{ padding: "12px 16px", borderRadius: "18px 18px 18px 4px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", display: "flex", gap: "5px", alignItems: "center" }}>
-                  <style>{"@keyframes dot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}"}</style>
-                  {[0,1,2].map(i => <div key={i} style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#1A3FA8", animation: "dot 1.2s ease infinite", animationDelay: (i * 0.2) + "s" }} />)}
+              <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0 }}>🤖</div>
+                <div style={{ padding: "10px 14px", borderRadius: "16px 16px 16px 4px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", display: "flex", gap: "4px", alignItems: "center" }}>
+                  {[0,1,2].map(i => <div key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#1A3FA8", animation: "dot 1.2s ease infinite", animationDelay: (i * 0.2) + "s" }} />)}
                 </div>
               </div>
             )}
@@ -2378,24 +2370,27 @@ export default function Mentorgram() {
           </div>
 
           {/* Input */}
-          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", paddingTop: "1rem", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-            <textarea
-              value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-              placeholder="Ask about UK universities, visa sponsorship, career paths..."
-              rows={1}
-              style={{ flex: 1, padding: "12px 16px", borderRadius: "24px", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", resize: "none", lineHeight: 1.5, maxHeight: "120px", overflowY: "auto" }}
-              onInput={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }}
-            />
-            <button onClick={sendMessage} disabled={chatLoading || !chatInput.trim()}
-              style={{ width: "44px", height: "44px", borderRadius: "50%", background: chatLoading || !chatInput.trim() ? "var(--color-background-secondary)" : "#1A3FA8", color: chatLoading || !chatInput.trim() ? "var(--color-text-secondary)" : "#fff", border: "none", cursor: chatLoading || !chatInput.trim() ? "default" : "pointer", fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
-              ↑
-            </button>
+          <div style={{ paddingTop: "0.75rem", borderTop: "0.5px solid var(--color-border-tertiary)", flexShrink: 0, paddingBottom: "0.5rem" }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+              <textarea
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                placeholder="Ask me anything..."
+                rows={1}
+                style={{ flex: 1, padding: "10px 14px", borderRadius: "20px", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", resize: "none", lineHeight: 1.5, maxHeight: "100px", overflowY: "auto" }}
+                onInput={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; }}
+              />
+              <button onClick={sendMessage} disabled={chatLoading || !chatInput.trim()}
+                style={{ width: "40px", height: "40px", borderRadius: "50%", background: chatLoading || !chatInput.trim() ? "var(--color-background-secondary)" : "#1A3FA8", color: chatLoading || !chatInput.trim() ? "var(--color-text-secondary)" : "#fff", border: "none", cursor: chatLoading || !chatInput.trim() ? "default" : "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
+                ↑
+              </button>
+            </div>
+            <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", textAlign: "center", margin: "5px 0 0" }}>Powered by Groq · Free for all users</p>
           </div>
-          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", textAlign: "center", margin: "6px 0 0" }}>Press Enter to send · Shift+Enter for new line · Powered by Groq (free)</p>
         </div>
       );
+
 
       case "Education Paths": return (
         <div style={S.section}>
