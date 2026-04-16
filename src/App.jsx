@@ -1792,10 +1792,10 @@ function PremiumPage({ navTo, user }) {
       </div>
 
       {/* Pricing cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", marginBottom: "3rem" }}>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: "3rem" }}>
 
         {/* Telegram */}
-        <div style={{ background: "var(--color-background-primary)", border: "2px solid #1A3FA8", borderRadius: "var(--border-radius-lg)", padding: "2rem", position: "relative", overflow: "hidden" }}>
+        <div style={{ background: "var(--color-background-primary)", border: "2px solid #1A3FA8", borderRadius: "var(--border-radius-lg)", padding: "2rem", position: "relative", overflow: "hidden", maxWidth: "420px", width: "100%" }}>
           <div style={{ position: "absolute", top: "16px", right: "16px", background: "#1A3FA8", color: "#fff", padding: "3px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 700 }}>
             MOST POPULAR
           </div>
@@ -1830,39 +1830,6 @@ function PremiumPage({ navTo, user }) {
           </a>
         </div>
 
-        {/* WhatsApp */}
-        <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "2rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
-            <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "#25D366", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            </div>
-            <div>
-              <p style={{ fontWeight: 700, margin: 0, fontSize: "18px" }}>WhatsApp Premium</p>
-              <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Weekly job alerts on WhatsApp</p>
-            </div>
-          </div>
-          <div style={{ marginBottom: "1.5rem" }}>
-            <span style={{ fontSize: "3rem", fontWeight: 800, color: "var(--color-text-primary)" }}>£7.99</span>
-            <span style={{ fontSize: "15px", color: "var(--color-text-secondary)", marginLeft: "6px" }}>/month</span>
-            <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>Billed monthly · Cancel anytime</p>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "1.5rem" }}>
-            {whatsappPerks.map(function(p, i) {
-              return (
-                <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                  <span style={{ color: "#16A34A", fontWeight: 700, flexShrink: 0 }}>✓</span>
-                  <span style={{ fontSize: "13px", lineHeight: 1.5 }}>{p}</span>
-                </div>
-              );
-            })}
-          </div>
-          <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: "#25D366", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxSizing: "border-box" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            Join WhatsApp — £7.99/month
-          </a>
-          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", textAlign: "center", margin: "8px 0 0" }}>Coming soon — join waitlist below</p>
-        </div>
       </div>
 
       {/* Social proof */}
