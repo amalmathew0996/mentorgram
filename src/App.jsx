@@ -1918,7 +1918,16 @@ export default function Mentorgram() {
   }
 
   const [activePage, setActivePage] = useState(getInitialPage);
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I'm the Mentorgram AI Mentor 👋\n\nI'm here to help you navigate studying and working in the UK and Germany — completely free. I can help you with:\n\n• UK university applications and UCAS\n• Finding visa sponsorship jobs\n• Career planning and CV advice\n• German universities and DAAD scholarships\n• Student visa guidance\n\nMentorgram also has a live jobs board with 15,000+ visa sponsorship roles, a University Finder and a CV Generator — all free at mentorgramai.com 🚀\n\nWhat would you like to explore today?" }]);
+  const [messages, setMessages] = useState(function() {
+    try {
+      var u = JSON.parse(localStorage.getItem("mg_user") || "null");
+      if (u && u.id) {
+        var saved = localStorage.getItem("mg_chat_history_" + u.id);
+        if (saved) { var parsed = JSON.parse(saved); if (parsed && parsed.length > 0) return parsed; }
+      }
+    } catch(e) {}
+    return [{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor 👋\n\nI am here to help you navigate studying and working in the UK and Germany — completely free!\n\n• UK universities and UCAS applications\n• Visa sponsorship jobs\n• Career planning and CV advice\n• German universities and DAAD scholarships\n• Student visa guidance\n\nWhat would you like to explore?" }];
+  });
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [allJobs, setAllJobs] = useState(() => {
