@@ -1767,7 +1767,7 @@ function PremiumPage({ navTo, user }) {
   const whatsappPerks = [
     "📋 5 curated visa sponsorship jobs every Friday",
     "🎯 Jobs matched to your sector and location",
-    "⚡ Early access — jobs posted before they go viral",
+    "⚡ Early access - jobs posted before they go viral",
     "💬 Direct Q&A with the Mentorgram team",
     "🤝 More personal, smaller exclusive group",
     "📱 Delivered straight to your WhatsApp",
@@ -1787,7 +1787,7 @@ function PremiumPage({ navTo, user }) {
           <span style={{ background: "linear-gradient(135deg,#1A3FA8,#FF4500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Delivered to You Weekly</span>
         </h1>
         <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", maxWidth: "560px", margin: "0 auto", lineHeight: 1.7 }}>
-          Stop scrolling through hundreds of jobs. Get 5 hand-picked, visa sponsorship roles matched to your profile — delivered directly to your phone every Friday.
+          Stop scrolling through hundreds of jobs. Get 5 hand-picked, visa sponsorship roles matched to your profile, delivered directly to your phone every Friday.
         </p>
       </div>
 
