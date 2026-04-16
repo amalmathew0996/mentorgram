@@ -33,7 +33,7 @@ function formatChannelPost(jobs) {
   const date = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
   let msg = "🎯 <b>Weekly Visa Sponsorship Jobs — " + date + "</b>\n\n";
   msg += "This week's top UK visa sponsorship opportunities:\n\n";
-  jobs.slice(0, 5).forEach(function(job, i) {
+  jobs.slice(0, 10).forEach(function(job, i) {
     msg += (i + 1) + ". <b>" + job.title + "</b>\n";
     msg += "   🏢 " + job.company + "\n";
     msg += "   📍 " + job.location + "\n";
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
 
         const name = profile.full_name ? profile.full_name.split(" ")[0] : "there";
         let msg = "👋 Hi <b>" + name + "</b>! Here are your personalised jobs this week:\n\n";
-        matched.slice(0, 5).forEach(function(job, i) {
+        matched.slice(0, 10).forEach(function(job, i) {
           msg += (i + 1) + ". <b>" + job.title + "</b>\n";
           msg += "   🏢 " + job.company + "\n";
           msg += "   📍 " + job.location + "\n";
