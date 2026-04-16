@@ -1758,7 +1758,7 @@ function AIMentorChat({ user }) {
   var endRef = useRef(null);
 
   useEffect(function() {
-    if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 1 && endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(function() {
