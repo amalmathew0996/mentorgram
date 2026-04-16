@@ -1767,7 +1767,7 @@ function PremiumPage({ navTo, user }) {
   const whatsappPerks = [
     "📋 5 curated visa sponsorship jobs every Friday",
     "🎯 Jobs matched to your sector and location",
-    "⚡ Early access - jobs posted before they go viral",
+    "⚡ Early access — jobs posted before they go viral",
     "💬 Direct Q&A with the Mentorgram team",
     "🤝 More personal, smaller exclusive group",
     "📱 Delivered straight to your WhatsApp",
@@ -1787,7 +1787,7 @@ function PremiumPage({ navTo, user }) {
           <span style={{ background: "linear-gradient(135deg,#1A3FA8,#FF4500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Delivered to You Weekly</span>
         </h1>
         <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", maxWidth: "560px", margin: "0 auto", lineHeight: 1.7 }}>
-          Stop scrolling through hundreds of jobs. Get 5 hand-picked, visa sponsorship roles matched to your profile, delivered directly to your phone every Friday.
+          Stop scrolling through hundreds of jobs. Get 5 hand-picked, visa sponsorship roles matched to your profile — delivered directly to your phone every Friday.
         </p>
       </div>
 
@@ -2288,7 +2288,7 @@ export default function Mentorgram() {
               </div>
             ))}
           </div>
-          <button onClick={() => navTo("My Profile")} style={{ width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+          <button onClick={() => { localStorage.setItem("mg_return_page", "AI Mentor"); navTo("My Profile"); }} style={{ width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
             Sign in to chat — it's free
           </button>
           <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 0" }}>Free account · No credit card needed</p>
@@ -2430,7 +2430,7 @@ export default function Mentorgram() {
         <CVGenerator
           user={user}
           cvText=""
-          onNavigateToCV={() => navTo("My Profile")}
+          onNavigateToCV={() => { localStorage.setItem("mg_return_page", "CV Generator"); navTo("My Profile"); }}
           onSignIn={() => {
             // ✅ Fix 2: store return page so after sign-in they come back here
             localStorage.setItem("mg_return_page", "CV Generator");
