@@ -1882,6 +1882,92 @@ function AIMentorChat({ user }) {
   );
 }
 
+// ─── Premium Success Page ─────────────────────────────────────────────────
+function PremiumSuccessPage({ navTo, user }) {
+  var connected = (typeof window !== 'undefined' && window.__tgConnected) || false;
+  var userId = user ? user.id : "";
+  var botLink = "https://t.me/MentorgramAIBot?start=" + userId;
+
+  return (
+    <div style={{ maxWidth: "560px", margin: "0 auto", padding: "3rem 1.25rem", textAlign: "center" }}>
+      <style>{"@keyframes popIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}"}</style>
+
+      {/* Success icon */}
+      <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,#16A34A,#14532d)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem", fontSize: "36px", animation: "popIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards", boxShadow: "0 8px 30px rgba(22,163,74,0.3)" }}>
+        ✅
+      </div>
+
+      <h1 style={{ fontSize: "1.8rem", fontWeight: 800, margin: "0 0 0.75rem" }}>Payment successful!</h1>
+      <p style={{ fontSize: "15px", color: "var(--color-text-secondary)", margin: "0 0 2rem", lineHeight: 1.7 }}>
+        Welcome to Mentorgram Premium 🎉 You will receive 5 curated visa sponsorship jobs every Friday.
+      </p>
+
+      {/* Step indicator */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#16A34A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700 }}>✓</div>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#16A34A" }}>Payment done</span>
+        </div>
+        <div style={{ flex: 1, height: "2px", background: "var(--color-border-tertiary)", maxWidth: "60px" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#229ED9", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700 }}>2</div>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#229ED9" }}>Connect Telegram</span>
+        </div>
+      </div>
+
+      {/* Connect card */}
+      <div style={{ background: "var(--color-background-primary)", border: "2px solid #229ED9", borderRadius: "16px", padding: "2rem", marginBottom: "1.5rem" }}>
+        <div style={{ fontSize: "48px", marginBottom: "1rem" }}>📱</div>
+        <h2 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 0.75rem" }}>One last step — connect Telegram</h2>
+        <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
+          Click below to open Telegram and start our bot. This is how we will deliver your weekly jobs — it only takes 10 seconds.
+        </p>
+
+        {user ? (
+          <a href={botLink} target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 28px", borderRadius: "12px", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(34,158,217,0.35)", marginBottom: "1rem" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
+            Connect Telegram Now
+          </a>
+        ) : (
+          <button onClick={function() { localStorage.setItem("mg_return_page", "Premium Success"); navTo("My Profile"); }}
+            style={{ width: "100%", padding: "14px", borderRadius: "12px", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: "1rem" }}>
+            Sign in first to connect Telegram
+          </button>
+        )}
+
+        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>
+          Opens Telegram app → tap Start → done! Your first jobs arrive this Friday.
+        </p>
+      </div>
+
+      {/* What happens next */}
+      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px", padding: "1.25rem", marginBottom: "1.5rem", textAlign: "left" }}>
+        <p style={{ fontWeight: 600, margin: "0 0 0.75rem", fontSize: "14px" }}>What happens next:</p>
+        {[
+          { icon: "📱", text: "Connect Telegram above (takes 10 seconds)" },
+          { icon: "✅", text: "Our bot confirms you are connected" },
+          { icon: "📋", text: "Every Friday you receive 5 curated visa sponsorship jobs" },
+          { icon: "🎯", text: "Jobs matched to your sectors and UK location preferences" },
+        ].map(function(item, i) {
+          return (
+            <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: i < 3 ? "8px" : 0 }}>
+              <span style={{ fontSize: "18px", flexShrink: 0 }}>{item.icon}</span>
+              <p style={{ fontSize: "13px", margin: 0, lineHeight: 1.5 }}>{item.text}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      <button onClick={function() { navTo("Sponsorship Jobs"); }}
+        style={{ padding: "10px 24px", borderRadius: "12px", background: "transparent", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit" }}>
+        Browse jobs while you wait →
+      </button>
+    </div>
+  );
+}
+
+
 // ─── Premium Page ─────────────────────────────────────────────────────────
 function PremiumPage({ navTo, user }) {
   var STRIPE_LINK = "https://buy.stripe.com/4gM14o1jZ0EJgVp3gh0RG00";
@@ -2026,6 +2112,7 @@ const PAGE_SLUGS = {
   "Visa Sponsors": "visa-sponsors",
   "CV Generator": "cv-generator",
   "Premium": "premium",
+  "Premium Success": "premium-success",
   "Contact": "contact",
   "My Profile": "profile",
   "Privacy Policy": "privacy",
@@ -2468,6 +2555,7 @@ export default function Mentorgram() {
       );
 
       case "Premium": return <PremiumPage navTo={navTo} user={user} />;
+      case "Premium Success": return <PremiumSuccessPage navTo={navTo} user={user} />;
       case "Contact": return <ContactPage />;
       case "Visa Sponsors": return <SponsorsPage />;
       case "Privacy Policy": return <PrivacyPage />;
