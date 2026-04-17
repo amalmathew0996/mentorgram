@@ -1,4 +1,3 @@
-// Licensed Visa Sponsors — fetches from UK Home Office register
 export const config = { runtime: "edge" };
 
 export default async function handler(req) {
@@ -11,26 +10,22 @@ export default async function handler(req) {
 
   try {
     const url = new URL(req.url);
-    const search = (url.searchParams.get("q") || "").toLowerCase().trim();
+    const q = (url.searchParams.get("q") || "").toLowerCase().trim();
     const location = (url.searchParams.get("location") || "").toLowerCase().trim();
-    const sector = url.searchParams.get("sector") || "All";
     const route = url.searchParams.get("route") || "All";
     const page = parseInt(url.searchParams.get("page") || "1");
-    const pageSize = parseInt(url.searchParams.get("pageSize") || "50");
+    const perPage = parseInt(url.searchParams.get("perPage") || "20");
 
-    // Fetch from UK Home Office register CSV
-    const csvUrl = "https://assets.publishing.service.gov.uk/media/6615a5f8a3c2a6001af3b9a3/2024-04-Worker_and_Temporary_Worker.csv";
-    const csvRes = await fetch(csvUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      cf: { cacheTtl: 86400 }
-    });
-
-    if (!csvRes.ok) throw new Error("Could not fetch register");
+    // Fetch CSV from public folder via the site's own URL
+    const origin = url.origin;
+    const csvRes = await fetch(origin + "/sponsors.csv");
+    if (!csvRes.ok) throw new Error("Could not load sponsors.csv (" + csvRes.status + ")");
 
     const csvText = await csvRes.text();
-    const lines = csvText.split("\n").slice(1); // skip header
+    const lines = csvText.split("\n").slice(1);
 
     let sponsors = lines
+      .filter(line => line.trim().length > 2)
       .map(line => {
         const parts = line.split(",");
         return {
@@ -43,30 +38,31 @@ export default async function handler(req) {
       })
       .filter(s => s.name && s.name.length > 1);
 
-    // Filter
-    if (search) sponsors = sponsors.filter(s =>
-      s.name.toLowerCase().includes(search) ||
-      s.town.toLowerCase().includes(search)
+    if (q) sponsors = sponsors.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      s.town.toLowerCase().includes(q)
     );
     if (location) sponsors = sponsors.filter(s =>
       s.town.toLowerCase().includes(location) ||
       s.county.toLowerCase().includes(location)
     );
-    if (route !== "All") sponsors = sponsors.filter(s =>
-      s.route.toLowerCase().includes(route.toLowerCase())
-    );
+    if (route && route !== "All" && route !== "All Routes") {
+      sponsors = sponsors.filter(s =>
+        s.route.toLowerCase().includes(route.toLowerCase())
+      );
+    }
 
     const total = sponsors.length;
-    const paginated = sponsors.slice((page - 1) * pageSize, page * pageSize);
+    const totalPages = Math.ceil(total / perPage);
+    const paginated = sponsors.slice((page - 1) * perPage, page * perPage);
 
-    return new Response(JSON.stringify({ sponsors: paginated, total, page, pageSize }), {
+    return new Response(JSON.stringify({ sponsors: paginated, total, totalPages, page, perPage }), {
       headers: cors
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message, sponsors: [], total: 0 }), {
-      status: 500,
-      headers: cors
+    return new Response(JSON.stringify({ error: err.message, sponsors: [], total: 0, totalPages: 0 }), {
+      status: 500, headers: cors
     });
   }
 }
