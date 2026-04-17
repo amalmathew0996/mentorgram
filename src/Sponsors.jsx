@@ -12,9 +12,10 @@ export default async function handler(req, res) {
 
     const q = (req.query.q || "").toLowerCase().trim();
     const location = (req.query.location || "").toLowerCase().trim();
+    const sector = req.query.sector || "All";
     const route = req.query.route || "All";
     const page = parseInt(req.query.page || "1");
-    const pageSize = parseInt(req.query.pageSize || "50");
+    const perPage = parseInt(req.query.perPage || req.query.pageSize || "20");
 
     const csvPath = path.join(process.cwd(), "public", "sponsors.csv");
     const csvText = fs.readFileSync(csvPath, "utf8");
@@ -34,6 +35,7 @@ export default async function handler(req, res) {
       })
       .filter(s => s.name && s.name.length > 1);
 
+    // Apply filters
     if (q) sponsors = sponsors.filter(s =>
       s.name.toLowerCase().includes(q) ||
       s.town.toLowerCase().includes(q)
@@ -42,17 +44,19 @@ export default async function handler(req, res) {
       s.town.toLowerCase().includes(location) ||
       s.county.toLowerCase().includes(location)
     );
-    if (route !== "All") sponsors = sponsors.filter(s =>
-      s.route.toLowerCase().includes(route.toLowerCase())
-    );
+    if (route && route !== "All" && route !== "All Routes") {
+      sponsors = sponsors.filter(s =>
+        s.route.toLowerCase().includes(route.toLowerCase())
+      );
+    }
 
     const total = sponsors.length;
-    const totalPages = Math.ceil(total / pageSize);
-    const paginated = sponsors.slice((page - 1) * pageSize, page * pageSize);
+    const totalPages = Math.ceil(total / perPage);
+    const paginated = sponsors.slice((page - 1) * perPage, page * perPage);
 
-    return res.status(200).json({ sponsors: paginated, total, totalPages, page, pageSize });
+    return res.status(200).json({ sponsors: paginated, total, totalPages, page, perPage });
 
   } catch (err) {
-    return res.status(500).json({ error: err.message, sponsors: [], total: 0 });
+    return res.status(500).json({ error: err.message, sponsors: [], total: 0, totalPages: 0 });
   }
 }
