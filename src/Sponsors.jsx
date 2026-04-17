@@ -1,6 +1,4 @@
 export const config = { runtime: "nodejs", maxDuration: 30 };
-import { readFileSync } from "fs";
-import { join } from "path";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -9,16 +7,17 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).json({ ok: true });
 
   try {
+    const fs = require("fs");
+    const path = require("path");
+
     const q = (req.query.q || "").toLowerCase().trim();
     const location = (req.query.location || "").toLowerCase().trim();
     const route = req.query.route || "All";
     const page = parseInt(req.query.page || "1");
     const pageSize = parseInt(req.query.pageSize || "50");
 
-    // Read CSV from public folder
-    const csvPath = join(process.cwd(), "public", "sponsors.csv");
-    const csvText = readFileSync(csvPath, "utf8");
-
+    const csvPath = path.join(process.cwd(), "public", "sponsors.csv");
+    const csvText = fs.readFileSync(csvPath, "utf8");
     const lines = csvText.split("\n").slice(1);
 
     let sponsors = lines
