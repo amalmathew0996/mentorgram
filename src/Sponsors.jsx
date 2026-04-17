@@ -1,24 +1,27 @@
-export const config = { runtime: "nodejs", maxDuration: 30 };
+export const config = { runtime: "edge" };
 
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Content-Type", "application/json");
+export default async function handler(req) {
+  const cors = {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Type": "application/json",
+  };
 
-  if (req.method === "OPTIONS") return res.status(200).json({ ok: true });
+  if (req.method === "OPTIONS") return new Response(null, { headers: cors });
 
   try {
-    const fs = require("fs");
-    const path = require("path");
+    const url = new URL(req.url);
+    const q = (url.searchParams.get("q") || "").toLowerCase().trim();
+    const location = (url.searchParams.get("location") || "").toLowerCase().trim();
+    const route = url.searchParams.get("route") || "All";
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const perPage = parseInt(url.searchParams.get("perPage") || "20");
 
-    const q = (req.query.q || "").toLowerCase().trim();
-    const location = (req.query.location || "").toLowerCase().trim();
-    const sector = req.query.sector || "All";
-    const route = req.query.route || "All";
-    const page = parseInt(req.query.page || "1");
-    const perPage = parseInt(req.query.perPage || req.query.pageSize || "20");
+    // Fetch CSV from public folder via the site's own URL
+    const origin = url.origin;
+    const csvRes = await fetch(origin + "/sponsors.csv");
+    if (!csvRes.ok) throw new Error("Could not load sponsors.csv (" + csvRes.status + ")");
 
-    const csvPath = path.join(process.cwd(), "public", "sponsors.csv");
-    const csvText = fs.readFileSync(csvPath, "utf8");
+    const csvText = await csvRes.text();
     const lines = csvText.split("\n").slice(1);
 
     let sponsors = lines
@@ -35,7 +38,6 @@ export default async function handler(req, res) {
       })
       .filter(s => s.name && s.name.length > 1);
 
-    // Apply filters
     if (q) sponsors = sponsors.filter(s =>
       s.name.toLowerCase().includes(q) ||
       s.town.toLowerCase().includes(q)
@@ -54,9 +56,13 @@ export default async function handler(req, res) {
     const totalPages = Math.ceil(total / perPage);
     const paginated = sponsors.slice((page - 1) * perPage, page * perPage);
 
-    return res.status(200).json({ sponsors: paginated, total, totalPages, page, perPage });
+    return new Response(JSON.stringify({ sponsors: paginated, total, totalPages, page, perPage }), {
+      headers: cors
+    });
 
   } catch (err) {
-    return res.status(500).json({ error: err.message, sponsors: [], total: 0, totalPages: 0 });
+    return new Response(JSON.stringify({ error: err.message, sponsors: [], total: 0, totalPages: 0 }), {
+      status: 500, headers: cors
+    });
   }
 }
