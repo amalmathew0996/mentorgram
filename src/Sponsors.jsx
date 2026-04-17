@@ -1,29 +1,23 @@
-export const config = { runtime: "edge" };
+export const config = { runtime: "nodejs", maxDuration: 30 };
+import { readFileSync } from "fs";
+import { join } from "path";
 
-export default async function handler(req) {
-  const cors = {
-    "Access-Control-Allow-Origin": "*",
-    "Content-Type": "application/json",
-  };
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Content-Type", "application/json");
 
-  if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+  if (req.method === "OPTIONS") return res.status(200).json({ ok: true });
 
   try {
-    const url = new URL(req.url);
-    const search = (url.searchParams.get("q") || "").toLowerCase().trim();
-    const location = (url.searchParams.get("location") || "").toLowerCase().trim();
-    const route = url.searchParams.get("route") || "All";
-    const page = parseInt(url.searchParams.get("page") || "1");
-    const pageSize = parseInt(url.searchParams.get("pageSize") || "50");
+    const q = (req.query.q || "").toLowerCase().trim();
+    const location = (req.query.location || "").toLowerCase().trim();
+    const route = req.query.route || "All";
+    const page = parseInt(req.query.page || "1");
+    const pageSize = parseInt(req.query.pageSize || "50");
 
-    // Load from local public folder CSV uploaded by user
-    const baseUrl = new URL(req.url).origin;
-    const csvRes = await fetch(baseUrl + "/sponsors.csv");
-
-    if (!csvRes.ok) throw new Error("Could not load sponsors file");
-
-    const csvText = await csvRes.text();
-    if (!csvText || csvText.length < 100) throw new Error("Sponsors file is empty");
+    // Read CSV from public folder
+    const csvPath = join(process.cwd(), "public", "sponsors.csv");
+    const csvText = readFileSync(csvPath, "utf8");
 
     const lines = csvText.split("\n").slice(1);
 
@@ -41,9 +35,9 @@ export default async function handler(req) {
       })
       .filter(s => s.name && s.name.length > 1);
 
-    if (search) sponsors = sponsors.filter(s =>
-      s.name.toLowerCase().includes(search) ||
-      s.town.toLowerCase().includes(search)
+    if (q) sponsors = sponsors.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      s.town.toLowerCase().includes(q)
     );
     if (location) sponsors = sponsors.filter(s =>
       s.town.toLowerCase().includes(location) ||
@@ -57,14 +51,9 @@ export default async function handler(req) {
     const totalPages = Math.ceil(total / pageSize);
     const paginated = sponsors.slice((page - 1) * pageSize, page * pageSize);
 
-    return new Response(JSON.stringify({ sponsors: paginated, total, totalPages, page, pageSize }), {
-      headers: cors
-    });
+    return res.status(200).json({ sponsors: paginated, total, totalPages, page, pageSize });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message, sponsors: [], total: 0 }), {
-      status: 500,
-      headers: cors
-    });
+    return res.status(500).json({ error: err.message, sponsors: [], total: 0 });
   }
 }
