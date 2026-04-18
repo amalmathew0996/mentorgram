@@ -102,14 +102,12 @@ function mapCVResultToProfile(result) {
   const careers = result.careerPaths || [];
   const unis = result.universities || result.ukUniversities || [];
 
-  // Map AI level to experience level
   const levelMap = {
     "undergraduate": "Student",
     "postgraduate": "Graduate (0–1 yr)",
     "professional": "Mid-level (3–5 yrs)",
   };
 
-  // Map AI field to sector
   const fieldToSector = (field = "") => {
     const f = field.toLowerCase();
     if (/software|developer|tech|it |web|cyber|cloud|devops|network/.test(f)) return ["Technology"];
@@ -125,11 +123,7 @@ function mapCVResultToProfile(result) {
   };
 
   const suggestedSectors = fieldToSector(profile.currentField);
-
-  // Extract skills from keySkills
   const suggestedSkills = (profile.keySkills || []).join(", ");
-
-  // Get job title from first career path
   const suggestedJobTitle = careers[0]?.title || "";
 
   return {
@@ -176,7 +170,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [skills, setSkills] = useState("");
   const [bio, setBio] = useState("");
 
-  // ✅ CV Analysis state
+  // CV Analysis state
   const [cvAnalysis, setCvAnalysis] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mg_cv_analysis") || "null"); } catch { return null; }
   });
@@ -207,10 +201,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
   useEffect(() => { loadProfile(); }, [user]);
 
-  // ✅ Fetch jobs if not already loaded
   const [localJobs, setLocalJobs] = useState([]);
   useEffect(() => {
-    if (allJobs && allJobs.length > 0) return; // already loaded by parent
+    if (allJobs && allJobs.length > 0) return;
     fetch("/api/jobs-db?pageSize=2000")
       .then(r => r.json())
       .then(d => setLocalJobs(d.jobs || []))
@@ -218,6 +211,26 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   }, [allJobs]);
 
   const jobs = (allJobs && allJobs.length > 0) ? allJobs : localJobs;
+
+  // ── APPLICATION TRACKER FUNCTIONS ──
+  function saveApplication(app) {
+    const newEntry = { ...app, id: Date.now().toString(), createdAt: new Date().toISOString() };
+    const updated = [newEntry, ...applications];
+    setApplications(updated);
+    localStorage.setItem("mg_applications", JSON.stringify(updated));
+  }
+
+  function updateApplicationStatus(id, status) {
+    const updated = applications.map(a => a.id === id ? { ...a, status } : a);
+    setApplications(updated);
+    localStorage.setItem("mg_applications", JSON.stringify(updated));
+  }
+
+  function deleteApplication(id) {
+    const updated = applications.filter(a => a.id !== id);
+    setApplications(updated);
+    localStorage.setItem("mg_applications", JSON.stringify(updated));
+  }
 
   async function loadProfile() {
     setLoading(true);
@@ -255,7 +268,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     setSaving(false);
   }
 
-  // ✅ Handle CV file upload and analysis
   async function handleCVUpload(file) {
     if (!file) return;
     setCvError(""); setCvFileName(file.name); setCvLoading(true); setCvApplied(false);
@@ -284,7 +296,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     setCvLoading(false);
   }
 
-  // ✅ Apply CV analysis results to profile fields
   function applyCVToProfile() {
     if (!cvAnalysis?.result) return;
     const mapped = mapCVResultToProfile(cvAnalysis.result);
@@ -298,7 +309,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       return existing ? existing + ", " + newSkills : newSkills;
     });
 
-    // Auto-set visa if needed
     if (!visaStatus) setVisaStatus("I need visa sponsorship");
 
     setCvApplied(true);
@@ -331,7 +341,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   }
 
   const matchedJobs = jobs.filter(j => {
-    // ✅ Smart sector match — also check title keywords for mis-categorised jobs
     const titleLower = (j.title || "").toLowerCase();
     const sectorByTitle = (() => {
       if (/software|developer|devops|cloud|cyber|network|it.tech|helpdesk|full.stack|backend|frontend|react|python|java|aws|azure|linux|systems.eng|platform.eng/.test(titleLower)) return "Technology";
@@ -354,18 +363,20 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
   const initials = fullName ? fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : (user.email || "?")[0].toUpperCase();
 
+  // ✅ FIXED: Added tracker and phd tabs
   const tabs = [
-    { id: "overview", label: "Overview",    icon: "🏠" },
-    { id: "cv",       label: "CV Analysis", icon: "📄", badge: cvAnalysis ? "✓" : null },
-    { id: "profile",  label: "My Profile",  icon: "👤" },
-    { id: "matches",  label: "Job Matches", icon: "🎯", count: matchedJobs.length },
-    { id: "cvgen",    label: "CV Builder",   icon: "✍️" },
-    { id: "security", label: "Security",    icon: "🔒" },
+    { id: "overview", label: "Overview",            icon: "🏠" },
+    { id: "cv",       label: "CV Analysis",         icon: "📄", badge: cvAnalysis ? "✓" : null },
+    { id: "profile",  label: "My Profile",          icon: "👤" },
+    { id: "matches",  label: "Job Matches",         icon: "🎯", count: matchedJobs.length },
+    { id: "tracker",  label: "Application Tracker", icon: "📋", count: applications.length || null },
+    { id: "phd",      label: "PhD Finder",          icon: "🎓" },
+    { id: "cvgen",    label: "CV Builder",          icon: "✍️" },
+    { id: "security", label: "Security",            icon: "🔒" },
   ];
 
   const cvResult = cvAnalysis?.result;
-  // Build cv text from analysis result for the generator
-  const cvTextForGen = ""; // User uploads CV fresh in generator
+  const cvTextForGen = "";
   const cvMapped = cvResult ? mapCVResultToProfile(cvResult) : null;
 
   if (loading) return (
@@ -418,7 +429,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       {/* ── OVERVIEW ── */}
       {tab === "overview" && (
         <div style={{ display: "grid", gap: "1rem" }}>
-          {/* CV Analysis prompt if no CV yet */}
           {!cvAnalysis && (
             <div style={{ ...card, background: "linear-gradient(135deg, rgba(124,58,237,0.06), rgba(26,63,168,0.04))", borderColor: "rgba(124,58,237,0.2)" }}>
               <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", flexWrap: "wrap" }}>
@@ -432,7 +442,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             </div>
           )}
 
-          {/* CV summary if analysed */}
           {cvAnalysis && cvMapped && (
             <div style={{ ...card, borderColor: "rgba(124,58,237,0.2)", background: "linear-gradient(135deg, rgba(124,58,237,0.04), transparent)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px", gap: "10px", flexWrap: "wrap" }}>
@@ -451,7 +460,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             </div>
           )}
 
-          {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
             {[
               { icon: "🎯", label: "Job Matches",        value: matchedJobs.length,       color: "var(--color-text-primary)" },
@@ -467,7 +475,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             ))}
           </div>
 
-          {/* Quick actions */}
           <div style={card}>
             <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>Quick actions</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px" }}>
@@ -475,6 +482,8 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 { icon: "📄", title: "Analyse my CV",       desc: "Auto-fill profile and get job matches",    action: () => setTab("cv"),          color: "#7C3AED" },
                 { icon: "👤", title: "Complete your profile", desc: "Add experience and skills for better matches", action: () => setTab("profile") },
                 { icon: "🎯", title: "View job matches",    desc: `${matchedJobs.length} jobs match your profile`, action: () => setTab("matches") },
+                { icon: "📋", title: "Track applications",  desc: `${applications.length} applications tracked`, action: () => setTab("tracker") },
+                { icon: "🎓", title: "Find PhD positions",  desc: "UK & Germany funded PhDs",                  action: () => setTab("phd") },
                 { icon: "🔍", title: "Browse all jobs",     desc: "Search UK sponsorship jobs",               action: () => onNavigate("Sponsorship Jobs") },
               ].map(a => (
                 <button key={a.title} onClick={a.action} style={{ ...card, border: "0.5px solid var(--color-border-tertiary)", textAlign: "left", cursor: "pointer", background: "var(--color-background-secondary)", transition: "all 0.15s" }}
@@ -488,7 +497,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             </div>
           </div>
 
-          {/* Top matches preview */}
           {matchedJobs.length > 0 && (
             <div style={card}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
@@ -527,7 +535,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
               </div>
             </div>
 
-            {/* Degree level selector */}
             <p style={{ fontSize: "13px", fontWeight: 600, margin: "0 0 8px" }}>What are you looking for?</p>
             <div style={{ display: "flex", gap: "8px", marginBottom: "1.25rem", flexWrap: "wrap" }}>
               {DEGREE_LEVELS.map(l => (
@@ -541,7 +548,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
               ))}
             </div>
 
-            {/* Upload zone */}
             <div
               onClick={() => fileRef.current?.click()}
               onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "#7C3AED"; }}
@@ -573,10 +579,8 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             {cvError && <p style={{ color: "#E24B4A", fontSize: "13px", margin: "0 0 1rem", lineHeight: 1.5 }}>⚠️ {cvError}</p>}
           </div>
 
-          {/* CV Results */}
           {cvResult && !cvLoading && (
             <div style={{ display: "grid", gap: "1rem" }}>
-              {/* Apply to profile CTA */}
               <div style={{ ...card, background: "linear-gradient(135deg, rgba(124,58,237,0.08), rgba(26,63,168,0.04))", borderColor: "rgba(124,58,237,0.25)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                   <div>
@@ -595,7 +599,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </div>
               </div>
 
-              {/* Profile summary */}
               <div style={card}>
                 <p style={{ fontWeight: 600, margin: "0 0 10px", fontSize: "15px" }}>👤 Your Profile Summary</p>
                 <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 12px" }}>{cvResult.summary}</p>
@@ -614,7 +617,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </div>
               </div>
 
-              {/* Career paths */}
               <div style={card}>
                 <p style={{ fontWeight: 600, margin: "0 0 12px", fontSize: "15px" }}>🚀 Recommended Career Paths</p>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "10px" }}>
@@ -631,7 +633,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </div>
               </div>
 
-              {/* Universities */}
               {(cvResult.universities || cvResult.ukUniversities || []).length > 0 && (
                 <div style={card}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -654,7 +655,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </div>
               )}
 
-              {/* Skill gaps */}
               {cvResult.gaps?.length > 0 && (
                 <div style={{ ...card, background: "rgba(245,158,11,0.04)", borderColor: "rgba(245,158,11,0.2)" }}>
                   <p style={{ fontWeight: 600, margin: "0 0 10px", fontSize: "14px" }}>⚡ Skills to Develop</p>
@@ -666,7 +666,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </div>
               )}
 
-              {/* Matched jobs from CV */}
               {matchedJobs.length > 0 && (
                 <div style={card}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -748,7 +747,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             </div>
           </div>
 
-          {/* Telegram Notifications */}
           <div style={card}>
             <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>📲 Weekly Job Alerts via Telegram</h3>
             <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>
@@ -791,7 +789,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       {/* ── MATCHES ── */}
       {tab === "matches" && (
         <div>
-          {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
             <div>
               <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>🎯 Your Top Job Matches</h3>
@@ -823,7 +820,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 <div key={i} style={{ ...card, display: "flex", flexDirection: "column", gap: "0", padding: "0", overflow: "hidden", transition: "transform 0.2s, box-shadow 0.2s" }}
                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(26,63,168,0.12)"; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                  {/* Top bar */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "1rem 1.25rem 0.75rem", gap: "10px" }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
@@ -837,7 +833,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                     )}
                   </div>
 
-                  {/* Details row */}
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", padding: "0 1.25rem 0.75rem", alignItems: "center" }}>
                     <span style={{ padding: "2px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.08)", color: "#1A3FA8" }}>{j.sector}</span>
                     <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
@@ -845,7 +840,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                     {j.posted && <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>🕐 {j.posted}</span>}
                   </div>
 
-                  {/* Action buttons */}
                   <div style={{ display: "flex", gap: "8px", padding: "10px 1.25rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>
                     {j.url && (
                       <a href={j.url} target="_blank" rel="noopener noreferrer"
@@ -854,9 +848,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                       </a>
                     )}
                     <button
-                      onClick={() => { onNavigate("CV Generator"); }}
+                      onClick={() => saveApplication({ title: j.title, company: j.company, url: j.url, type: "Job", status: "Applied", notes: "", deadline: "", location: j.location })}
                       style={{ flex: 1, padding: "8px 14px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>
-                      🎯 Tailor CV
+                      📋 Save & Track
                     </button>
                   </div>
                 </div>
@@ -889,7 +883,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         </div>
       )}
 
-      {/* ── SECURITY ── */}
       {/* ── APPLICATION TRACKER ── */}
       {tab === "tracker" && (
         <div>
@@ -901,7 +894,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             <button onClick={() => setShowAddApp(true)} style={{ ...btn(true), padding: "8px 16px", fontSize: "13px" }}>+ Add Application</button>
           </div>
 
-          {/* Status summary */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "8px", marginBottom: "1.25rem" }}>
             {[
               { status: "Applied", color: "#1A3FA8", bg: "rgba(26,63,168,0.08)" },
@@ -916,7 +908,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             ))}
           </div>
 
-          {/* Add application form */}
           {showAddApp && (
             <div style={{ ...card, marginBottom: "1rem", border: "1.5px solid #1A3FA8" }}>
               <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "14px" }}>Add new application</p>
@@ -941,7 +932,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             </div>
           )}
 
-          {/* Applications list */}
           {applications.length === 0 ? (
             <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
               <p style={{ fontSize: "2rem", margin: "0 0 0.75rem" }}>📋</p>
@@ -994,7 +984,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Find funded and non-funded PhD positions in UK and Germany</p>
           </div>
 
-          {/* Search */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "8px", marginBottom: "1rem", alignItems: "center" }}>
             <input style={{ ...inp, fontSize: "13px" }} placeholder="Search by field, topic, university..." id="phd-search" />
             <select style={{ ...inp, fontSize: "13px", width: "auto" }} id="phd-country">
@@ -1009,7 +998,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             </select>
           </div>
 
-          {/* PhD listings */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {[
               { title: "PhD in Machine Learning and Computer Vision", uni: "University of Edinburgh", country: "UK", funded: true, deadline: "2025-05-30", field: "Computer Science", stipend: "£19,668/year", url: "https://www.findaphd.com" },
@@ -1066,7 +1054,8 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         </div>
       )}
 
-            {tab === "security" && (
+      {/* ── SECURITY ── */}
+      {tab === "security" && (
         <div style={{ display: "grid", gap: "1rem" }}>
           <div style={card}>
             <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>📧 Account Information</h3>
