@@ -8,5 +8,11 @@
       "path": "/api/send-jobs-digest",
       "schedule": "0 14 * * 5"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
   ]
 }
