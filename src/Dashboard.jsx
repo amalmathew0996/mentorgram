@@ -154,6 +154,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [telegramConnected, setTelegramConnected] = useState(false);
 
   // Profile fields
   const [fullName, setFullName] = useState("");
@@ -225,6 +226,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         setVisaStatus(p.visa_status || "");
         setSkills(p.skills || "");
         setBio(p.bio || "");
+        setTelegramConnected(!!p.telegram_chat_id);
       } else {
         setFullName(user.user_metadata?.full_name || "");
       }
@@ -737,6 +739,40 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             </div>
           </div>
 
+          {/* Telegram Notifications */}
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>📲 Weekly Job Alerts via Telegram</h3>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>
+              Get 5 personalised visa sponsorship jobs delivered to your Telegram every Friday — matched to your sectors and location.
+            </p>
+            {telegramConnected ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "rgba(22,163,74,0.08)", border: "0.5px solid rgba(22,163,74,0.25)", borderRadius: "var(--border-radius-md)" }}>
+                <span style={{ fontSize: "20px" }}>✅</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: "13px", color: "#16A34A" }}>Telegram connected</p>
+                  <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>You'll receive job alerts every Friday afternoon</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    await supaFetch("/profiles?user_id=eq." + user.id, { method: "PATCH", body: JSON.stringify({ telegram_chat_id: null }) });
+                    setTelegramConnected(false);
+                  }}
+                  style={{ fontSize: "12px", color: "#E24B4A", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <a
+                href={"https://t.me/MentorgramAIBot?start=" + user.id}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "14px", fontWeight: 600, fontFamily: "inherit" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
+                Connect Telegram
+              </a>
+            )}
+          </div>
+
           <button style={{ ...btn(true), padding: "13px", fontSize: "15px", opacity: saving ? 0.7 : 1, background: saved ? "#16A34A" : "#1A3FA8" }} onClick={saveProfile} disabled={saving}>
             {saving ? "Saving..." : saved ? "✓ Profile saved!" : "Save profile"}
           </button>
@@ -746,45 +782,83 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       {/* ── MATCHES ── */}
       {tab === "matches" && (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "10px" }}>
-            <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: 0 }}>
-              <strong>{matchedJobs.length} jobs</strong> match your profile
-              {sectors.length > 0 && ` in ${sectors.slice(0, 2).join(", ")}${sectors.length > 2 ? "..." : ""}`}
-              {location && ` near ${location}`}
-            </p>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
+            <div>
+              <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>🎯 Your Top Job Matches</h3>
+              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+                <strong>{matchedJobs.length}</strong> visa sponsorship jobs matched to your profile
+                {sectors.length > 0 && " · " + sectors.slice(0, 2).join(", ")}
+                {location && " · " + location}
+              </p>
+            </div>
             <button style={{ ...btn(true), padding: "8px 16px", fontSize: "13px" }}
               onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }}>
-              View on jobs board ↗
+              View all on jobs board ↗
             </button>
           </div>
+
           {matchedJobs.length === 0 ? (
             <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
               <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
               <p style={{ fontWeight: 500 }}>No matches yet</p>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>Upload your CV or update your profile with sectors and location</p>
+              <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>Update your profile with sectors and location to see matching jobs</p>
               <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
-                <button style={{ ...btn(true), background: "#7C3AED", display: "inline-block", padding: "9px 20px" }} onClick={() => setTab("cv")}>Analyse my CV</button>
-                <button style={{ ...btn(false), display: "inline-block", padding: "9px 20px" }} onClick={() => setTab("profile")}>Update profile</button>
+                <button style={{ ...btn(true), background: "#7C3AED", padding: "9px 20px" }} onClick={() => setTab("cv")}>Analyse my CV</button>
+                <button style={{ ...btn(false), padding: "9px 20px" }} onClick={() => setTab("profile")}>Update profile</button>
               </div>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }}>
-              {matchedJobs.slice(0, 20).map((j, i) => (
-                <div key={i} style={{ ...card, display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div><p style={{ fontWeight: 500, margin: "0 0 3px", fontSize: "15px" }}>{j.title}</p><p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{j.company}</p></div>
-                    {j.sponsorship && <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "rgba(22,163,74,0.12)", color: "#16A34A", whiteSpace: "nowrap" }}>✓ Visa</span>}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {matchedJobs.slice(0, 10).map((j, i) => (
+                <div key={i} style={{ ...card, display: "flex", flexDirection: "column", gap: "0", padding: "0", overflow: "hidden", transition: "transform 0.2s, box-shadow 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(26,63,168,0.12)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                  {/* Top bar */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "1rem 1.25rem 0.75rem", gap: "10px" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
+                        <span style={{ background: "#1A3FA8", color: "#fff", width: "24px", height: "24px", borderRadius: "6px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+                        <p style={{ fontWeight: 700, margin: 0, fontSize: "15px", lineHeight: 1.3 }}>{j.title}</p>
+                      </div>
+                      <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0, fontWeight: 500 }}>{j.company}</p>
+                    </div>
+                    {j.sponsorship && (
+                      <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: "rgba(22,163,74,0.12)", color: "#16A34A", whiteSpace: "nowrap", flexShrink: 0, border: "0.5px solid rgba(22,163,74,0.3)" }}>✓ Visa Sponsor</span>
+                    )}
                   </div>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                    <span style={{ padding: "2px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "var(--color-text-primary)" }}>{j.sector}</span>
-                    <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
+
+                  {/* Details row */}
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", padding: "0 1.25rem 0.75rem", alignItems: "center" }}>
+                    <span style={{ padding: "2px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.08)", color: "#1A3FA8" }}>{j.sector}</span>
+                    <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
+                    {j.salary && <span style={{ fontSize: "12px", color: "#16A34A", fontWeight: 600 }}>💰 {j.salary}</span>}
+                    {j.posted && <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>🕐 {j.posted}</span>}
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <p style={{ fontWeight: 500, margin: 0, fontSize: "14px" }}>{j.salary}</p>
-                    {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
+
+                  {/* Action buttons */}
+                  <div style={{ display: "flex", gap: "8px", padding: "10px 1.25rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>
+                    {j.url && (
+                      <a href={j.url} target="_blank" rel="noopener noreferrer"
+                        style={{ flex: 1, padding: "8px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 600, textAlign: "center" }}>
+                        Apply Now ↗
+                      </a>
+                    )}
+                    <button
+                      onClick={() => { onNavigate("CV Generator"); }}
+                      style={{ flex: 1, padding: "8px 14px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+                      🎯 Tailor CV
+                    </button>
                   </div>
                 </div>
               ))}
+
+              {matchedJobs.length > 10 && (
+                <button style={{ ...btn(false), width: "100%", padding: "12px", textAlign: "center" }}
+                  onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }}>
+                  View all {matchedJobs.length} matching jobs on jobs board →
+                </button>
+              )}
             </div>
           )}
         </div>
