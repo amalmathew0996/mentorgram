@@ -1,2703 +1,1122 @@
-import { useState, useRef, useEffect } from "react";
-import { inject } from "@vercel/analytics";
-import AuthPage from "./Auth.jsx";
-import SponsorsPage from "./Sponsors.jsx";
-import Dashboard from "./Dashboard.jsx";
-import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
 import CVGenerator from "./CVGenerator.jsx";
+import { useState, useEffect, useRef } from "react";
 
-inject();
+const SUPA_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "CV Generator", "Visa Sponsors", "Premium", "Contact", "My Profile"];
-const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
-const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
-const JOBS_PER_PAGE = 20;
+function getToken() { try { return JSON.parse(localStorage.getItem("mg_session") || "{}").access_token; } catch { return null; } }
 
-const EDUCATION_SYSTEMS = [
-  { country: "🇬🇧 United Kingdom", systems: ["GCSE", "A-Levels", "BTEC", "Scottish Highers"] },
-  { country: "🇮🇳 India", systems: ["CBSE", "ICSE", "State Boards"] },
-  { country: "🇺🇸 USA", systems: ["High School Diploma", "AP", "SAT/ACT"] },
-  { country: "🇳🇬 Nigeria", systems: ["WAEC", "NECO", "JAMB"] },
-  { country: "🇵🇰 Pakistan", systems: ["Intermediate/FSc", "Matric", "O/A Levels"] },
-  { country: "🌍 International", systems: ["IB", "EU Systems", "Middle East Curricula"] },
-];
-
-const UK_UNIVERSITIES = [
-  { name: "University of Oxford", rank: "#1 UK", focus: "Research & Humanities", entry: "AAA at A-Level", intl: "IELTS 7.0+", scholarships: "Rhodes, Clarendon", website: "https://www.ox.ac.uk", city: "Oxford" },
-  { name: "University of Cambridge", rank: "#2 UK", focus: "STEM & Research", entry: "A*AA at A-Level", intl: "IELTS 7.5+", scholarships: "Gates Cambridge", website: "https://www.cam.ac.uk", city: "Cambridge" },
-  { name: "Imperial College London", rank: "#3 UK", focus: "Engineering & Medicine", entry: "A*AA at A-Level", intl: "IELTS 6.5+", scholarships: "Imperial Bursaries", website: "https://www.imperial.ac.uk", city: "London" },
-  { name: "UCL (University College London)", rank: "#4 UK", focus: "Multidisciplinary Research", entry: "A*AA at A-Level", intl: "IELTS 6.5+", scholarships: "UCL Global Undergraduate Award", website: "https://www.ucl.ac.uk", city: "London" },
-  { name: "University of Edinburgh", rank: "#5 UK", focus: "Medicine & Law", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Edinburgh Global", website: "https://www.ed.ac.uk", city: "Edinburgh" },
-  { name: "King's College London", rank: "#6 UK", focus: "Medicine & Law", entry: "AAB at A-Level", intl: "IELTS 7.0+", scholarships: "King's Scholarships", website: "https://www.kcl.ac.uk", city: "London" },
-  { name: "University of Manchester", rank: "#7 UK", focus: "Business & Technology", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "President's Award", website: "https://www.manchester.ac.uk", city: "Manchester" },
-  { name: "London School of Economics", rank: "#8 UK", focus: "Economics & Social Sciences", entry: "AAA at A-Level", intl: "IELTS 7.0+", scholarships: "LSE Excellence Awards", website: "https://www.lse.ac.uk", city: "London" },
-  { name: "University of Bristol", rank: "#9 UK", focus: "Engineering & Arts", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Think Big Scholarship", website: "https://www.bristol.ac.uk", city: "Bristol" },
-  { name: "University of Warwick", rank: "#10 UK", focus: "Business & Science", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Warwick Scholarship", website: "https://www.warwick.ac.uk", city: "Coventry" },
-  { name: "University of Glasgow", rank: "#11 UK", focus: "Medicine & Engineering", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "International Leadership Scholarship", website: "https://www.gla.ac.uk", city: "Glasgow" },
-  { name: "University of Birmingham", rank: "#12 UK", focus: "Medicine & Business", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "Global Masters Scholarship", website: "https://www.birmingham.ac.uk", city: "Birmingham" },
-  { name: "University of Sheffield", rank: "#13 UK", focus: "Engineering & Science", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "Sheffield Excellence Scholarship", website: "https://www.sheffield.ac.uk", city: "Sheffield" },
-  { name: "University of Leeds", rank: "#14 UK", focus: "Business & Arts", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Leeds International Scholarship", website: "https://www.leeds.ac.uk", city: "Leeds" },
-  { name: "University of Exeter", rank: "#15 UK", focus: "Business & Law", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "Global Excellence Scholarship", website: "https://www.exeter.ac.uk", city: "Exeter" },
-  { name: "University of Southampton", rank: "#16 UK", focus: "Engineering & Computing", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.soton.ac.uk", city: "Southampton" },
-  { name: "Newcastle University", rank: "#17 UK", focus: "Medicine & Engineering", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "Global Scholarship", website: "https://www.ncl.ac.uk", city: "Newcastle" },
-  { name: "University of Nottingham", rank: "#18 UK", focus: "Science & Business", entry: "AAB at A-Level", intl: "IELTS 6.0+", scholarships: "Nottingham Developing Solutions", website: "https://www.nottingham.ac.uk", city: "Nottingham" },
-  { name: "University of Liverpool", rank: "#19 UK", focus: "Medicine & Law", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "Vice-Chancellor's International Award", website: "https://www.liverpool.ac.uk", city: "Liverpool" },
-  { name: "Durham University", rank: "#20 UK", focus: "Science & Humanities", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Durham International Scholarship", website: "https://www.dur.ac.uk", city: "Durham" },
-  { name: "University of York", rank: "#21 UK", focus: "Science & Social Policy", entry: "AAB at A-Level", intl: "IELTS 6.5+", scholarships: "York Humanitarian Scholarship", website: "https://www.york.ac.uk", city: "York" },
-  { name: "Cardiff University", rank: "#22 UK", focus: "Medicine & Engineering", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "International Excellence Scholarship", website: "https://www.cardiff.ac.uk", city: "Cardiff" },
-  { name: "University of Bath", rank: "#23 UK", focus: "Engineering & Business", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "Chancellor's Scholarship", website: "https://www.bath.ac.uk", city: "Bath" },
-  { name: "University of St Andrews", rank: "#24 UK", focus: "Science & Arts", entry: "AAA at A-Level", intl: "IELTS 6.5+", scholarships: "St Andrews Scholarship", website: "https://www.st-andrews.ac.uk", city: "St Andrews" },
-  { name: "Queen Mary University of London", rank: "#25 UK", focus: "Medicine & Law", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "Principal's Scholarship", website: "https://www.qmul.ac.uk", city: "London" },
-  { name: "University of Aberdeen", rank: "#26 UK", focus: "Medicine & Law", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Global Talent Scholarship", website: "https://www.abdn.ac.uk", city: "Aberdeen" },
-  { name: "University of Leicester", rank: "#27 UK", focus: "Medicine & Space Science", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.le.ac.uk", city: "Leicester" },
-  { name: "Loughborough University", rank: "#28 UK", focus: "Engineering & Sport", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Loughborough Global Award", website: "https://www.lboro.ac.uk", city: "Loughborough" },
-  { name: "University of Reading", rank: "#29 UK", focus: "Business & Agriculture", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.reading.ac.uk", city: "Reading" },
-  { name: "University of Surrey", rank: "#30 UK", focus: "Engineering & Hospitality", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.surrey.ac.uk", city: "Guildford" },
-  { name: "Brunel University London", rank: "#31 UK", focus: "Engineering & Design", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "Brunel International Excellence Scholarship", website: "https://www.brunel.ac.uk", city: "London" },
-  { name: "City, University of London", rank: "#32 UK", focus: "Business & Law", entry: "ABB at A-Level", intl: "IELTS 6.5+", scholarships: "City Excellence Scholarship", website: "https://www.city.ac.uk", city: "London" },
-  { name: "Heriot-Watt University", rank: "#33 UK", focus: "Engineering & Business", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "Heriot-Watt International Scholarship", website: "https://www.hw.ac.uk", city: "Edinburgh" },
-  { name: "University of Strathclyde", rank: "#34 UK", focus: "Technology & Business", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Excellence Awards", website: "https://www.strath.ac.uk", city: "Glasgow" },
-  { name: "Aston University", rank: "#35 UK", focus: "Business & Engineering", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "Aston Excellence Scholarship", website: "https://www.aston.ac.uk", city: "Birmingham" },
-  { name: "University of Kent", rank: "#36 UK", focus: "Law & Social Sciences", entry: "BBB at A-Level", intl: "IELTS 6.0+", scholarships: "Kent Excellence Scholarship", website: "https://www.kent.ac.uk", city: "Canterbury" },
-  { name: "University of East Anglia", rank: "#37 UK", focus: "Environmental Science & Creative Writing", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "International Scholarship", website: "https://www.uea.ac.uk", city: "Norwich" },
-  { name: "Coventry University", rank: "#38 UK", focus: "Business & Engineering", entry: "CCC at A-Level", intl: "IELTS 6.0+", scholarships: "Global Leaders Scholarship", website: "https://www.coventry.ac.uk", city: "Coventry" },
-  { name: "University of Portsmouth", rank: "#39 UK", focus: "Computing & Criminology", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.port.ac.uk", city: "Portsmouth" },
-  { name: "De Montfort University", rank: "#40 UK", focus: "Arts & Technology", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.dmu.ac.uk", city: "Leicester" },
-  { name: "Middlesex University", rank: "#41 UK", focus: "Business & Arts", entry: "CCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Scholarship", website: "https://www.mdx.ac.uk", city: "London" },
-  { name: "University of Greenwich", rank: "#42 UK", focus: "Business & Computing", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.gre.ac.uk", city: "London" },
-  { name: "Anglia Ruskin University", rank: "#43 UK", focus: "Health & Social Care", entry: "CCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.aru.ac.uk", city: "Cambridge" },
-  { name: "University of Hertfordshire", rank: "#44 UK", focus: "Business & Engineering", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Scholarship", website: "https://www.herts.ac.uk", city: "Hatfield" },
-  { name: "Kingston University London", rank: "#45 UK", focus: "Art & Design", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Award", website: "https://www.kingston.ac.uk", city: "London" },
-  { name: "University of the West of England", rank: "#46 UK", focus: "Business & Law", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "UWE Excellence Scholarship", website: "https://www.uwe.ac.uk", city: "Bristol" },
-  { name: "Northumbria University", rank: "#47 UK", focus: "Law & Design", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "Vice-Chancellor's Scholarship", website: "https://www.northumbria.ac.uk", city: "Newcastle" },
-  { name: "University of Huddersfield", rank: "#48 UK", focus: "Engineering & Music", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "International Excellence Award", website: "https://www.hud.ac.uk", city: "Huddersfield" },
-  { name: "University of Lincoln", rank: "#49 UK", focus: "Business & Computing", entry: "BCC at A-Level", intl: "IELTS 6.0+", scholarships: "Lincoln International Scholarship", website: "https://www.lincoln.ac.uk", city: "Lincoln" },
-  { name: "Keele University", rank: "#50 UK", focus: "Medicine & Science", entry: "ABB at A-Level", intl: "IELTS 6.0+", scholarships: "Keele International Scholarship", website: "https://www.keele.ac.uk", city: "Staffordshire" },
-];
-
-// ✅ Full German universities list — 155 institutions across all types
-const GERMAN_UNIVERSITIES = [
-  // ── Top Research Universities (Exzellenzuniversitäten) ──
-  { name: "Technical University of Munich (TUM)", type: "Public", focus: "Engineering & Technology", tuition: "Free (€143/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "#1 DE", website: "https://www.tum.de/en/" },
-  { name: "Ludwig Maximilian University of Munich (LMU)", type: "Public", focus: "Medicine, Law & Humanities", tuition: "Free (€143/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, LMU Excellence", rank: "#2 DE", website: "https://www.lmu.de/en/" },
-  { name: "Heidelberg University", type: "Public", focus: "Life Sciences & Medicine", tuition: "Free (€185/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Heidelberg Excellence", rank: "#3 DE", website: "https://www.uni-heidelberg.de/en" },
-  { name: "Humboldt University of Berlin", type: "Public", focus: "Research & Social Sciences", tuition: "Free (€315/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "#4 DE", website: "https://www.hu-berlin.de/en" },
-  { name: "RWTH Aachen University", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€275/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, RWTH Excellence", rank: "#5 DE", website: "https://www.rwth-aachen.de" },
-  { name: "Freie Universität Berlin", type: "Public", focus: "Politics & International Studies", tuition: "Free (€315/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, FU Excellence", rank: "#6 DE", website: "https://www.fu-berlin.de/en/" },
-  { name: "University of Tübingen", type: "Public", focus: "Humanities, Medicine & Science", tuition: "Free (€175/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://uni-tuebingen.de/en/" },
-  { name: "University of Freiburg", type: "Public", focus: "Life Sciences & Humanities", tuition: "Free (€165/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://uni-freiburg.de/en/" },
-  { name: "University of Konstanz", type: "Public", focus: "Social Sciences & Natural Sciences", tuition: "Free (€160/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Zukunftskolleg", rank: "Excellence Uni", website: "https://www.uni-konstanz.de/en/" },
-  { name: "University of Bonn", type: "Public", focus: "Mathematics, Natural Sciences & Medicine", tuition: "Free (€300/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-bonn.de/en" },
-  { name: "Dresden University of Technology (TU Dresden)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€275/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://tu-dresden.de/en" },
-  { name: "Karlsruhe Institute of Technology (KIT)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€175/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, KIT Excellence", rank: "Excellence Uni", website: "https://www.kit.edu/english/" },
-  { name: "University of Hamburg", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€340/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-hamburg.de/en.html" },
-  { name: "University of Cologne", type: "Public", focus: "Business, Law & Medicine", tuition: "Free (€295/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-koeln.de/en/" },
-  { name: "University of Münster", type: "Public", focus: "Law, Economics & Natural Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-muenster.de/en/" },
-  { name: "University of Bremen", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-bremen.de/en/" },
-  { name: "University of Bayreuth", type: "Public", focus: "Natural Sciences & Law", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Excellence Uni", website: "https://www.uni-bayreuth.de/en/" },
-  // ── Major Research Universities ──
-  { name: "Goethe University Frankfurt", type: "Public", focus: "Finance, Law & Social Sciences", tuition: "Free (€315/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.goethe-university-frankfurt.de/en" },
-  { name: "University of Stuttgart", type: "Public", focus: "Engineering & Technology", tuition: "Free (€190/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.uni-stuttgart.de/en/" },
-  { name: "University of Erlangen-Nuremberg (FAU)", type: "Public", focus: "Engineering, Medicine & Humanities", tuition: "Free (€130/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.fau.eu/" },
-  { name: "University of Würzburg", type: "Public", focus: "Medicine & Natural Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-wuerzburg.de/en/home/" },
-  { name: "University of Mannheim", type: "Public", focus: "Business & Social Sciences", tuition: "Free (€170/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Business", website: "https://www.uni-mannheim.de/en/" },
-  { name: "University of Mainz (JGU)", type: "Public", focus: "Humanities, Natural Sciences & Medicine", tuition: "Free (€295/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-mainz.de/eng/" },
-  { name: "University of Düsseldorf (HHU)", type: "Public", focus: "Medicine, Law & Natural Sciences", tuition: "Free (€300/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.hhu.de/en/" },
-  { name: "University of Bochum (RUB)", type: "Public", focus: "Engineering, Natural Sciences & Humanities", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.ruhr-uni-bochum.de/en/" },
-  { name: "University of Bielefeld", type: "Public", focus: "Social Sciences & Natural Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-bielefeld.de/en/" },
-  { name: "University of Duisburg-Essen", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-due.de/en/" },
-  { name: "University of Leipzig", type: "Public", focus: "Medicine, Humanities & Social Sciences", tuition: "Free (€233/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-leipzig.de/en/" },
-  { name: "University of Göttingen", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€395/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Göttingen International", rank: "Top Research", website: "https://www.uni-goettingen.de/en/" },
-  { name: "University of Jena (FSU)", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-jena.de/en" },
-  { name: "University of Kiel (CAU)", type: "Public", focus: "Natural Sciences & Medicine", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-kiel.de/en/" },
-  { name: "University of Marburg", type: "Public", focus: "Medicine, Pharmacy & Humanities", tuition: "Free (€285/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-marburg.de/en" },
-  { name: "University of Halle-Wittenberg (MLU)", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-halle.de/en/" },
-  { name: "University of Regensburg", type: "Public", focus: "Law, Medicine & Natural Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-regensburg.de/index.html.en" },
-  { name: "University of Augsburg", type: "Public", focus: "Business, Law & Natural Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-augsburg.de/en/" },
-  { name: "University of Ulm", type: "Public", focus: "Medicine & Engineering", tuition: "Free (€178/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-ulm.de/en/home.html" },
-  { name: "University of Giessen (JLU)", type: "Public", focus: "Agriculture, Medicine & Humanities", tuition: "Free (€285/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-giessen.de/en" },
-  { name: "University of Kassel", type: "Public", focus: "Social Sciences & Engineering", tuition: "Free (€285/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-kassel.de/en/" },
-  { name: "University of Oldenburg (UOL)", type: "Public", focus: "Natural Sciences & Social Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://uol.de/en" },
-  { name: "University of Osnabrück", type: "Public", focus: "Natural Sciences & Humanities", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-osnabrueck.de/en/" },
-  { name: "University of Paderborn", type: "Public", focus: "Computer Science & Engineering", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-paderborn.de/en/" },
-  { name: "University of Siegen", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-siegen.de/start/index.html.en" },
-  { name: "University of Wuppertal (BUW)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-wuppertal.de/en/" },
-  { name: "Charité – Universitätsmedizin Berlin", type: "Public", focus: "Medicine & Health Sciences", tuition: "Free (€315/sem)", intl: "German C1 required", scholarships: "DAAD, Helmholtz scholarships", rank: "Top Medical", website: "https://www.charite.de/en/" },
-  { name: "University of Greifswald", type: "Public", focus: "Medicine & Natural Sciences", tuition: "Free (€377/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-greifswald.de/en/" },
-  { name: "University of Rostock", type: "Public", focus: "Maritime Studies & Engineering", tuition: "Free (€377/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-rostock.de/en/" },
-  { name: "University of Magdeburg (OVGU)", type: "Public", focus: "Engineering & Medicine", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.ovgu.de/en/" },
-  { name: "Technische Universität Berlin (TU Berlin)", type: "Public", focus: "Engineering & Computer Science", tuition: "Free (€315/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu.berlin/en/" },
-  { name: "Technische Universität Braunschweig", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu-braunschweig.de/en/" },
-  { name: "Technische Universität Chemnitz", type: "Public", focus: "Engineering & Computer Science", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu-chemnitz.de/index.html.en" },
-  { name: "Technische Universität Darmstadt", type: "Public", focus: "Engineering & Computer Science", tuition: "Free (€280/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu-darmstadt.de/index.en.jsp" },
-  { name: "Technische Universität Hamburg (TUHH)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€340/sem)", intl: "IELTS 6.5+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tuhh.de/tuhh/en/" },
-  { name: "Technische Universität Ilmenau", type: "Public", focus: "Engineering & Computer Science", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.tu-ilmenau.de/en/" },
-  { name: "Technische Universität Kaiserslautern-Landau (RPTU)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€300/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.rptu.de/en" },
-  { name: "Brandenburg University of Technology (BTU)", type: "Public", focus: "Engineering & Natural Sciences", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Engineering", website: "https://www.b-tu.de/en/" },
-  { name: "University of Passau", type: "Public", focus: "Law, Business & Computer Science", tuition: "Free (€130/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-passau.de/en/" },
-  { name: "Saarland University", type: "Public", focus: "Computer Science & Natural Sciences", tuition: "Free (€290/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-saarland.de/en/home.html" },
-  { name: "University of Bamberg", type: "Public", focus: "Humanities & Social Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-bamberg.de/en/" },
-  { name: "University of Potsdam", type: "Public", focus: "Natural Sciences & Law", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-potsdam.de/en/" },
-  { name: "Europa-Universität Viadrina Frankfurt (Oder)", type: "Public", focus: "Law & Cultural Studies", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.europa-uni.de/en/index.html" },
-  { name: "University of Erfurt", type: "Public", focus: "Humanities & Social Sciences", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-erfurt.de/en/" },
-  { name: "University of Hildesheim", type: "Public", focus: "Education & Cultural Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-hildesheim.de/en/" },
-  { name: "University of Lübeck", type: "Public", focus: "Medicine & Computer Science", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Medical", website: "https://www.uni-luebeck.de/en/university.html" },
-  { name: "Leuphana University Lüneburg", type: "Public", focus: "Sustainability & Business", tuition: "Free (€380/sem)", intl: "IELTS 6.5+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.leuphana.de/en.html" },
-  { name: "Catholic University of Eichstätt-Ingolstadt (KU)", type: "Public", focus: "Theology, Social Sciences & Business", tuition: "Free (€435/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, KU scholarships", rank: "Top Research", website: "https://www.ku.de/en/" },
-  { name: "University of Trier", type: "Public", focus: "Law, Humanities & Social Sciences", tuition: "Free (€290/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-trier.de" },
-  { name: "University of Koblenz (UKO)", type: "Public", focus: "Computer Science & Social Sciences", tuition: "Free (€290/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-koblenz.de/en" },
-  { name: "University of Flensburg (EUF)", type: "Public", focus: "Business & Education", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-flensburg.de/en/" },
-  { name: "University of Vechta", type: "Public", focus: "Social Sciences & Humanities", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German C1", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Research", website: "https://www.uni-vechta.de/en/" },
-  // ── Universities of Applied Sciences (Fachhochschulen) ──
-  { name: "Munich University of Applied Sciences (HM)", type: "Public", focus: "Engineering, Business & Design", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hm.edu/en/" },
-  { name: "Cologne University of Applied Sciences (TH Köln)", type: "Public", focus: "Engineering, Business & Social Work", tuition: "Free (€295/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-koeln.de/en/" },
-  { name: "Berlin University of Applied Sciences (HTW Berlin)", type: "Public", focus: "Engineering, Business & Design", tuition: "Free (€315/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.htw-berlin.de/en/" },
-  { name: "Berlin University of Applied Sciences (BHT)", type: "Public", focus: "Engineering & Life Sciences", tuition: "Free (€315/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.bht-berlin.de/en" },
-  { name: "Hamburg University of Applied Sciences (HAW Hamburg)", type: "Public", focus: "Engineering, Business & Social Sciences", tuition: "Free (€340/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.haw-hamburg.de/en/" },
-  { name: "Dortmund University of Applied Sciences (FH Dortmund)", type: "Public", focus: "Engineering, Business & Design", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-dortmund.de/en/" },
-  { name: "Frankfurt University of Applied Sciences", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€315/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.frankfurt-university.de/en/" },
-  { name: "Nuremberg Institute of Technology (TH Nürnberg)", type: "Public", focus: "Engineering, Business & Social Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-nuernberg.de/en/" },
-  { name: "Stuttgart Media University (HdM)", type: "Public", focus: "Media, Publishing & Information Science", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hdm-stuttgart.de/en" },
-  { name: "Reutlingen University", type: "Public", focus: "Business, Engineering & Computer Science", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.reutlingen-university.de/en/" },
-  { name: "Aalen University", type: "Public", focus: "Engineering & Business", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-aalen.de/en/" },
-  { name: "Esslingen University of Applied Sciences", type: "Public", focus: "Engineering & Management", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-esslingen.de/en/" },
-  { name: "Pforzheim University", type: "Public", focus: "Business, Engineering & Design", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-pforzheim.de/en/" },
-  { name: "Konstanz University of Applied Sciences (HTWG)", type: "Public", focus: "Engineering & Business", tuition: "Free (€165/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.htwg-konstanz.de/en/" },
-  { name: "Mittweida University of Applied Sciences", type: "Public", focus: "Engineering & Media", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-mittweida.de/en/" },
-  { name: "Fulda University of Applied Sciences", type: "Public", focus: "Social Work, Nutrition & Business", tuition: "Free (€285/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-fulda.de/en/" },
-  { name: "Heilbronn University", type: "Public", focus: "Business & Engineering", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-heilbronn.de/en" },
-  { name: "Furtwangen University (HFU)", type: "Public", focus: "Computer Science & Engineering", tuition: "Free (€165/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hfu.eu/" },
-  { name: "Offenburg University", type: "Public", focus: "Engineering & Media", tuition: "Free (€165/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-offenburg.de/en/" },
-  { name: "Ravensburg-Weingarten University (RWU)", type: "Public", focus: "Engineering & Business", tuition: "Free (€190/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.rwu.de/en/" },
-  { name: "Hochschule Niederrhein", type: "Public", focus: "Textile & Chemical Engineering", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-niederrhein.de/en/" },
-  { name: "Bielefeld University of Applied Sciences (FH Bielefeld)", type: "Public", focus: "Engineering, Business & Social Work", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-bielefeld.de/en" },
-  { name: "Münster University of Applied Sciences (FH Münster)", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://en.fh-muenster.de/" },
-  { name: "Hochschule Bonn-Rhein-Sieg", type: "Public", focus: "Computer Science & Engineering", tuition: "Free (€295/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.h-brs.de/en" },
-  { name: "Aachen University of Applied Sciences (FH Aachen)", type: "Public", focus: "Engineering & Aerospace", tuition: "Free (€275/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-aachen.de/en/" },
-  { name: "Düsseldorf University of Applied Sciences (HSD)", type: "Public", focus: "Design, Social Work & Engineering", tuition: "Free (€300/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-duesseldorf.de/en" },
-  { name: "Augsburg University of Applied Sciences (HS Augsburg)", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-augsburg.de/en/" },
-  { name: "Rosenheim Technical University of Applied Sciences", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-rosenheim.de/en/" },
-  { name: "Ingolstadt University of Applied Sciences (THI)", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.thi.de/en/" },
-  { name: "Deggendorf Institute of Technology (THD)", type: "Public", focus: "Engineering & Health Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-deg.de/en" },
-  { name: "Weihenstephan-Triesdorf University of Applied Sciences", type: "Public", focus: "Agriculture & Life Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hswt.de/en.html" },
-  { name: "Coburg University of Applied Sciences", type: "Public", focus: "Design, Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-coburg.de/en/" },
-  { name: "Ansbach University of Applied Sciences", type: "Public", focus: "Business & Media", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-ansbach.de/en/" },
-  { name: "Kempten University of Applied Sciences", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-kempten.de/en/" },
-  { name: "Amberg-Weiden University of Applied Sciences (OTH)", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.oth-aw.de/en/" },
-  { name: "Landshut University of Applied Sciences", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.haw-landshut.de/en.html" },
-  { name: "OTH Regensburg (Ostbayerische TH)", type: "Public", focus: "Engineering & Business", tuition: "Free (€130/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.oth-regensburg.de/en.html" },
-  { name: "Ostwestfalen-Lippe University of Applied Sciences (TH OWL)", type: "Public", focus: "Engineering & Production", tuition: "Free (€310/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.th-owl.de/en/" },
-  { name: "Hochschule Stralsund (HOST)", type: "Public", focus: "Engineering & Business", tuition: "Free (€377/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hochschule-stralsund.de/en/" },
-  { name: "Hochschule Wismar", type: "Public", focus: "Engineering & Business", tuition: "Free (€377/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://en.hs-wismar.de/" },
-  { name: "Flensburg University of Applied Sciences", type: "Public", focus: "Business & Engineering", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-flensburg.de/en/" },
-  { name: "Lübeck University of Applied Sciences", type: "Public", focus: "Engineering & Business", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-luebeck.de/en/" },
-  { name: "Kiel University of Applied Sciences (FH Kiel)", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€355/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-kiel.de/en/" },
-  { name: "Hochschule Bremen", type: "Public", focus: "Engineering & Business", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-bremen.de/en/" },
-  { name: "Hannover University of Applied Sciences (HsH)", type: "Public", focus: "Engineering & Business", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-hannover.de/en/" },
-  { name: "Jade University of Applied Sciences", type: "Public", focus: "Engineering & Geosciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.jade-hs.de/en/" },
-  { name: "Osnabrück University of Applied Sciences", type: "Public", focus: "Engineering & Agriculture", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-osnabrueck.de/en/" },
-  { name: "HAWK University of Applied Sciences", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€380/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hawk.de/en" },
-  { name: "Erfurt University of Applied Sciences", type: "Public", focus: "Business & Social Sciences", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.fh-erfurt.de/en/" },
-  { name: "Jena University of Applied Sciences (EAH Jena)", type: "Public", focus: "Engineering & Business", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.eah-jena.de/en/" },
-  { name: "Schmalkalden University of Applied Sciences", type: "Public", focus: "Engineering & Business", tuition: "Free (€245/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-schmalkalden.de/en/" },
-  { name: "Merseburg University of Applied Sciences", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-merseburg.de/en/" },
-  { name: "Hochschule Harz", type: "Public", focus: "Business & Computer Science", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-harz.de/en/" },
-  { name: "Hochschule Anhalt", type: "Public", focus: "Engineering & Agriculture", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.hs-anhalt.de/en.html" },
-  { name: "Hochschule Magdeburg-Stendal", type: "Public", focus: "Engineering & Social Sciences", tuition: "Free (€260/sem)", intl: "IELTS 6.0+ or German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top UAS", website: "https://www.h2.de/en.html" },
-  // ── Art & Music Colleges ──
-  { name: "Berlin University of the Arts (UdK Berlin)", type: "Public", focus: "Fine Arts, Music & Architecture", tuition: "Free (€315/sem)", intl: "Audition/portfolio + German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Art", website: "https://www.udk-berlin.de/en/" },
-  { name: "Hochschule für Musik und Theater München", type: "Public", focus: "Music & Theatre", tuition: "Free (€130/sem)", intl: "Audition + German B2", scholarships: "DAAD, music scholarships", rank: "Top Music", website: "https://www.hmtm.de/en/" },
-  { name: "Hochschule für Musik Freiburg", type: "Public", focus: "Classical Music & Composition", tuition: "Free (€165/sem)", intl: "Audition + German B2", scholarships: "DAAD, music scholarships", rank: "Top Music", website: "https://www.mh-freiburg.de/en/" },
-  { name: "Hochschule für Musik Detmold", type: "Public", focus: "Music Performance & Education", tuition: "Free (€310/sem)", intl: "Audition + German B2", scholarships: "DAAD, music scholarships", rank: "Top Music", website: "https://www.hfm-detmold.de/en/" },
-  { name: "Hochschule für Musik Karlsruhe", type: "Public", focus: "Music Performance & Composition", tuition: "Free (€175/sem)", intl: "Audition + German B2", scholarships: "DAAD, music scholarships", rank: "Top Music", website: "https://www.hfm-karlsruhe.de/en/" },
-  { name: "HfK Bremen (Hochschule für Künste)", type: "Public", focus: "Fine Arts & Music", tuition: "Free (€380/sem)", intl: "Portfolio/audition + German B2", scholarships: "DAAD, Deutschlandstipendium", rank: "Top Art", website: "https://www.hfk-bremen.de/en/" },
-  // ── Private Universities ──
-  { name: "WHU – Otto Beisheim School of Management", type: "Private", focus: "Business & Management", tuition: "€25,000/yr", intl: "IELTS 7.0+", scholarships: "Competitive merit awards", rank: "Top Private", website: "https://www.whu.edu/en/" },
-  { name: "Jacobs University Bremen (Constructor University)", type: "Private", focus: "STEM & International Studies", tuition: "€20,000/yr", intl: "IELTS 6.5+", scholarships: "Need & merit-based up to 100%", rank: "Top Private", website: "https://www.constructor.university/" },
-  { name: "Hertie School (Berlin)", type: "Private", focus: "Public Policy & Governance", tuition: "€12,000–€18,000/yr", intl: "IELTS 7.0+", scholarships: "Generous need & merit awards", rank: "Top Private", website: "https://www.hertie-school.org/en/" },
-  { name: "HHL Leipzig Graduate School of Management", type: "Private", focus: "Business & Entrepreneurship", tuition: "€25,000–€35,000/yr", intl: "IELTS 6.5+", scholarships: "Merit-based scholarships", rank: "Top Private", website: "https://www.hhl.de/en/" },
-  { name: "Frankfurt School of Finance & Management", type: "Private", focus: "Finance & Management", tuition: "€18,000–€32,000/yr", intl: "IELTS 6.5+", scholarships: "Merit & need-based scholarships", rank: "Top Private", website: "https://www.frankfurt-school.de/en/" },
-  { name: "EBS University for Business and Law", type: "Private", focus: "Business & Law", tuition: "€15,000–€22,000/yr", intl: "IELTS 6.5+", scholarships: "Partial merit scholarships", rank: "Top Private", website: "https://www.ebs.edu/en" },
-  { name: "Bucerius Law School (Hamburg)", type: "Private", focus: "Law & Business", tuition: "€10,000/yr", intl: "IELTS 7.0+", scholarships: "Merit-based scholarships", rank: "Top Private", website: "https://www.law-school.de/en/" },
-  { name: "Zeppelin University (Friedrichshafen)", type: "Private", focus: "Business, Culture & Politics", tuition: "€6,500/sem", intl: "IELTS 6.5+", scholarships: "Merit-based scholarships", rank: "Top Private", website: "https://www.zu.de/en/" },
-  { name: "Munich Business School", type: "Private", focus: "International Business", tuition: "€18,000–€22,000/yr", intl: "IELTS 6.5+", scholarships: "Merit scholarships available", rank: "Top Private", website: "https://www.munich-business-school.de/en/" },
-  { name: "ISM – International School of Management", type: "Private", focus: "International Management", tuition: "€10,000–€15,000/yr", intl: "IELTS 6.0+", scholarships: "Merit-based scholarships", rank: "Top Private", website: "https://www.ism.de/en/" },
-  { name: "ESCP Business School (Berlin campus)", type: "Private", focus: "European Business & Management", tuition: "€15,000–€30,000/yr", intl: "IELTS 6.5+", scholarships: "Merit scholarships", rank: "Top Private", website: "https://escp.eu/berlin" },
-  { name: "SRH University Heidelberg", type: "Private", focus: "Business, Health & Engineering", tuition: "€8,000–€14,000/yr", intl: "IELTS 6.0+", scholarships: "SRH scholarships available", rank: "Top Private", website: "https://www.srh-university.de/en/" },
-  { name: "IU International University of Applied Sciences", type: "Private", focus: "Business, IT & Psychology", tuition: "€5,000–€15,000/yr", intl: "IELTS 6.0+", scholarships: "Early-bird & merit discounts", rank: "Top Private", website: "https://www.iu.de/en/" },
-  { name: "Macromedia University", type: "Private", focus: "Media, Design & Management", tuition: "€8,000–€12,000/yr", intl: "IELTS 6.0+", scholarships: "Merit scholarships available", rank: "Top Private", website: "https://www.macromedia.de/en/" },
-  { name: "Code University of Applied Sciences", type: "Private", focus: "Software Engineering & Product Design", tuition: "€6,000/yr", intl: "IELTS 6.0+", scholarships: "Partial scholarships", rank: "Top Private", website: "https://code.berlin/en/" },
-  { name: "Charlotte Fresenius University", type: "Private", focus: "Psychology, Media & Business", tuition: "€8,000–€14,000/yr", intl: "IELTS 6.0+", scholarships: "Merit scholarships", rank: "Top Private", website: "https://www.charlotte-fresenius-uni.de/en/" },
-  { name: "BSP Business and Law School Berlin", type: "Private", focus: "Business & Law", tuition: "€7,000–€12,000/yr", intl: "IELTS 6.0+", scholarships: "Merit scholarships", rank: "Top Private", website: "https://www.bsp-business.de/en/" },
-  { name: "EU Business School Germany", type: "Private", focus: "International Business", tuition: "€14,000–€18,000/yr", intl: "IELTS 6.0+", scholarships: "Merit-based awards", rank: "Top Private", website: "https://www.euruni.edu/campuses/germany/" },
-  { name: "New European College (Munich)", type: "Private", focus: "Business Administration", tuition: "€9,000–€12,000/yr", intl: "IELTS 6.0+", scholarships: "Merit scholarships", rank: "Top Private", website: "https://www.neweuropeancollege.com/" },
-  { name: "Touro University Berlin", type: "Private", focus: "Business, Jewish Studies & Education", tuition: "€7,000–€10,000/yr", intl: "IELTS 6.0+", scholarships: "Need-based support", rank: "Top Private", website: "https://www.touroberlin.de/en/" },
-];
-
-const FEATURES = [
-  { icon: "🤖", title: "AI Mentor", desc: "Get personalised guidance on education and career paths powered by advanced AI." },
-  { icon: "🎓", title: "University Gateway", desc: "Explore UK universities, entry requirements, scholarships and UCAS guidance." },
-  { icon: "💼", title: "Sponsorship Jobs", desc: "Find UK employers who offer visa sponsorship across high-demand sectors." },
-  { icon: "🗺️", title: "Education Pathways", desc: "Navigate your local education system with expert AI support and planning." },
-  { icon: "📊", title: "Career Insights", desc: "Access salary data, industry demand forecasts and skills gap analysis." },
-  { icon: "🌍", title: "Global Reach", desc: "Supporting students from 50+ countries on their journey to UK education." },
-];
-
-const FALLBACK_JOBS = [];
-
-
-
-
-// ─── Global styles (outside component) ────────────────────────────────────
-const S = {
-  wrap: { fontFamily: "var(--font-sans)", color: "var(--color-text-primary)", minHeight: "100vh", background: "var(--color-background-tertiary)" },
-  btnPrimary: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
-  btnOutline: { padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "15px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" },
-  section: { maxWidth: "1100px", margin: "0 auto", padding: "3rem 1.5rem" },
-  sectionTitle: { fontSize: "1.6rem", fontWeight: 500, margin: "0 0 0.5rem" },
-  sectionSub: { color: "var(--color-text-secondary)", margin: "0 0 2rem", fontSize: "15px" },
-  grid3: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" },
-  grid2: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" },
-  card: { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" },
-  tag: (c) => ({ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: c === "purple" ? "rgba(26,63,168,0.15)" : c === "teal" ? "rgba(255,69,0,0.15)" : c === "green" ? "rgba(22,163,74,0.15)" : "rgba(26,63,168,0.1)", color: c === "purple" ? "#1A3FA8" : c === "teal" ? "#FF4500" : c === "green" ? "#16A34A" : "#1A3FA8" }),
-  input: { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
-  footer: { borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)", padding: "2rem 1.5rem", textAlign: "center" },
-  statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", margin: "2rem 0" },
-  statCard: { background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem", textAlign: "center" },
-  filterBtn: (a) => ({ padding: "6px 16px", borderRadius: "20px", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#1A3FA8" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }),
-  pageBtn: (a) => ({ minWidth: "36px", height: "36px", padding: "0 10px", borderRadius: "var(--border-radius-md)", border: a ? "none" : "0.5px solid var(--color-border-secondary)", background: a ? "#1A3FA8" : "var(--color-background-primary)", color: a ? "#fff" : "var(--color-text-secondary)", fontSize: "14px", cursor: a ? "default" : "pointer", fontFamily: "inherit", fontWeight: a ? 500 : 400 }),
-};
-
-// ─── Share Button ──────────────────────────────────────────────────────────
-function ShareButton({ job }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    function handle(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, []);
-
-  // ✅ FIXED: Use job ID instead of encoding full job object
-  const siteUrl = `https://mentorgramai.com/#job=${job.id}`;
-  const text = `🇬🇧 UK Job with Visa Sponsorship!\n\n💼 ${job.title}\n🏢 ${job.company}\n📍 ${job.location}\n💰 ${job.salary}\n\n👉 View details: ${siteUrl}\n\n🎓 Find more at mentorgramai.com`;
-
-  const options = [
-    { label: "WhatsApp", color: "#25D366", href: `https://wa.me/?text=${encodeURIComponent(text)}`, icon: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" },
-    { label: "Telegram", color: "#229ED9", href: `https://t.me/share/url?url=${encodeURIComponent(siteUrl)}&text=${encodeURIComponent(text)}`, icon: "M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" },
-    { label: "Email", color: "#EA4335", href: `mailto:?subject=${encodeURIComponent(`Job: ${job.title} at ${job.company}`)}&body=${encodeURIComponent(text)}`, icon: "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" },
-    { label: "Copy link", color: "#1A3FA8", action: () => { navigator.clipboard.writeText(siteUrl); setOpen(false); } },
-  ];
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button onClick={() => setOpen(o => !o)} title="Share"
-        style={{ width: "34px", height: "34px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-        </svg>
-      </button>
-      {open && (
-        <>
-          <div style={{ position: "fixed", inset: 0, zIndex: 49 }} onClick={() => setOpen(false)} />
-          <div style={{ position: "fixed", bottom: "auto", right: "1rem", left: "auto", top: "auto", marginTop: "8px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "6px", zIndex: 200, minWidth: "165px", boxShadow: "0 8px 30px rgba(0,0,0,0.2)" }}
-            ref={node => { if (node && ref.current) { const btn = ref.current.getBoundingClientRect(); node.style.top = (btn.bottom + 8) + "px"; node.style.left = Math.min(btn.left, window.innerWidth - 175) + "px"; } }}>
-            <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", padding: "4px 10px 6px", margin: 0, borderBottom: "0.5px solid var(--color-border-tertiary)" }}>Share this job</p>
-            {options.map(opt => opt.href ? (
-              <a key={opt.label} href={opt.href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", textDecoration: "none", fontSize: "14px" }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill={opt.color}><path d={opt.icon}/></svg>{opt.label}
-              </a>
-            ) : (
-              <button key={opt.label} onClick={opt.action}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 10px", borderRadius: "var(--border-radius-md)", color: "var(--color-text-primary)", fontSize: "14px", cursor: "pointer", width: "100%", border: "none", background: "transparent", fontFamily: "inherit", textAlign: "left" }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--color-background-secondary)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill={opt.color}><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ─── Job Detail Page ───────────────────────────────────────────────────────
-function JobDetailPage({ job, onBack, onAskMentor }) {
-  // ✅ FIXED: Use job ID instead of encoding full job object
-  const siteUrl = `https://mentorgramai.com/#job=${job.id}`;
-  return (
-    <div style={{ maxWidth: "760px", margin: "0 auto", padding: "2rem 1.5rem" }}>
-      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: "var(--color-text-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit", marginBottom: "1.5rem", padding: 0 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-        Back to jobs
-      </button>
-      <div style={{ ...S.card, padding: "1.75rem", marginBottom: "1rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
-          <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 500, margin: "0 0 6px" }}>{job.title}</h1>
-            <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>{job.company}</p>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              {job.sector && <span style={S.tag("purple")}>{job.sector}</span>}
-              {job.sponsorship === true
-                ? <span style={{ ...S.tag("teal") }}>✓ Visa Sponsorship</span>
-                : <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:"var(--border-radius-md)", fontSize:"12px", fontWeight:500, background:"var(--color-background-secondary)", color:"var(--color-text-secondary)" }}>No sponsorship info</span>
-              }
-            </div>
-          </div>
-          <ShareButton job={job} />
-        </div>
-        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "1.25rem", paddingTop: "1.25rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
-          {[["📍","Location",job.location],["💰","Salary",job.salary],["🗂️","Sector",job.sector||"General"],["🗓️","Posted",job.posted||"Recently"]].map(([icon,label,value]) => (
-            <div key={label}>
-              <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "0 0 3px" }}>{icon} {label}</p>
-              <p style={{ fontSize: "14px", fontWeight: 500, margin: 0 }}>{value}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ ...S.card, marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem" }}>About this role</h2>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: "0 0 0.75rem" }}>
-          This is a UK-based role at <strong>{job.company}</strong> in <strong>{job.location}</strong> offering visa sponsorship for eligible candidates.
-        </p>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", lineHeight: 1.7, margin: 0 }}>
-          The role is in the <strong>{job.sector || "General"}</strong> sector and eligible for a <strong>Skilled Worker visa</strong>. Click Apply for full details and requirements.
-        </p>
-      </div>
-      <div style={{ background: "rgba(26,63,168,0.1)", border: "0.5px solid rgba(26,63,168,0.2)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.75rem", color: "var(--color-text-primary)" }}>🛂 Visa sponsorship info</h2>
-        {["This employer is registered as a UK visa sponsor","You may be eligible for a Skilled Worker or Health & Care visa","Minimum salary thresholds apply (usually £26,200+)","Your employer will assign a Certificate of Sponsorship (CoS)"].map((item, i) => (
-          <p key={i} style={{ fontSize: "14px", color: "var(--color-text-primary)", margin: "0 0 4px", display: "flex", gap: "8px" }}><span>✓</span><span>{item}</span></p>
-        ))}
-      </div>
-      <div style={{ ...S.card, marginBottom: "1.5rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>💬 Need help applying?</h2>
-        <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>Ask our AI Mentor about this role, the skills needed, and how visa sponsorship works.</p>
-        <button style={{ ...S.btnOutline, padding: "9px 20px", fontSize: "14px" }}
-          onClick={() => onAskMentor(`I want to apply for ${job.title} at ${job.company} in ${job.location}. What skills do I need and how does visa sponsorship work?`)}>
-          Ask AI Mentor ↗
-        </button>
-      </div>
-      <div style={{ background: "rgba(245,158,11,0.08)", border: "0.5px solid rgba(245,158,11,0.3)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
-        <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
-          ⚠️ <strong style={{ color: "var(--color-text-primary)" }}>Job listings can close at any time.</strong> If the link shows "page not found", the role has been filled. Try searching for similar roles on Reed or Adzuna directly.
-        </p>
-      </div>
-      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        {job.url && (
-          <a
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ ...S.btnPrimary, textDecoration: "none" }}
-          >Apply for this job ↗</a>
-        )}
-        {job.source === "Reed" && (
-          <a
-            href={"https://www.reed.co.uk/jobs/" + encodeURIComponent(job.title || "").replace(/%20/g, "-").toLowerCase() + "-jobs?keywords=" + encodeURIComponent(job.title || "")}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ ...S.btnOutline, textDecoration: "none", fontSize: "14px" }}
-          >Search similar on Reed ↗</a>
-        )}
-        {job.source === "Adzuna" && (
-          <a
-            href={"https://www.adzuna.co.uk/search?q=" + encodeURIComponent(job.title || "") + "&w=United+Kingdom"}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ ...S.btnOutline, textDecoration: "none", fontSize: "14px" }}
-          >Search similar on Adzuna ↗</a>
-        )}
-        <button style={S.btnOutline} onClick={onBack}>← Back to jobs</button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Jobs Page ─────────────────────────────────────────────────────────────
-function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, profileFilter, onClearProfileFilter }) {
-  const [sector, setSector] = useState("All");
-  const [visaType, setVisaType] = useState("All Jobs");
-  const [sourceFilter, setSourceFilter] = useState("All");
-  const [employerType, setEmployerType] = useState("All");
-  const [titleQuery, setTitleQuery] = useState("");
-  const [locationQuery, setLocationQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const [clickedJob, setClickedJob] = useState(null);
-  const topRef = useRef(null);
-
-  useEffect(() => {
-    if (profileFilter) {
-      if (profileFilter.sectors?.length > 0) setSector(profileFilter.sectors[0]);
-      if (profileFilter.location) setLocationQuery(profileFilter.location);
-      if (profileFilter.visaStatus === "I need visa sponsorship") setVisaType("Visa Sponsorship");
-    }
-  }, [profileFilter]);
-  const searchTimer = useRef(null);
-
-  useEffect(() => { setPage(1); }, [sector, visaType, titleQuery, locationQuery]);
-  useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [page]);
-
-  function handleTitleChange(val) {
-    setTitleQuery(val);
-    clearTimeout(searchTimer.current);
-    if (val.length >= 3) {
-      searchTimer.current = setTimeout(() => onFetchJobs(val, locationQuery), 600);
-    }
-  }
-
-  function handleLocationChange(val) {
-    setLocationQuery(val);
-    clearTimeout(searchTimer.current);
-    if (val.length === 0) {
-      searchTimer.current = setTimeout(() => onFetchJobs(titleQuery, ""), 300);
-    } else if (val.length >= 2) {
-      searchTimer.current = setTimeout(() => onFetchJobs(titleQuery, val), 600);
-    }
-  }
-
-  const filtered = allJobs.filter(j => {
-    const titleLower = (j.title || "").toLowerCase();
-    const sectorByTitle = (() => {
-      if (/software|developer|devops|cloud|cyber|network|sysadmin|system.admin|it.tech|helpdesk|desktop.support|full.stack|backend|frontend|react|python|java|aws|azure|linux|solutions.eng|platform.eng|systems.eng/.test(titleLower)) return "Technology";
-      if (/data.sci|machine.learn|ai |mlops|data.eng|data.anal/.test(titleLower)) return "AI & Data";
-      if (/nurse|doctor|gp |nhs|healthcare|medical|dental|care.work|clinical|therapist|pharmacist|midwife|paramedic|radiograph/.test(titleLower)) return "Healthcare";
-      if (/financ|accountant|audit|banking|investment|payroll/.test(titleLower)) return "Finance";
-      if (/mechanical.eng|civil.eng|electrical.eng|embedded/.test(titleLower)) return "Engineering";
-      if (/teacher|teaching|lecturer|tutor|school|academic/.test(titleLower)) return "Education";
-      if (/chef|cook|hotel|restaurant|hospitality/.test(titleLower)) return "Hospitality";
-      if (/social.work|council|government|police|charity|housing.off|planning.off/.test(titleLower)) return "Public Sector";
-      if (/graphic.des|ui.des|ux.des|web.des|product.des|creative.des|designer/.test(titleLower)) return "Business";
-      if (/marketing|sales|hr |human.res|product.manag/.test(titleLower)) return "Business";
-      return null;
-    })();
-    const matchSector = sector === "All" || j.sector === sector || sectorByTitle === sector;
-    const matchVisa = visaType === "All Jobs"
-      || (visaType === "✓ Visa Sponsorship" && j.sponsorship === true)
-      || (visaType === "No Info" && j.sponsorship !== true);
-    const src = (j.source || "").toLowerCase();
-    const sf = sourceFilter.toLowerCase();
-    const matchSource = sourceFilter === "All"
-      || src === sf
-      || (sf === "jobs.ac.uk" && src.includes("jobs.ac"))
-      || (sf === "guardian jobs" && src.includes("guardian"))
-      || (sf === "indeed" && (src === "indeed" || src === "fallback"))
-      || src.includes(sf);
-    const empText = `${j.title} ${j.company} ${j.source || ""}`.toLowerCase();
-    const matchEmployer = employerType === "All"
-      || (employerType === "NHS"        && (empText.includes("nhs") || empText.includes("national health") || empText.includes(" trust") || empText.includes("hospital") || empText.includes("clinical")))
-      || (employerType === "University" && (empText.includes("universit") || empText.includes("college") || empText.includes("institute") || empText.includes("academy") || empText.includes("research") || empText.includes("jobs.ac.uk") || j.source === "jobs.ac.uk"))
-      || (employerType === "Council"    && (empText.includes("council") || empText.includes("local authority") || empText.includes("borough") || empText.includes("county") || empText.includes("district") || empText.includes("city of") || empText.includes("metropolitan") || j.source === "LG Jobs" || j.source === "Civil Service"))
-      || (employerType === "Private"    && !(empText.includes("nhs") || empText.includes("national health") || empText.includes(" trust") || empText.includes("hospital") || empText.includes("clinical") || empText.includes("universit") || empText.includes("college") || empText.includes("institute") || empText.includes("research") || empText.includes("jobs.ac.uk") || j.source === "jobs.ac.uk" || empText.includes("council") || empText.includes("local authority") || empText.includes("borough") || empText.includes("county") || empText.includes("district") || j.source === "LG Jobs" || j.source === "Civil Service"));
-    const q = titleQuery.toLowerCase().trim();
-    const matchTitle = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
-    const loc = locationQuery.toLowerCase().trim();
-    const matchLoc = !loc || j.location.toLowerCase().includes(loc);
-    return matchSector && matchVisa && matchSource && matchEmployer && matchTitle && matchLoc;
+async function supaFetch(path, opts = {}) {
+  const res = await fetch(`${SUPA_URL}/rest/v1${path}`, {
+    ...opts,
+    headers: { "Content-Type": "application/json", apikey: SUPA_KEY, Authorization: `Bearer ${getToken()}`, Prefer: "return=representation", ...(opts.headers || {}) },
   });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || "Request failed"); }
+  return res.status === 204 ? null : res.json();
+}
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice((safePage - 1) * JOBS_PER_PAGE, safePage * JOBS_PER_PAGE);
+async function supaAuthFetch(endpoint, method = "GET", body = null) {
+  const res = await fetch(`${SUPA_URL}/auth/v1/${endpoint}`, {
+    method,
+    headers: { "Content-Type": "application/json", apikey: SUPA_KEY, Authorization: `Bearer ${getToken()}` },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || data.message || "Failed");
+  return data;
+}
 
-  function getPageNums() {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    if (safePage <= 3) return [1, 2, 3, 4, 5];
-    if (safePage >= totalPages - 2) return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [safePage - 2, safePage - 1, safePage, safePage + 1, safePage + 2];
-  }
+const SECTORS = ["Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
+const EXPERIENCE_LEVELS = ["Student", "Graduate (0–1 yr)", "Junior (1–3 yrs)", "Mid-level (3–5 yrs)", "Senior (5–10 yrs)", "Lead / Manager (10+ yrs)"];
+const SALARY_RANGES = ["Any", "£20,000+", "£30,000+", "£40,000+", "£50,000+", "£60,000+", "£80,000+"];
+const VISA_OPTIONS = ["I need visa sponsorship", "I have the right to work in the UK", "Either is fine"];
 
-  return (
-    <div style={S.section}>
-      <div ref={topRef}>
-        <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>Sponsorship jobs</h2>
-        <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — updated live.</p>
-      </div>
+const pill = (active) => ({
+  padding: "6px 14px", borderRadius: "20px", fontSize: "13px", fontWeight: active ? 500 : 400,
+  cursor: "pointer", fontFamily: "inherit", border: active ? "none" : "0.5px solid var(--color-border-secondary)",
+  background: active ? "#1A3FA8" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", transition: "all 0.15s",
+});
+const card = { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" };
+const inp = { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" };
+const btn = (primary, danger) => ({
+  padding: "10px 22px", borderRadius: "var(--border-radius-md)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
+  background: danger ? "#E24B4A" : primary ? "#1A3FA8" : "transparent",
+  color: danger || primary ? "#fff" : "var(--color-text-primary)",
+  border: danger ? "none" : primary ? "none" : "0.5px solid var(--color-border-secondary)",
+});
 
-      {/* Search box */}
-      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.5rem" }}>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <div style={{ flex: 2, minWidth: "160px", position: "relative", display: "flex", alignItems: "center" }}>
-            <input style={{ ...S.input, paddingRight: titleQuery ? "32px" : "12px" }} placeholder="🔍 Job title or keywords..."
-              value={titleQuery} onChange={e => handleTitleChange(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)} />
-            {titleQuery && (
-              <button onClick={() => handleTitleChange("")}
-                style={{ position: "absolute", right: "8px", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: "18px", lineHeight: 1, padding: "0 2px", display: "flex", alignItems: "center" }}>×</button>
-            )}
-          </div>
-          <input style={{ ...S.input, flex: 1, minWidth: "120px" }} placeholder="📍 Location..."
-            value={locationQuery} onChange={e => handleLocationChange(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && onFetchJobs(titleQuery, locationQuery)} />
-          <button style={{ ...S.btnPrimary, padding: "10px 20px", fontSize: "14px", whiteSpace: "nowrap", opacity: jobsLoading ? 0.7 : 1 }}
-            onClick={() => { clearTimeout(searchTimer.current); onFetchJobs(titleQuery, locationQuery); }} disabled={jobsLoading}>
-            {jobsLoading ? "Searching..." : "Search"}
-          </button>
-        </div>
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center", marginTop: "10px" }}>
-          <span style={{ fontSize: "11px", color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>🔍 Try:</span>
-          {["Software Engineer", "Data Scientist", "NHS Nurse", "Financial Analyst", "Civil Engineer", "Graphic Designer", "IT Technician", "System Administrator"].map(q => (
-            <button key={q} onClick={() => { setTitleQuery(q); onFetchJobs(q, locationQuery); }}
-              style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", fontWeight: 400,
-                border: "0.5px dashed var(--color-border-secondary)", background: "transparent", color: "var(--color-text-secondary)" }}>
-              {q}
-            </button>
-          ))}
-        </div>
-        {updatedAt && (
-          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "10px 0 0" }}>
-            Last updated <strong style={{ color: "var(--color-text-primary)" }}>
-              {new Date(updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-            </strong> at <strong style={{ color: "var(--color-text-primary)" }}>
-              {new Date(updatedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
-            </strong>
-          </p>
-        )}
-      </div>
+// ── CV text extraction helpers ──────────────────────────────────────────────
+async function loadScript(src) {
+  if (document.querySelector(`script[src="${src}"]`)) return;
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
 
-      {/* Profile filter banner */}
-      {profileFilter && (
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "linear-gradient(135deg, rgba(26,63,168,0.08), rgba(29,158,117,0.05))", border: "0.5px solid rgba(26,63,168,0.2)", borderRadius: "var(--border-radius-md)", marginBottom: "1rem", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "14px" }}>🎯</span>
-          <p style={{ fontSize: "13px", margin: 0, flex: 1 }}>
-            <strong>Filtered by your profile</strong>
-            {profileFilter.sectors?.length > 0 && ` · ${profileFilter.sectors.join(", ")}`}
-            {profileFilter.location && ` · ${profileFilter.location}`}
-            {profileFilter.visaStatus === "I need visa sponsorship" && " · Visa Sponsorship only"}
-          </p>
-          <button onClick={() => { onClearProfileFilter(); setSector("All"); setLocationQuery(""); setVisaType("All Jobs"); }}
-            style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)" }}>
-            Clear ✕
-          </button>
-        </div>
-      )}
-
-      {/* ✅ Visa + Sector pill filters */}
-      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
-        {/* Visa row */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "32px" }}>Visa</span>
-          {VISA_TYPES.map(v => {
-            const active = visaType === v;
-            const isSponsored = v === "✓ Visa Sponsorship";
-            return (
-              <button key={v} onClick={() => { setVisaType(v); setPage(1); }}
-                style={{ padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit", border: "none",
-                  background: active ? (isSponsored ? "#16A34A" : "#1A3FA8") : "var(--color-background-secondary)",
-                  color: active ? "#fff" : "var(--color-text-secondary)" }}>
-                {v}
-              </button>
-            );
-          })}
-        </div>
-        {/* Divider */}
-        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "8px 0" }} />
-        {/* Sector row */}
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "32px", paddingTop: "6px" }}>Sector</span>
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flex: 1 }}>
-            {SECTORS.map(s => {
-              const active = sector === s;
-              const icons = { "All": "⚡", "Technology": "💻", "AI & Data": "🤖", "Healthcare": "🏥", "Finance": "💰", "Engineering": "⚙️", "Business": "💼", "Education": "🎓", "Hospitality": "🍽️", "Public Sector": "🏛" };
-              return (
-                <button key={s} onClick={() => { setSector(s); setPage(1); }}
-                  style={{ padding: "5px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit",
-                    border: active ? "none" : "0.5px solid var(--color-border-tertiary)",
-                    background: active ? "#1A3FA8" : "var(--color-background-secondary)",
-                    color: active ? "#fff" : "var(--color-text-secondary)" }}>
-                  {icons[s] || "📋"} {s}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {/* Clear filters */}
-        {(sector !== "All" || visaType !== "All Jobs" || employerType !== "All" || titleQuery || locationQuery) && (
-          <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "10px", paddingTop: "10px" }}>
-            <button onClick={() => { setSector("All"); setVisaType("All Jobs"); setEmployerType("All"); setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", ""); }}
-              style={{ padding: "5px 14px", borderRadius: "20px", border: "0.5px solid var(--color-border-secondary)", background: "transparent", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", color: "var(--color-text-secondary)" }}>
-              ✕ Clear all filters
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Employer type filter */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-        <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Employer:</span>
-        {[
-          { key: "All",        label: "All" },
-          { key: "NHS",        label: "🏥 NHS" },
-          { key: "University", label: "🎓 University" },
-          { key: "Council",    label: "🏛 Council" },
-          { key: "Private",    label: "🏢 Private" },
-        ].map(({ key, label }) => {
-          const active = employerType === key;
-          const count = key === "All" ? null : allJobs.filter(j => {
-            const t = `${j.title} ${j.company} ${j.source || ""}`.toLowerCase();
-            if (key === "NHS")        return t.includes("nhs") || t.includes("national health") || t.includes(" trust") || t.includes("hospital") || t.includes("clinical");
-            if (key === "University") return t.includes("universit") || t.includes("college") || t.includes("institute") || t.includes("research") || t.includes("jobs.ac.uk") || j.source === "jobs.ac.uk";
-            if (key === "Council")    return t.includes("council") || t.includes("borough") || t.includes("local authority") || t.includes("district") || t.includes("metropolitan");
-            if (key === "Private")    return !(t.includes("nhs") || t.includes("national health") || t.includes(" trust") || t.includes("hospital") || t.includes("universit") || t.includes("college") || t.includes("council") || t.includes("borough") || j.source === "jobs.ac.uk" || j.source === "LG Jobs" || j.source === "Civil Service");
-            return false;
-          }).length;
-          return (
-            <button key={key}
-              style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500,
-                border: `0.5px solid ${active ? "#1A3FA8" : "var(--color-border-tertiary)"}`,
-                background: active ? "#1A3FA8" : "var(--color-background-primary)",
-                color: active ? "#fff" : "var(--color-text-secondary)",
-                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-              }}
-              onClick={() => { setEmployerType(key); setPage(1); }}>
-              {label}{count !== null && count > 0 ? <span style={{ opacity: 0.7, fontSize: "11px", marginLeft: "4px" }}>({count})</span> : null}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Results count */}
-      <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
-        {jobsLoading
-          ? `🔍 Refreshing jobs... (${allJobs.length > 0 ? allJobs.length.toLocaleString() + " total" : "loading"})`
-          : <>
-              Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> jobs
-            </>
+async function extractTextFromPDF(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const pdfjsLib = window.pdfjsLib;
+        if (!pdfjsLib) { reject(new Error("PDF.js not loaded")); return; }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        const pdf = await pdfjsLib.getDocument({ data: e.target.result }).promise;
+        let text = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(item => item.str).join(" ") + "\n";
         }
-        {!jobsLoading && titleQuery && ` · matching "${titleQuery}"`}
-        {!jobsLoading && locationQuery && ` · in "${locationQuery}"`}
-        {!jobsLoading && sector !== "All" && ` · ${sector}`}
-      </p>
-
-      {/* Loading skeletons */}
-      {jobsLoading && (
-        <div style={S.grid2}>
-          <style>{"@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}.shimmer-line{background:linear-gradient(90deg,var(--color-background-secondary) 25%,var(--color-background-primary) 50%,var(--color-background-secondary) 75%);background-size:400px 100%;animation:shimmer 1.4s ease infinite}"}</style>
-          {[...Array(6)].map((_, i) => (
-            <div key={i} style={{ ...S.card, display: "flex", flexDirection: "column", gap: "12px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1 }}>
-                  <div className="shimmer-line" style={{ height: "16px", borderRadius: "6px", width: "70%", marginBottom: "8px" }} />
-                  <div className="shimmer-line" style={{ height: "12px", borderRadius: "6px", width: "45%" }} />
-                </div>
-                <div className="shimmer-line" style={{ height: "22px", width: "80px", borderRadius: "20px", marginLeft: "10px" }} />
-              </div>
-              <div style={{ display: "flex", gap: "6px" }}>
-                <div className="shimmer-line" style={{ height: "20px", width: "80px", borderRadius: "20px" }} />
-                <div className="shimmer-line" style={{ height: "20px", width: "100px", borderRadius: "20px" }} />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
-                <div className="shimmer-line" style={{ height: "14px", borderRadius: "6px", width: "35%" }} />
-                <div className="shimmer-line" style={{ height: "32px", width: "70px", borderRadius: "var(--border-radius-md)" }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Job cards */}
-      {!jobsLoading && paginated.length > 0 && (
-        <div style={S.grid2}>
-          {paginated.map((j, i) => (
-            <div key={i}
-              className={clickedJob === i ? "job-card-click" : ""}
-              style={{ ...S.card, display: "flex", flexDirection: "column", justifyContent: "space-between", cursor: "pointer", transition: "box-shadow 0.25s, border-color 0.25s, transform 0.25s", minHeight: "190px" }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 30px rgba(26,63,168,0.18)"; e.currentTarget.style.borderColor = "rgba(26,63,168,0.4)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = "var(--color-border-tertiary)"; e.currentTarget.style.transform = "translateY(0)"; }}
-              onClick={() => { setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}>
-
-              {/* Title + sponsorship badge */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "6px" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontWeight: 600, margin: "0 0 3px", fontSize: "14px", color: "var(--color-text-primary)", lineHeight: 1.4, wordBreak: "break-word" }}>{j.title}</p>
-                  <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.company}</p>
-                </div>
-                <span style={{ flexShrink: 0, padding: "3px 8px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 500, whiteSpace: "nowrap",
-                  background: j.sponsorship === true ? "rgba(22,163,74,0.15)" : "var(--color-background-secondary)",
-                  color: j.sponsorship === true ? "#16A34A" : "var(--color-text-secondary)" }}>
-                  {j.sponsorship === true ? "✓ Sponsorship" : "No info"}
-                </span>
-              </div>
-
-              {/* Tags + location + posted date */}
-              <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", alignItems: "center", marginBottom: "8px" }}>
-                {j.sector && <span style={{ padding: "2px 7px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "#1A3FA8" }}>{j.sector}</span>}
-                <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
-                {(() => {
-                  const raw = j.posted || "";
-                  const isInvalid = !raw || raw.toLowerCase().includes("invalid") || raw.includes("NaN");
-                  const label = isInvalid ? "Recently" : raw;
-                  return (
-                    <span style={{
-                      fontSize: "11px",
-                      color: "var(--color-text-secondary)",
-                      background: "var(--color-background-secondary)",
-                      padding: "2px 7px",
-                      borderRadius: "var(--border-radius-md)",
-                      border: "0.5px solid var(--color-border-tertiary)",
-                    }}>
-                      📅 {label}
-                    </span>
-                  );
-                })()}
-              </div>
-
-              {/* Salary + buttons */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginTop: "auto" }}>
-                <p style={{ fontWeight: 600, color: "var(--color-text-primary)", margin: 0, fontSize: "13px", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.salary || "Competitive"}</p>
-                <div style={{ display: "flex", gap: "6px", flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                  <ShareButton job={j} />
-                  <button
-                    onClick={e => { e.stopPropagation(); setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}
-                    style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", fontWeight: 500, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-                    View ↗
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* No results */}
-      {!jobsLoading && paginated.length === 0 && (
-        <div style={{ ...S.card, textAlign: "center", padding: "3rem" }}>
-          <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
-          <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No jobs found</p>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>Try searching for a specific role above</p>
-          <button style={S.btnPrimary} onClick={() => { setTitleQuery(""); setLocationQuery(""); setSector("All"); setVisaType("All Jobs"); setSourceFilter("All"); setEmployerType("All"); setPage(1); onFetchJobs("", ""); }}>Show all jobs</button>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && !jobsLoading && (
-        <>
-          <div style={{ display: "flex", gap: "6px", justifyContent: "center", alignItems: "center", marginTop: "2rem", flexWrap: "wrap" }}>
-            {safePage > 3 && totalPages > 5 && <><button style={S.pageBtn(false)} onClick={() => setPage(1)}>1</button><span style={{ color: "var(--color-text-secondary)" }}>…</span></>}
-            {getPageNums().map(p => <button key={p} style={S.pageBtn(p === safePage)} onClick={() => setPage(p)}>{p}</button>)}
-            {safePage < totalPages - 2 && totalPages > 5 && <><span style={{ color: "var(--color-text-secondary)" }}>…</span><button style={S.pageBtn(false)} onClick={() => setPage(totalPages)}>{totalPages}</button></>}
-          </div>
-          <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "10px" }}>
-            <button style={{ ...S.btnOutline, padding: "8px 20px", fontSize: "13px", opacity: safePage === 1 ? 0.4 : 1 }} onClick={() => safePage > 1 && setPage(p => p - 1)} disabled={safePage === 1}>← Previous</button>
-            <button style={{ ...S.btnPrimary, padding: "8px 20px", fontSize: "13px", opacity: safePage === totalPages ? 0.4 : 1 }} onClick={() => safePage < totalPages && setPage(p => p + 1)} disabled={safePage === totalPages}>Next →</button>
-          </div>
-          <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "0.75rem" }}>Page {safePage} of {totalPages} · {filtered.length} total</p>
-        </>
-      )}
-    </div>
-  );
+        resolve(text);
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
 }
 
-// ─── Contact Page ─────────────────────────────────────────────────────────
-function ContactPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [status, setStatus] = useState("idle");
-
-  async function handleSubmit() {
-    if (!name || !email || !subject || !message) {
-      alert("Please fill in all fields.");
-      return;
-    }
-    setStatus("sending");
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, subject, message })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setStatus("success");
-        setName(""); setEmail(""); setSubject(""); setMessage("");
-      } else {
-        throw new Error("Failed");
-      }
-    } catch {
-      setStatus("error");
-    }
+async function extractCVText(file) {
+  const name = file.name.toLowerCase();
+  if (file.type === "application/pdf" || name.endsWith(".pdf")) {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+    return extractTextFromPDF(file);
   }
-
-  return (
-    <div style={S.section}>
-      <div style={{ maxWidth: "540px", margin: "0 auto" }}>
-        <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>Get in touch</h2>
-        <p style={{ ...S.sectionSub, textAlign: "center" }}>Have questions about Mentorgram? We'd love to hear from you.</p>
-
-        {status === "success" ? (
-          <div style={{ textAlign: "center", padding: "2rem 1rem", position: "relative", overflow: "hidden" }}>
-            <style>{`
-              @keyframes popIn { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.2) rotate(5deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
-              @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-              @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(220px) rotate(720deg); opacity: 0; } }
-              .success-icon { animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; display: inline-block; }
-              .success-title { animation: fadeSlideUp 0.5s ease 0.3s both; }
-              .success-sub { animation: fadeSlideUp 0.5s ease 0.45s both; }
-              .success-btn { animation: fadeSlideUp 0.5s ease 0.6s both; }
-              .confetti-piece { position: absolute; width: 8px; height: 8px; border-radius: 2px; animation: confettiFall linear forwards; }
-            `}</style>
-            {[
-              { left: "10%", delay: "0s",   color: "#1A3FA8", size: "8px",  duration: "1.2s" },
-              { left: "20%", delay: "0.1s", color: "#FF4500", size: "6px",  duration: "1.5s" },
-              { left: "30%", delay: "0.2s", color: "#F7C75B", size: "10px", duration: "1.1s" },
-              { left: "45%", delay: "0s",   color: "#E24B4A", size: "7px",  duration: "1.4s" },
-              { left: "55%", delay: "0.15s",color: "#1A3FA8", size: "9px",  duration: "1.3s" },
-              { left: "65%", delay: "0.05s",color: "#FF4500", size: "6px",  duration: "1.6s" },
-              { left: "75%", delay: "0.2s", color: "#F7C75B", size: "8px",  duration: "1.2s" },
-              { left: "85%", delay: "0.1s", color: "#E24B4A", size: "7px",  duration: "1.5s" },
-              { left: "50%", delay: "0.3s", color: "#1A3FA8", size: "5px",  duration: "1.1s" },
-              { left: "35%", delay: "0.25s",color: "#FF4500", size: "9px",  duration: "1.4s" },
-            ].map((c, i) => (
-              <div key={i} className="confetti-piece" style={{ left: c.left, top: "-10px", background: c.color, width: c.size, height: c.size, animationDuration: c.duration, animationDelay: c.delay }} />
-            ))}
-            <div className="success-icon" style={{ fontSize: "64px", marginBottom: "1rem", display: "block" }}>📨</div>
-            <h3 className="success-title" style={{ fontSize: "1.4rem", fontWeight: 500, margin: "0 0 0.5rem", color: "var(--color-text-primary)" }}>Message sent! 🎉</h3>
-            <p className="success-sub" style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
-              Thanks <strong>{name}</strong>! We'll get back to you at <strong>{email}</strong> shortly.
-            </p>
-            <button className="success-btn" style={{ ...S.btnOutline, padding: "9px 24px", fontSize: "14px" }} onClick={() => setStatus("idle")}>
-              Send another message
-            </button>
-          </div>
-        ) : (
-          <div style={S.card}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                <input style={{ ...S.input, flex: 1, minWidth: "140px" }} placeholder="Your name" value={name} onChange={e => setName(e.target.value)} />
-                <input style={{ ...S.input, flex: 1, minWidth: "140px" }} type="email" placeholder="Your email" value={email} onChange={e => setEmail(e.target.value)} />
-              </div>
-              <input style={S.input} placeholder="Subject" value={subject} onChange={e => setSubject(e.target.value)} />
-              <textarea style={{ ...S.input, height: "120px", resize: "vertical" }} placeholder="Your message..." value={message} onChange={e => setMessage(e.target.value)} />
-              <button style={{ ...S.btnPrimary, opacity: status === "sending" ? 0.7 : 1 }} onClick={handleSubmit} disabled={status === "sending"}>
-                {status === "sending" ? "Sending..." : "Send message"}
-              </button>
-              {status === "error" && (
-                <p style={{ color: "#E24B4A", fontSize: "13px", margin: 0 }}>
-                  Something went wrong. Email us directly at{" "}
-                  <a href="mailto:info@mentorgramai.com" style={{ color: "#E24B4A" }}>info@mentorgramai.com</a>
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div style={{ ...S.card, marginTop: "1rem" }}>
-          <p style={{ fontWeight: 500, margin: "0 0 10px" }}>Contact details</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px", color: "var(--color-text-secondary)" }}>
-            <a href="mailto:info@mentorgramai.com" style={{ color: "var(--color-text-secondary)", textDecoration: "none" }}>📧 info@mentorgramai.com</a>
-            <span>🌐 mentorgramai.com</span>
-            <span>📍 United Kingdom</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Guide Page ───────────────────────────────────────────────────────────
-function GuidePage({ navTo }) {
-  const [emailVal, setEmailVal] = useState("");
-  const [done, setDone] = useState(false);
-  const [err, setErr] = useState(false);
-
-  function handleSubmit() {
-    if (!emailVal.trim() || !emailVal.includes("@")) { setErr(true); return; }
-    setErr(false);
-    fetch("/api/send-guide", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: emailVal, consent: true, source: "guide-page" }),
-    }).catch(() => {});
-    setDone(true);
+  if (name.endsWith(".docx") || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await window.mammoth.extractRawText({ arrayBuffer });
+    return result.value || "";
   }
-
-  const chapters = [
-    { n: "1", title: "How UK Sponsorship Works", desc: "Skilled Worker visa explained — points, salary thresholds, CoS process" },
-    { n: "2", title: "Where to Find Sponsored Jobs", desc: "7 best sources including GOV.UK register and Mentorgram's free jobs board" },
-    { n: "3", title: "CV & Cover Letter Formula", desc: "UK CV format, how to mention sponsorship professionally, template phrases" },
-    { n: "4", title: "Interview & Visa Timeline", desc: "What to expect, questions to ask, and how long the full process takes" },
-    { n: "5", title: "5 Costly Mistakes to Avoid", desc: "The most common errors that waste months of applications" },
-    { n: "✓", title: "Your 7-Step Action Plan", desc: "A concrete plan to start your sponsored job search today" },
-  ];
-
-  return (
-    <div style={{ fontFamily: "var(--font-sans)", color: "var(--color-text-primary)", minHeight: "100vh" }}>
-      <div style={{ background: "linear-gradient(160deg, #0d2478 0%, #1a3fa8 50%, #0f1535 100%)", padding: "60px 20px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ display: "inline-block", background: "rgba(255,69,0,0.2)", color: "#ff6b35", border: "1px solid rgba(255,69,0,0.3)", padding: "6px 16px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "20px" }}>
-          🎁 Free Download
-        </div>
-        <h1 style={{ fontSize: "clamp(26px, 5vw, 44px)", fontWeight: 800, lineHeight: 1.15, margin: "0 0 16px", color: "#fff", letterSpacing: "-0.02em" }}>
-          How to Land a<br /><span style={{ color: "#FF4500" }}>UK Visa-Sponsored Role</span>
-        </h1>
-        <p style={{ fontSize: "16px", color: "#94a3c8", maxWidth: "520px", margin: "0 auto 36px", lineHeight: 1.7 }}>
-          The step-by-step guide to finding, applying and getting sponsored to work in the UK — completely free.
-        </p>
-        <div style={{ background: "#fff", color: "#1a1a2e", borderRadius: "20px", padding: "32px 28px", maxWidth: "440px", margin: "0 auto", boxShadow: "0 32px 80px rgba(0,0,0,0.4)" }}>
-          {!done ? (
-            <>
-              <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#1A3FA8", margin: "0 0 6px" }}>Get Your Free Guide</h2>
-              <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 20px", lineHeight: 1.6 }}>Enter your email and download instantly — no spam, ever.</p>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>Email address</label>
-              <input
-                type="email"
-                value={emailVal}
-                onChange={e => { setEmailVal(e.target.value); setErr(false); }}
-                onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                placeholder="you@email.com"
-                style={{ width: "100%", padding: "12px 14px", border: err ? "1.5px solid #ef4444" : "1.5px solid #e2e8f0", borderRadius: "10px", fontSize: "14px", outline: "none", marginBottom: "12px", boxSizing: "border-box", fontFamily: "inherit", color: "#1a1a2e" }}
-              />
-              {err && <p style={{ color: "#ef4444", fontSize: "12px", margin: "-8px 0 10px" }}>Please enter a valid email address</p>}
-              <button onClick={handleSubmit} style={{ width: "100%", padding: "13px", background: "#1A3FA8", color: "#fff", border: "none", borderRadius: "10px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                Send Me the Free Guide →
-              </button>
-              <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", marginTop: "10px" }}>🔒 No spam. Unsubscribe anytime.</p>
-            </>
-          ) : (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎉</div>
-              <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#16A34A", marginBottom: "8px" }}>Your guide is ready!</h3>
-              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "20px", lineHeight: 1.6 }}>Click below to download your free copy.</p>
-              <a href="/sponsorship-guide.pdf" download
-                style={{ display: "inline-block", padding: "12px 28px", background: "linear-gradient(135deg, #1A3FA8, #FF4500)", color: "#fff", borderRadius: "10px", fontSize: "14px", fontWeight: 700, textDecoration: "none" }}>
-                ⬇ Download Free Guide
-              </a>
-              <p style={{ marginTop: "16px", fontSize: "12px", color: "#94a3b8" }}>
-                Also search 500+ live sponsored jobs on{" "}
-                <button onClick={() => navTo("Sponsorship Jobs")} style={{ background: "none", border: "none", color: "#1A3FA8", cursor: "pointer", fontFamily: "inherit", fontSize: "12px", fontWeight: 600, padding: 0, textDecoration: "underline" }}>
-                  Mentorgram Jobs
-                </button>
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-      <div style={{ padding: "60px 20px", maxWidth: "700px", margin: "0 auto" }}>
-        <h2 style={{ fontSize: "24px", fontWeight: 700, textAlign: "center", margin: "0 0 8px" }}>What's Inside the Guide</h2>
-        <p style={{ textAlign: "center", color: "var(--color-text-secondary)", marginBottom: "36px" }}>8 pages of actionable, no-fluff advice</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
-          {chapters.map(c => (
-            <div key={c.n} style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "18px", display: "flex", gap: "14px", alignItems: "flex-start" }}>
-              <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #1A3FA8, #0d2478)", color: "#fff", fontWeight: 800, fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{c.n}</div>
-              <div>
-                <p style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 3px", color: "var(--color-text-primary)" }}>{c.title}</p>
-                <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>{c.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ background: "#1A3FA8", padding: "40px 20px", textAlign: "center" }}>
-        <p style={{ fontSize: "13px", color: "#b0c4f8", marginBottom: "4px" }}>While you're here</p>
-        <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#fff", marginBottom: "16px" }}>Search 500+ Live Visa-Sponsored Jobs</h3>
-        <button onClick={() => navTo("Sponsorship Jobs")}
-          style={{ padding: "12px 28px", background: "#FF4500", color: "#fff", border: "none", borderRadius: "10px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-          Browse Jobs →
-        </button>
-      </div>
-    </div>
-  );
+  if (name.endsWith(".doc") || file.type === "application/msword") {
+    throw new Error("Old .doc format not supported. Please save as .docx or PDF.");
+  }
+  return file.text();
 }
 
-// ─── CV Analyser Tab ───────────────────────────────────────────────────────
-function CVAnalyserTab({ user, navTo }) {
-  const [selectedLevel, setSelectedLevel] = useState(null);
-  const [cvText, setCvText] = useState("");
-  const [fileName, setFileName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
-  const [savedToProfile, setSavedToProfile] = useState(false);
-  const [uniCountry, setUniCountry] = useState("All");
-  const [degreeFilter, setDegreeFilter] = useState("All");
+// Map AI result fields to profile fields
+function mapCVResultToProfile(result) {
+  const profile = result.profile || {};
+  const careers = result.careerPaths || [];
+  const unis = result.universities || result.ukUniversities || [];
+
+  // Map AI level to experience level
+  const levelMap = {
+    "undergraduate": "Student",
+    "postgraduate": "Graduate (0–1 yr)",
+    "professional": "Mid-level (3–5 yrs)",
+  };
+
+  // Map AI field to sector
+  const fieldToSector = (field = "") => {
+    const f = field.toLowerCase();
+    if (/software|developer|tech|it |web|cyber|cloud|devops|network/.test(f)) return ["Technology"];
+    if (/data|ai |machine|analytics/.test(f)) return ["AI & Data", "Technology"];
+    if (/health|nurse|medical|care|nhs|clinical/.test(f)) return ["Healthcare"];
+    if (/finance|account|banking|audit/.test(f)) return ["Finance"];
+    if (/engineer|mechanical|civil|electrical/.test(f)) return ["Engineering"];
+    if (/education|teach|academic|school/.test(f)) return ["Education"];
+    if (/design|creative|marketing|brand|ui|ux/.test(f)) return ["Business"];
+    if (/business|management|sales|hr|operations/.test(f)) return ["Business"];
+    if (/social|public|council|government/.test(f)) return ["Public Sector"];
+    return [];
+  };
+
+  const suggestedSectors = fieldToSector(profile.currentField);
+
+  // Extract skills from keySkills
+  const suggestedSkills = (profile.keySkills || []).join(", ");
+
+  // Get job title from first career path
+  const suggestedJobTitle = careers[0]?.title || "";
+
+  return {
+    suggestedSectors,
+    suggestedSkills,
+    suggestedJobTitle,
+    suggestedExperience: levelMap[profile.level] || "",
+    summary: result.summary || "",
+    gaps: result.gaps || [],
+    careerPaths: careers,
+    universities: unis,
+  };
+}
+
+function CVBuilderInline({ cvText }) {
+  return <CVGenerator cvText={cvText} onNavigateToCV={null} />;
+}
+
+export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, onNavigate }) {
+  const [tab, setTab] = useState("overview");
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [applications, setApplications] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("mg_applications") || "[]"); } catch { return []; }
+  });
+  const [trackerNote, setTrackerNote] = useState("");
+  const [savedJobs, setSavedJobs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("mg_saved_jobs") || "[]"); } catch { return []; }
+  });
+  const [showAddApp, setShowAddApp] = useState(false);
+  const [newApp, setNewApp] = useState({ title: "", company: "", url: "", type: "Job", status: "Applied", notes: "", deadline: "", location: "" });
+  const [saved, setSaved] = useState(false);
+  const [telegramConnected, setTelegramConnected] = useState(false);
+
+  // Profile fields
+  const [fullName, setFullName] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [sectors, setSectors] = useState([]);
+  const [experience, setExperience] = useState("");
+  const [salary, setSalary] = useState("Any");
+  const [location, setLocation] = useState("");
+  const [visaStatus, setVisaStatus] = useState("");
+  const [skills, setSkills] = useState("");
+  const [bio, setBio] = useState("");
+
+  // ✅ CV Analysis state
+  const [cvAnalysis, setCvAnalysis] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("mg_cv_analysis") || "null"); } catch { return null; }
+  });
+  const [cvLoading, setCvLoading] = useState(false);
+  const [cvError, setCvError] = useState("");
+  const [cvFileName, setCvFileName] = useState("");
+  const [cvApplied, setCvApplied] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState("Masters");
   const fileRef = useRef(null);
 
   const DEGREE_LEVELS = [
-    { key: "Undergraduate", label: "🎓 Undergraduate", desc: "Bachelor's degree (BSc, BA, BEng)", color: "#1A3FA8" },
-    { key: "Masters",       label: "📚 Masters",       desc: "Postgraduate taught (MSc, MA, MBA)", color: "#7C3AED" },
-    { key: "PhD",           label: "🔬 PhD",            desc: "Doctoral research programme", color: "#DC2626" },
+    { key: "Undergraduate", label: "🎓 Undergraduate", color: "#1A3FA8" },
+    { key: "Masters",       label: "📚 Masters",       color: "#7C3AED" },
+    { key: "PhD",           label: "🔬 PhD",            color: "#DC2626" },
   ];
 
-  async function loadScript(src) {
-    if (document.querySelector('script[src="' + src + '"]')) return;
-    return new Promise((res, rej) => {
-      const s = document.createElement("script");
-      s.src = src; s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
-  }
+  // Password change
+  const [currentPass, setCurrentPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [passLoading, setPassLoading] = useState(false);
+  const [passMsg, setPassMsg] = useState({ type: "", text: "" });
 
-  async function extractTextFromPDF(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const pdfjsLib = window.pdfjsLib;
-          if (!pdfjsLib) { reject(new Error("PDF.js not loaded")); return; }
-          pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-          const pdf = await pdfjsLib.getDocument({ data: e.target.result }).promise;
-          let text = "";
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            text += content.items.map(item => item.str).join(" ") + "\n";
-          }
-          resolve(text);
-        } catch (err) { reject(err); }
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
-  }
+  // Delete account
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  async function handleFile(file) {
-    if (!file) return;
-    setError(""); setResult(null); setSavedToProfile(false);
-    setFileName(file.name);
+  useEffect(() => { loadProfile(); }, [user]);
+
+  // ✅ Fetch jobs if not already loaded
+  const [localJobs, setLocalJobs] = useState([]);
+  useEffect(() => {
+    if (allJobs && allJobs.length > 0) return; // already loaded by parent
+    fetch("/api/jobs-db?pageSize=2000")
+      .then(r => r.json())
+      .then(d => setLocalJobs(d.jobs || []))
+      .catch(() => {});
+  }, [allJobs]);
+
+  const jobs = (allJobs && allJobs.length > 0) ? allJobs : localJobs;
+
+  async function loadProfile() {
+    setLoading(true);
     try {
-      let text = "";
-      const name = file.name.toLowerCase();
-      const isPDF  = file.type === "application/pdf" || name.endsWith(".pdf");
-      const isDOCX = name.endsWith(".docx") || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      const isDOC  = name.endsWith(".doc") || file.type === "application/msword";
-
-      if (isPDF) {
-        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
-        text = await extractTextFromPDF(file);
-      } else if (isDOCX) {
-        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await window.mammoth.extractRawText({ arrayBuffer });
-        text = result.value || "";
-      } else if (isDOC) {
-        setError("Old .doc files cannot be read in the browser. Please save as .docx or PDF and try again.");
-        return;
+      const data = await supaFetch(`/profiles?user_id=eq.${user.id}&select=*`);
+      if (data?.length > 0) {
+        const p = data[0];
+        setProfile(p);
+        setFullName(p.full_name || "");
+        setJobTitle(p.job_title || "");
+        setSectors(p.sectors || []);
+        setExperience(p.experience_level || "");
+        setSalary(p.min_salary || "Any");
+        setLocation(p.preferred_location || "");
+        setVisaStatus(p.visa_status || "");
+        setSkills(p.skills || "");
+        setBio(p.bio || "");
+        setTelegramConnected(!!p.telegram_chat_id);
       } else {
-        text = await file.text();
+        setFullName(user.user_metadata?.full_name || "");
       }
-      if (!text || text.trim().length < 50) {
-        setError("Could not extract text. Please try PDF or paste your CV below.");
-        return;
-      }
-      setCvText(text);
-    } catch (err) {
-      setError("Could not read file: " + err.message + ". Please try PDF or paste your CV below.");
-    }
+    } catch (e) { console.log(e.message); }
+    setLoading(false);
   }
 
-  async function analyseCV() {
-    if (!cvText.trim()) { setError("Please upload a CV or paste your CV text first."); return; }
-    if (!selectedLevel) { setError("Please select your degree level first."); return; }
-    setLoading(true); setError(""); setResult(null);
+  async function saveProfile() {
+    setSaving(true);
+    const data = { user_id: user.id, full_name: fullName, job_title: jobTitle, sectors, experience_level: experience, min_salary: salary, preferred_location: location, visa_status: visaStatus, skills, bio, updated_at: new Date().toISOString() };
     try {
+      if (profile) await supaFetch(`/profiles?user_id=eq.${user.id}`, { method: "PATCH", body: JSON.stringify(data) });
+      else await supaFetch("/profiles", { method: "POST", body: JSON.stringify(data) });
+      setProfile(data); setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) { alert("Save failed: " + e.message); }
+    setSaving(false);
+  }
+
+  // ✅ Handle CV file upload and analysis
+  async function handleCVUpload(file) {
+    if (!file) return;
+    setCvError(""); setCvFileName(file.name); setCvLoading(true); setCvApplied(false);
+    try {
+      const cvText = await extractCVText(file);
+      if (!cvText || cvText.trim().length < 50) {
+        setCvError("Could not extract text. Try a PDF or paste text below.");
+        setCvLoading(false); return;
+      }
       const res = await fetch("/api/cv-analyser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cvText, degreeLevel: selectedLevel }),
       });
       let data;
-      try { data = await res.json(); } catch(e) { throw new Error("Server error (status " + res.status + ")"); }
-      if (!res.ok || data.error) throw new Error(data.error || "HTTP " + res.status);
-      if (!data.result) throw new Error("No result in response");
-      setResult(data.result);
-      setUniCountry("All"); setDegreeFilter("All");
-      localStorage.setItem("mg_cv_analysis", JSON.stringify({ result: data.result, date: new Date().toISOString(), fileName, degreeLevel: selectedLevel }));
-      setSavedToProfile(true);
+      try { data = await res.json(); } catch { throw new Error("Server error"); }
+      if (!res.ok || data.error) throw new Error(data.error || "Analysis failed");
+      if (!data.result) throw new Error("No result returned");
+
+      const analysis = { result: data.result, date: new Date().toISOString(), fileName: file.name, degreeLevel: selectedLevel };
+      localStorage.setItem("mg_cv_analysis", JSON.stringify(analysis));
+      setCvAnalysis(analysis);
     } catch (err) {
-      setError("Analysis failed: " + err.message + ". Please try again.");
+      setCvError("Analysis failed: " + err.message);
     }
-    setLoading(false);
+    setCvLoading(false);
   }
 
-  const demandColor = (d) => d === "High" ? "#16A34A" : d === "Growing" ? "#1A3FA8" : "#D97706";
-  const demandBg   = (d) => d === "High" ? "rgba(22,163,74,0.12)" : d === "Growing" ? "rgba(26,63,168,0.12)" : "rgba(217,119,6,0.12)";
-  const levelInfo  = DEGREE_LEVELS.find(l => l.key === selectedLevel);
+  // ✅ Apply CV analysis results to profile fields
+  function applyCVToProfile() {
+    if (!cvAnalysis?.result) return;
+    const mapped = mapCVResultToProfile(cvAnalysis.result);
 
-  const allUniversities = result
-    ? (result.universities || (result.ukUniversities || []).map(u => ({ ...u, country: "UK", fees: u.avgSalary, courseLink: u.ucasLink })))
-    : [];
-  const ukCount = allUniversities.filter(u => u.country === "UK").length;
-  const deCount = allUniversities.filter(u => u.country === "Germany").length;
-  const DEGREE_TYPES = ["All", ...new Set(allUniversities.map(u => u.degreeType).filter(Boolean))];
-  const filteredUnis = allUniversities.filter(u => {
-    const matchCountry = uniCountry === "All" || u.country === uniCountry;
-    const matchDegree  = degreeFilter === "All" || (u.degreeType || "").includes(degreeFilter);
-    return matchCountry && matchDegree;
+    if (mapped.suggestedJobTitle && !jobTitle) setJobTitle(mapped.suggestedJobTitle);
+    if (mapped.suggestedExperience && !experience) setExperience(mapped.suggestedExperience);
+    if (mapped.suggestedSectors.length > 0) setSectors(prev => [...new Set([...prev, ...mapped.suggestedSectors])]);
+    if (mapped.suggestedSkills) setSkills(prev => {
+      const existing = prev.trim();
+      const newSkills = mapped.suggestedSkills;
+      return existing ? existing + ", " + newSkills : newSkills;
+    });
+
+    // Auto-set visa if needed
+    if (!visaStatus) setVisaStatus("I need visa sponsorship");
+
+    setCvApplied(true);
+    setTimeout(() => setTab("profile"), 800);
+  }
+
+  async function changePassword() {
+    if (!newPass || !confirmPass) { setPassMsg({ type: "err", text: "Please fill in all fields" }); return; }
+    if (newPass.length < 8) { setPassMsg({ type: "err", text: "Password must be at least 8 characters" }); return; }
+    if (newPass !== confirmPass) { setPassMsg({ type: "err", text: "Passwords do not match" }); return; }
+    setPassLoading(true); setPassMsg({ type: "", text: "" });
+    try {
+      await supaAuthFetch("user", "PUT", { password: newPass });
+      setPassMsg({ type: "ok", text: "Password updated successfully!" });
+      setCurrentPass(""); setNewPass(""); setConfirmPass("");
+    } catch (e) { setPassMsg({ type: "err", text: e.message }); }
+    setPassLoading(false);
+  }
+
+  async function deleteAccount() {
+    if (deleteConfirm.toLowerCase() !== "delete") return;
+    setDeleteLoading(true);
+    try {
+      await supaFetch(`/profiles?user_id=eq.${user.id}`, { method: "DELETE" });
+      const res = await fetch("/api/delete-account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: user.id, token: getToken() }) });
+      if (!res.ok) throw new Error("Deletion failed");
+      localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user");
+      onLogout();
+    } catch (e) { alert(e.message); setDeleteLoading(false); }
+  }
+
+  const matchedJobs = jobs.filter(j => {
+    // ✅ Smart sector match — also check title keywords for mis-categorised jobs
+    const titleLower = (j.title || "").toLowerCase();
+    const sectorByTitle = (() => {
+      if (/software|developer|devops|cloud|cyber|network|it.tech|helpdesk|full.stack|backend|frontend|react|python|java|aws|azure|linux|systems.eng|platform.eng/.test(titleLower)) return "Technology";
+      if (/data.sci|machine.learn|ai |data.eng|data.anal/.test(titleLower)) return "AI & Data";
+      if (/nurse|doctor|nhs|healthcare|medical|dental|care.work|clinical|therapist|pharmacist|midwife|paramedic/.test(titleLower)) return "Healthcare";
+      if (/financ|accountant|audit|banking|investment|payroll/.test(titleLower)) return "Finance";
+      if (/mechanical.eng|civil.eng|electrical.eng|embedded/.test(titleLower)) return "Engineering";
+      if (/teacher|teaching|lecturer|tutor|school|academic/.test(titleLower)) return "Education";
+      if (/chef|cook|hotel|restaurant|hospitality/.test(titleLower)) return "Hospitality";
+      if (/social.work|council|government|police|charity/.test(titleLower)) return "Public Sector";
+      if (/graphic.des|ui.des|ux.des|web.des|designer|creative|marketing|sales|hr |brand/.test(titleLower)) return "Business";
+      return null;
+    })();
+    const effectiveSector = j.sector || sectorByTitle || "Other";
+    const sm = sectors.length === 0 || sectors.includes(effectiveSector) || sectors.includes(sectorByTitle);
+    const lm = !location || (j.location || "").toLowerCase().includes(location.toLowerCase());
+    const vm = visaStatus !== "I need visa sponsorship" || j.sponsorship === true;
+    return sm && lm && vm;
   });
 
-  function buildCourseLink(u) {
-    const nameLower = (u.name || "").toLowerCase();
-    const isPhD = (u.degreeType || "").toLowerCase().includes("phd");
-    if (u.country === "Germany") {
-      return "https://www2.daad.de/deutschland/studienangebote/international-programmes/en/result/?q=" + encodeURIComponent(u.course || "") + "&degree=" + encodeURIComponent(u.degreeType || "");
-    }
-    if (isPhD) return "https://www.jobs.ac.uk/search/?keywords=" + encodeURIComponent(u.course || "") + "&type%5B%5D=phd";
-    return "https://www.ucas.com/search?query=" + encodeURIComponent((u.course || "") + " " + (u.name || "")).trim();
-  }
+  const initials = fullName ? fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : (user.email || "?")[0].toUpperCase();
+
+  const tabs = [
+    { id: "overview", label: "Overview",    icon: "🏠" },
+    { id: "cv",       label: "CV Analysis", icon: "📄", badge: cvAnalysis ? "✓" : null },
+    { id: "profile",  label: "My Profile",  icon: "👤" },
+    { id: "matches",  label: "Job Matches", icon: "🎯", count: matchedJobs.length },
+    { id: "cvgen",    label: "CV Builder",   icon: "✍️" },
+    { id: "security", label: "Security",    icon: "🔒" },
+  ];
+
+  const cvResult = cvAnalysis?.result;
+  // Build cv text from analysis result for the generator
+  const cvTextForGen = ""; // User uploads CV fresh in generator
+  const cvMapped = cvResult ? mapCVResultToProfile(cvResult) : null;
+
+  if (loading) return (
+    <div style={{ textAlign: "center", padding: "4rem" }}>
+      <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
+      <p style={{ color: "var(--color-text-secondary)" }}>Loading your dashboard...</p>
+    </div>
+  );
 
   return (
-    <div>
-      <div style={{ background: "linear-gradient(135deg, rgba(26,63,168,0.08), rgba(22,163,74,0.05))", border: "0.5px solid rgba(26,63,168,0.15)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "1.5rem" }}>
-        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-          <span style={{ fontSize: "36px" }}>🎯</span>
-          <div>
-            <h3 style={{ margin: "0 0 4px", fontSize: "1.1rem", fontWeight: 600 }}>CV to Course Matcher</h3>
-            <p style={{ margin: 0, fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>Tell us what you are looking for, upload your CV, and our AI will recommend the best UK and German university courses tailored to your background.</p>
+    <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "2rem 1.5rem" }}>
+
+      {/* Header */}
+      <div style={{ ...card, marginBottom: "1.5rem", background: "linear-gradient(135deg, rgba(26,63,168,0.06), rgba(29,158,117,0.04))", borderColor: "rgba(26,63,168,0.15)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "20px", flexShrink: 0 }}>{initials}</div>
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 500, margin: "0 0 3px" }}>{fullName || "Your Account"}</h2>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{user.email}</p>
+            {jobTitle && <p style={{ color: "var(--color-text-primary)", fontSize: "13px", margin: "3px 0 0", fontWeight: 500 }}>{jobTitle}</p>}
+            {cvAnalysis && <p style={{ color: "#7C3AED", fontSize: "12px", margin: "3px 0 0" }}>📄 CV analysed · {new Date(cvAnalysis.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>}
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {matchedJobs.length > 0 && (
+              <button style={{ ...btn(true), fontSize: "13px", padding: "8px 16px" }}
+                onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }}>
+                🎯 {matchedJobs.length} job matches
+              </button>
+            )}
+            <button style={{ ...btn(false), fontSize: "13px", padding: "8px 16px", color: "#E24B4A", borderColor: "rgba(226,75,74,0.4)" }}
+              onClick={() => { localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user"); onLogout(); }}>
+              Sign out
+            </button>
           </div>
         </div>
       </div>
 
-      {!result && (
-        <div>
-          <p style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 10px" }}>
-            Step 1 — What are you looking for?
-            {selectedLevel && <span style={{ marginLeft: "8px", fontSize: "12px", color: levelInfo.color, fontWeight: 500 }}>✓ {selectedLevel} selected</span>}
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px", marginBottom: "1.5rem" }}>
-            {DEGREE_LEVELS.map(level => (
-              <button key={level.key} onClick={() => setSelectedLevel(level.key)}
-                style={{ padding: "14px 16px", borderRadius: "var(--border-radius-lg)", border: selectedLevel === level.key ? "2px solid " + level.color : "0.5px solid var(--color-border-tertiary)", background: selectedLevel === level.key ? "rgba(26,63,168,0.08)" : "var(--color-background-primary)", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
-                <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "14px", color: selectedLevel === level.key ? level.color : "var(--color-text-primary)" }}>{level.label}</p>
-                <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.4 }}>{level.desc}</p>
-              </button>
+      {/* Tab bar */}
+      <div style={{ display: "flex", gap: "4px", marginBottom: "1.5rem", overflowX: "auto", paddingBottom: "2px" }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "9px 16px", borderRadius: "var(--border-radius-md)", border: "none", background: tab === t.id ? "#1A3FA8" : "var(--color-background-primary)", color: tab === t.id ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", fontWeight: tab === t.id ? 500 : 400, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "5px", transition: "all 0.15s", boxShadow: tab === t.id ? "0 2px 8px rgba(26,63,168,0.3)" : "none" }}>
+            <span>{t.icon}</span>
+            <span>{t.label}</span>
+            {t.badge && <span style={{ background: "#16A34A", color: "#fff", padding: "1px 6px", borderRadius: "10px", fontSize: "10px", fontWeight: 700 }}>{t.badge}</span>}
+            {t.count != null && <span style={{ background: tab === t.id ? "rgba(255,255,255,0.25)" : "#1A3FA8", color: "#fff", padding: "1px 7px", borderRadius: "10px", fontSize: "11px", fontWeight: 600 }}>{t.count}</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* ── OVERVIEW ── */}
+      {tab === "overview" && (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {/* CV Analysis prompt if no CV yet */}
+          {!cvAnalysis && (
+            <div style={{ ...card, background: "linear-gradient(135deg, rgba(124,58,237,0.06), rgba(26,63,168,0.04))", borderColor: "rgba(124,58,237,0.2)" }}>
+              <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "32px" }}>📄</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "15px" }}>Upload your CV to auto-fill your profile</p>
+                  <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 12px", lineHeight: 1.6 }}>Our AI will analyse your CV and automatically update your profile, recommend career paths, and match you with relevant jobs and universities.</p>
+                  <button onClick={() => setTab("cv")} style={{ ...btn(true), padding: "9px 20px", fontSize: "13px", background: "#7C3AED" }}>Analyse my CV →</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* CV summary if analysed */}
+          {cvAnalysis && cvMapped && (
+            <div style={{ ...card, borderColor: "rgba(124,58,237,0.2)", background: "linear-gradient(135deg, rgba(124,58,237,0.04), transparent)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px", gap: "10px", flexWrap: "wrap" }}>
+                <p style={{ fontWeight: 600, margin: 0, fontSize: "15px" }}>📄 Your CV Analysis</p>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button onClick={() => setTab("cv")} style={{ ...btn(false), fontSize: "12px", padding: "5px 12px" }}>Update CV</button>
+                  <button onClick={() => { applyCVToProfile(); setTab("profile"); }} style={{ ...btn(true), fontSize: "12px", padding: "5px 12px", background: "#7C3AED" }}>Apply to profile</button>
+                </div>
+              </div>
+              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 12px" }}>{cvResult.summary}</p>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {(cvResult.profile?.keySkills || []).slice(0, 6).map(s => (
+                  <span key={s} style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "12px", background: "rgba(124,58,237,0.12)", color: "#7C3AED", fontWeight: 500 }}>{s}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
+            {[
+              { icon: "🎯", label: "Job Matches",        value: matchedJobs.length,       color: "var(--color-text-primary)" },
+              { icon: "🏢", label: "Sectors Selected",   value: sectors.length || "None", color: "#FF4500" },
+              { icon: "📍", label: "Preferred Location", value: location || "Not set",    color: "#F59E0B" },
+              { icon: "📄", label: "CV Status",          value: cvAnalysis ? "Analysed" : "Not uploaded", color: cvAnalysis ? "#7C3AED" : "var(--color-text-secondary)" },
+            ].map(s => (
+              <div key={s.label} style={{ ...card, textAlign: "center" }}>
+                <div style={{ fontSize: "24px", marginBottom: "6px" }}>{s.icon}</div>
+                <p style={{ fontSize: "18px", fontWeight: 600, margin: "0 0 3px", color: s.color }}>{s.value}</p>
+                <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{s.label}</p>
+              </div>
             ))}
           </div>
 
-          <div style={{ opacity: selectedLevel ? 1 : 0.5, pointerEvents: selectedLevel ? "auto" : "none" }}>
-            <p style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 10px" }}>
-              Step 2 — Upload your CV
-              {!selectedLevel && <span style={{ marginLeft: "8px", fontSize: "12px", color: "#D97706", fontWeight: 400 }}>(select a degree level above first)</span>}
-            </p>
-            <div onClick={() => fileRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "#1A3FA8"; }}
-              onDragLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-secondary)"; }}
-              onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--color-border-secondary)"; handleFile(e.dataTransfer.files[0]); }}
-              style={{ border: "2px dashed var(--color-border-secondary)", borderRadius: "var(--border-radius-lg)", padding: "2rem", textAlign: "center", cursor: "pointer", marginBottom: "1rem", background: "var(--color-background-primary)" }}>
-              <input ref={fileRef} type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: "none" }} onChange={e => handleFile(e.target.files[0])} />
-              <div style={{ fontSize: "36px", marginBottom: "10px" }}>📄</div>
-              {fileName ? (
-                <div><p style={{ fontWeight: 500, margin: "0 0 4px", color: "#16A34A" }}>✓ {fileName}</p><p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Click to change file</p></div>
-              ) : (
-                <div><p style={{ fontWeight: 500, margin: "0 0 6px" }}>Drop your CV here or click to upload</p><p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>PDF, DOCX, TXT — max 5MB</p></div>
-              )}
+          {/* Quick actions */}
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>Quick actions</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px" }}>
+              {[
+                { icon: "📄", title: "Analyse my CV",       desc: "Auto-fill profile and get job matches",    action: () => setTab("cv"),          color: "#7C3AED" },
+                { icon: "👤", title: "Complete your profile", desc: "Add experience and skills for better matches", action: () => setTab("profile") },
+                { icon: "🎯", title: "View job matches",    desc: `${matchedJobs.length} jobs match your profile`, action: () => setTab("matches") },
+                { icon: "🔍", title: "Browse all jobs",     desc: "Search UK sponsorship jobs",               action: () => onNavigate("Sponsorship Jobs") },
+              ].map(a => (
+                <button key={a.title} onClick={a.action} style={{ ...card, border: "0.5px solid var(--color-border-tertiary)", textAlign: "left", cursor: "pointer", background: "var(--color-background-secondary)", transition: "all 0.15s" }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(26,63,168,0.4)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-tertiary)"; e.currentTarget.style.transform = "none"; }}>
+                  <div style={{ fontSize: "20px", marginBottom: "6px" }}>{a.icon}</div>
+                  <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 3px", color: a.color || "var(--color-text-primary)" }}>{a.title}</p>
+                  <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{a.desc}</p>
+                </button>
+              ))}
             </div>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", textAlign: "center", margin: "0 0 8px" }}>— or paste your CV text below —</p>
-            <textarea value={cvText} onChange={e => { setCvText(e.target.value); setFileName(""); }}
-              placeholder="Paste your CV content here..."
-              style={{ width: "100%", minHeight: "140px", padding: "12px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.6 }} />
-            {error && <p style={{ color: "#E24B4A", fontSize: "13px", margin: "8px 0 0", lineHeight: 1.5 }}>⚠️ {error}</p>}
-            <button onClick={analyseCV} disabled={loading || !cvText.trim() || !selectedLevel}
-              style={{ marginTop: "1rem", width: "100%", padding: "13px", borderRadius: "var(--border-radius-md)", background: loading || !cvText.trim() || !selectedLevel ? "var(--color-background-secondary)" : "#1A3FA8", color: loading || !cvText.trim() || !selectedLevel ? "var(--color-text-secondary)" : "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: loading || !cvText.trim() || !selectedLevel ? "default" : "pointer", fontFamily: "inherit" }}>
-              {loading ? "🔍 Analysing your CV..." : selectedLevel ? "✨ Find " + selectedLevel + " Courses for Me" : "✨ Analyse My CV"}
-            </button>
-            {loading && (
-              <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", gap: "8px" }}>
-                <style>{".spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@keyframes fadeIn{to{opacity:1}}"}</style>
-                {["Reading your CV...", "Matching skills to " + (selectedLevel || "courses") + "...", "Searching UK and German universities...", "Building personalised recommendations..."].map((msg, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-tertiary)", animation: "fadeIn 0.4s ease " + (i * 0.3) + "s both", opacity: 0 }}>
-                    <div className="spin" style={{ width: "14px", height: "14px", border: "2px solid rgba(26,63,168,0.2)", borderTopColor: "#1A3FA8", borderRadius: "50%", flexShrink: 0 }} />
-                    <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>{msg}</span>
+          </div>
+
+          {/* Top matches preview */}
+          {matchedJobs.length > 0 && (
+            <div style={card}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: 0 }}>🎯 Your top job matches</h3>
+                <button onClick={() => setTab("matches")} style={{ ...btn(false), padding: "6px 14px", fontSize: "12px" }}>View all</button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {matchedJobs.slice(0, 4).map((j, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", gap: "10px", flexWrap: "wrap" }}>
+                    <div style={{ flex: 1, minWidth: "140px" }}>
+                      <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 2px" }}>{j.title}</p>
+                      <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{j.company} · {j.location}</p>
+                    </div>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                      {j.sponsorship && <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 500, background: "rgba(22,163,74,0.12)", color: "#16A34A" }}>✓ Visa</span>}
+                      <span style={{ fontSize: "13px", fontWeight: 500 }}>{j.salary}</span>
+                      {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
+                    </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── CV ANALYSIS TAB ── */}
+      {tab === "cv" && (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <div style={{ ...card, borderColor: "rgba(124,58,237,0.2)" }}>
+            <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "1.25rem" }}>
+              <span style={{ fontSize: "32px" }}>🤖</span>
+              <div>
+                <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>CV Analysis — Auto-fill your profile</h3>
+                <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>Upload your CV and our AI will analyse it, then automatically update your profile, suggest career paths and match you with relevant jobs and universities.</p>
+              </div>
+            </div>
+
+            {/* Degree level selector */}
+            <p style={{ fontSize: "13px", fontWeight: 600, margin: "0 0 8px" }}>What are you looking for?</p>
+            <div style={{ display: "flex", gap: "8px", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+              {DEGREE_LEVELS.map(l => (
+                <button key={l.key} onClick={() => setSelectedLevel(l.key)}
+                  style={{ padding: "7px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: selectedLevel === l.key ? 600 : 400, cursor: "pointer", fontFamily: "inherit",
+                    border: selectedLevel === l.key ? "2px solid " + l.color : "0.5px solid var(--color-border-tertiary)",
+                    background: selectedLevel === l.key ? "rgba(124,58,237,0.08)" : "var(--color-background-primary)",
+                    color: selectedLevel === l.key ? l.color : "var(--color-text-secondary)" }}>
+                  {l.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Upload zone */}
+            <div
+              onClick={() => fileRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "#7C3AED"; }}
+              onDragLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-secondary)"; }}
+              onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--color-border-secondary)"; handleCVUpload(e.dataTransfer.files[0]); }}
+              style={{ border: "2px dashed var(--color-border-secondary)", borderRadius: "var(--border-radius-lg)", padding: "2rem", textAlign: "center", cursor: "pointer", marginBottom: "1rem", background: "var(--color-background-secondary)", transition: "border-color 0.2s" }}>
+              <input ref={fileRef} type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: "none" }} onChange={e => handleCVUpload(e.target.files[0])} />
+              <div style={{ fontSize: "36px", marginBottom: "10px" }}>📄</div>
+              {cvFileName ? (
+                <div>
+                  <p style={{ fontWeight: 500, margin: "0 0 4px", color: "#16A34A" }}>✓ {cvFileName}</p>
+                  <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Click to upload a different file</p>
+                </div>
+              ) : (
+                <div>
+                  <p style={{ fontWeight: 500, margin: "0 0 6px" }}>Drop your CV here or click to upload</p>
+                  <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>PDF, DOCX, TXT — max 5MB</p>
+                </div>
+              )}
+            </div>
+
+            {cvLoading && (
+              <div style={{ display: "flex", gap: "10px", alignItems: "center", padding: "12px 16px", background: "rgba(124,58,237,0.06)", borderRadius: "var(--border-radius-md)", marginBottom: "1rem" }}>
+                <div style={{ width: "16px", height: "16px", border: "2px solid rgba(124,58,237,0.2)", borderTopColor: "#7C3AED", borderRadius: "50%", animation: "spin 1s linear infinite", flexShrink: 0 }} />
+                <style>{".spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}"}</style>
+                <p style={{ margin: 0, fontSize: "13px", color: "#7C3AED" }}>Analysing your CV with AI...</p>
+              </div>
+            )}
+            {cvError && <p style={{ color: "#E24B4A", fontSize: "13px", margin: "0 0 1rem", lineHeight: 1.5 }}>⚠️ {cvError}</p>}
+          </div>
+
+          {/* CV Results */}
+          {cvResult && !cvLoading && (
+            <div style={{ display: "grid", gap: "1rem" }}>
+              {/* Apply to profile CTA */}
+              <div style={{ ...card, background: "linear-gradient(135deg, rgba(124,58,237,0.08), rgba(26,63,168,0.04))", borderColor: "rgba(124,58,237,0.25)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                  <div>
+                    <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "15px" }}>
+                      {cvApplied ? "✅ Profile updated!" : "Apply results to your profile"}
+                    </p>
+                    <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+                      {cvApplied ? "Your profile has been updated with your CV data." : "Auto-fill your job title, sectors, skills and experience level from this analysis."}
+                    </p>
+                  </div>
+                  {!cvApplied && (
+                    <button onClick={applyCVToProfile} style={{ ...btn(true), background: "#7C3AED", padding: "10px 20px", whiteSpace: "nowrap" }}>
+                      ✨ Apply to profile
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Profile summary */}
+              <div style={card}>
+                <p style={{ fontWeight: 600, margin: "0 0 10px", fontSize: "15px" }}>👤 Your Profile Summary</p>
+                <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 12px" }}>{cvResult.summary}</p>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "12px" }}>
+                  {(cvResult.profile?.keySkills || []).map(s => (
+                    <span key={s} style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, background: "rgba(124,58,237,0.12)", color: "#7C3AED" }}>{s}</span>
+                  ))}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "8px" }}>
+                  {[["📚", "Level", cvResult.profile?.level], ["💼", "Field", cvResult.profile?.currentField], ["⭐", "Experience", cvResult.profile?.experience]].map(([icon, label, val]) => val ? (
+                    <div key={label} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "8px 12px" }}>
+                      <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.04em" }}>{icon} {label}</p>
+                      <p style={{ fontSize: "13px", fontWeight: 500, margin: 0, textTransform: "capitalize" }}>{val}</p>
+                    </div>
+                  ) : null)}
+                </div>
+              </div>
+
+              {/* Career paths */}
+              <div style={card}>
+                <p style={{ fontWeight: 600, margin: "0 0 12px", fontSize: "15px" }}>🚀 Recommended Career Paths</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "10px" }}>
+                  {(cvResult.careerPaths || []).map((cp, i) => (
+                    <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem" }}>
+                      <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: "14px" }}>{cp.title}</p>
+                      <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 8px", lineHeight: 1.5 }}>{cp.description}</p>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                        <span style={{ color: "var(--color-text-secondary)" }}>Salary</span>
+                        <span style={{ fontWeight: 500, color: "#16A34A" }}>{cp.salaryRange}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Universities */}
+              {(cvResult.universities || cvResult.ukUniversities || []).length > 0 && (
+                <div style={card}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <p style={{ fontWeight: 600, margin: 0, fontSize: "15px" }}>🎓 Recommended Programmes</p>
+                    <button onClick={() => onNavigate("Universities")} style={{ ...btn(false), fontSize: "12px", padding: "5px 12px" }}>Browse more →</button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {(cvResult.universities || cvResult.ukUniversities || []).slice(0, 5).map((u, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", gap: "10px", flexWrap: "wrap" }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 2px" }}>{u.course}</p>
+                          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{u.name} · {u.country === "Germany" ? "🇩🇪" : "🇬🇧"} {u.degreeType}</p>
+                        </div>
+                        <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 500, background: u.country === "Germany" ? "rgba(22,163,74,0.12)" : "rgba(26,63,168,0.12)", color: u.country === "Germany" ? "#16A34A" : "#1A3FA8", whiteSpace: "nowrap" }}>
+                          {u.country === "Germany" ? "🇩🇪 Germany" : "🇬🇧 UK"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Skill gaps */}
+              {cvResult.gaps?.length > 0 && (
+                <div style={{ ...card, background: "rgba(245,158,11,0.04)", borderColor: "rgba(245,158,11,0.2)" }}>
+                  <p style={{ fontWeight: 600, margin: "0 0 10px", fontSize: "14px" }}>⚡ Skills to Develop</p>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    {cvResult.gaps.map((g, i) => (
+                      <span key={i} style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "13px", background: "rgba(245,158,11,0.12)", color: "#D97706", fontWeight: 500 }}>{g}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Matched jobs from CV */}
+              {matchedJobs.length > 0 && (
+                <div style={card}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <p style={{ fontWeight: 600, margin: 0, fontSize: "15px" }}>💼 Jobs Matching Your CV</p>
+                    <button onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }} style={{ ...btn(true), fontSize: "12px", padding: "5px 12px" }}>View all {matchedJobs.length} →</button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {matchedJobs.slice(0, 4).map((j, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", gap: "10px", flexWrap: "wrap" }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 2px" }}>{j.title}</p>
+                          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{j.company} · {j.location}</p>
+                        </div>
+                        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                          {j.sponsorship && <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 500, background: "rgba(22,163,74,0.12)", color: "#16A34A" }}>✓ Visa</span>}
+                          {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PROFILE ── */}
+      {tab === "profile" && (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {cvApplied && (
+            <div style={{ padding: "12px 16px", background: "rgba(124,58,237,0.08)", border: "0.5px solid rgba(124,58,237,0.2)", borderRadius: "var(--border-radius-md)", fontSize: "13px", color: "#7C3AED", fontWeight: 500 }}>
+              ✨ Profile fields have been auto-filled from your CV. Review and save below.
+            </div>
+          )}
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>👤 Basic Information</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
+              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Full Name</label><input style={inp} value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" /></div>
+              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Current / Target Job Title</label><input style={inp} value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder="e.g. Software Engineer" /></div>
+              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Preferred Location</label><input style={inp} value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. London" /></div>
+            </div>
+            <div style={{ marginTop: "12px" }}><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>About Me</label><textarea style={{ ...inp, height: "80px", resize: "vertical" }} value={bio} onChange={e => setBio(e.target.value)} placeholder="Brief background about yourself..." /></div>
+          </div>
+
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>💼 Experience Level</h3>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {EXPERIENCE_LEVELS.map(lvl => <button key={lvl} style={pill(experience === lvl)} onClick={() => setExperience(experience === lvl ? "" : lvl)}>{lvl}</button>)}
+            </div>
+          </div>
+
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.4rem" }}>🏢 Preferred Sectors</h3>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>We'll filter jobs based on these sectors</p>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {SECTORS.map(s => <button key={s} style={pill(sectors.includes(s))} onClick={() => setSectors(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s])}>{s}</button>)}
+            </div>
+          </div>
+
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.4rem" }}>⚡ Skills</h3>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>Add skills to match against job listings</p>
+            <input style={inp} value={skills} onChange={e => setSkills(e.target.value)} placeholder="e.g. Python, React, Project Management, NHS, IELTS 7.0" />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" }}>
+            <div style={card}>
+              <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>💰 Minimum Salary</h3>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {SALARY_RANGES.map(s => <button key={s} style={pill(salary === s)} onClick={() => setSalary(s)}>{s}</button>)}
+              </div>
+            </div>
+            <div style={card}>
+              <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>🛂 Visa Status</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {VISA_OPTIONS.map(v => <button key={v} style={{ ...pill(visaStatus === v), textAlign: "left", borderRadius: "var(--border-radius-md)", padding: "8px 14px" }} onClick={() => setVisaStatus(v)}>{v}</button>)}
+              </div>
+            </div>
+          </div>
+
+          {/* Telegram Notifications */}
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>📲 Weekly Job Alerts via Telegram</h3>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>
+              Get 5 personalised visa sponsorship jobs delivered to your Telegram every Friday — matched to your sectors and location.
+            </p>
+            {telegramConnected ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "rgba(22,163,74,0.08)", border: "0.5px solid rgba(22,163,74,0.25)", borderRadius: "var(--border-radius-md)" }}>
+                <span style={{ fontSize: "20px" }}>✅</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: "13px", color: "#16A34A" }}>Telegram connected</p>
+                  <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>You'll receive job alerts every Friday afternoon</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    await supaFetch("/profiles?user_id=eq." + user.id, { method: "PATCH", body: JSON.stringify({ telegram_chat_id: null }) });
+                    setTelegramConnected(false);
+                  }}
+                  style={{ fontSize: "12px", color: "#E24B4A", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <a
+                href={"https://t.me/MentorgramAIBot?start=" + user.id}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "14px", fontWeight: 600, fontFamily: "inherit" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
+                Connect Telegram
+              </a>
+            )}
+          </div>
+
+          <button style={{ ...btn(true), padding: "13px", fontSize: "15px", opacity: saving ? 0.7 : 1, background: saved ? "#16A34A" : "#1A3FA8" }} onClick={saveProfile} disabled={saving}>
+            {saving ? "Saving..." : saved ? "✓ Profile saved!" : "Save profile"}
+          </button>
+        </div>
+      )}
+
+      {/* ── MATCHES ── */}
+      {tab === "matches" && (
+        <div>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
+            <div>
+              <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>🎯 Your Top Job Matches</h3>
+              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+                <strong>{matchedJobs.length}</strong> visa sponsorship jobs matched to your profile
+                {sectors.length > 0 && " · " + sectors.slice(0, 2).join(", ")}
+                {location && " · " + location}
+              </p>
+            </div>
+            <button style={{ ...btn(true), padding: "8px 16px", fontSize: "13px" }}
+              onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }}>
+              View all on jobs board ↗
+            </button>
+          </div>
+
+          {matchedJobs.length === 0 ? (
+            <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
+              <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
+              <p style={{ fontWeight: 500 }}>No matches yet</p>
+              <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>Update your profile with sectors and location to see matching jobs</p>
+              <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
+                <button style={{ ...btn(true), background: "#7C3AED", padding: "9px 20px" }} onClick={() => setTab("cv")}>Analyse my CV</button>
+                <button style={{ ...btn(false), padding: "9px 20px" }} onClick={() => setTab("profile")}>Update profile</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {matchedJobs.slice(0, 10).map((j, i) => (
+                <div key={i} style={{ ...card, display: "flex", flexDirection: "column", gap: "0", padding: "0", overflow: "hidden", transition: "transform 0.2s, box-shadow 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(26,63,168,0.12)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                  {/* Top bar */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "1rem 1.25rem 0.75rem", gap: "10px" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
+                        <span style={{ background: "#1A3FA8", color: "#fff", width: "24px", height: "24px", borderRadius: "6px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+                        <p style={{ fontWeight: 700, margin: 0, fontSize: "15px", lineHeight: 1.3 }}>{j.title}</p>
+                      </div>
+                      <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0, fontWeight: 500 }}>{j.company}</p>
+                    </div>
+                    {j.sponsorship && (
+                      <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: "rgba(22,163,74,0.12)", color: "#16A34A", whiteSpace: "nowrap", flexShrink: 0, border: "0.5px solid rgba(22,163,74,0.3)" }}>✓ Visa Sponsor</span>
+                    )}
+                  </div>
+
+                  {/* Details row */}
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", padding: "0 1.25rem 0.75rem", alignItems: "center" }}>
+                    <span style={{ padding: "2px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.08)", color: "#1A3FA8" }}>{j.sector}</span>
+                    <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
+                    {j.salary && <span style={{ fontSize: "12px", color: "#16A34A", fontWeight: 600 }}>💰 {j.salary}</span>}
+                    {j.posted && <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>🕐 {j.posted}</span>}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div style={{ display: "flex", gap: "8px", padding: "10px 1.25rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>
+                    {j.url && (
+                      <a href={j.url} target="_blank" rel="noopener noreferrer"
+                        style={{ flex: 1, padding: "8px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 600, textAlign: "center" }}>
+                        Apply Now ↗
+                      </a>
+                    )}
+                    <button
+                      onClick={() => { onNavigate("CV Generator"); }}
+                      style={{ flex: 1, padding: "8px 14px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+                      🎯 Tailor CV
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {matchedJobs.length > 10 && (
+                <button style={{ ...btn(false), width: "100%", padding: "12px", textAlign: "center" }}
+                  onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }}>
+                  View all {matchedJobs.length} matching jobs on jobs board →
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── CV BUILDER ── */}
+      {tab === "cvgen" && (
+        <div>
+          {!cvResult ? (
+            <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
+              <p style={{ fontSize: "2.5rem", margin: "0 0 1rem" }}>✍️</p>
+              <p style={{ fontWeight: 600, margin: "0 0 8px", fontSize: "16px" }}>Generate a tailored CV for any job</p>
+              <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: "0 0 1.5rem", lineHeight: 1.6 }}>First analyse your CV in the CV Analysis tab, then come back here to generate ATS-optimised CVs and cover letters for any job in seconds.</p>
+              <button onClick={() => setTab("cv")} style={{ ...btn(true), background: "#7C3AED", padding: "10px 24px" }}>Go to CV Analysis →</button>
+            </div>
+          ) : (
+            <CVBuilderInline cvText={cvTextForGen} />
+          )}
+        </div>
+      )}
+
+      {/* ── SECURITY ── */}
+      {/* ── APPLICATION TRACKER ── */}
+      {tab === "tracker" && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
+            <div>
+              <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>📋 Application Tracker</h3>
+              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>{applications.length} applications tracked</p>
+            </div>
+            <button onClick={() => setShowAddApp(true)} style={{ ...btn(true), padding: "8px 16px", fontSize: "13px" }}>+ Add Application</button>
+          </div>
+
+          {/* Status summary */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "8px", marginBottom: "1.25rem" }}>
+            {[
+              { status: "Applied", color: "#1A3FA8", bg: "rgba(26,63,168,0.08)" },
+              { status: "Interview", color: "#D97706", bg: "rgba(217,119,6,0.08)" },
+              { status: "Offer", color: "#16A34A", bg: "rgba(22,163,74,0.08)" },
+              { status: "Rejected", color: "#DC2626", bg: "rgba(220,38,38,0.08)" },
+            ].map(s => (
+              <div key={s.status} style={{ background: s.bg, borderRadius: "var(--border-radius-md)", padding: "10px 12px", textAlign: "center" }}>
+                <p style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
+                <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>{s.status}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Add application form */}
+          {showAddApp && (
+            <div style={{ ...card, marginBottom: "1rem", border: "1.5px solid #1A3FA8" }}>
+              <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "14px" }}>Add new application</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+                <input style={{ ...inp, fontSize: "13px" }} placeholder="Job title *" value={newApp.title} onChange={e => setNewApp(p => ({ ...p, title: e.target.value }))} />
+                <input style={{ ...inp, fontSize: "13px" }} placeholder="Company *" value={newApp.company} onChange={e => setNewApp(p => ({ ...p, company: e.target.value }))} />
+                <input style={{ ...inp, fontSize: "13px" }} placeholder="Location" value={newApp.location} onChange={e => setNewApp(p => ({ ...p, location: e.target.value }))} />
+                <input style={{ ...inp, fontSize: "13px" }} placeholder="Job URL" value={newApp.url} onChange={e => setNewApp(p => ({ ...p, url: e.target.value }))} />
+                <select style={{ ...inp, fontSize: "13px" }} value={newApp.type} onChange={e => setNewApp(p => ({ ...p, type: e.target.value }))}>
+                  <option>Job</option>
+                  <option>PhD</option>
+                  <option>Masters</option>
+                  <option>Internship</option>
+                </select>
+                <input style={{ ...inp, fontSize: "13px" }} type="date" placeholder="Deadline" value={newApp.deadline} onChange={e => setNewApp(p => ({ ...p, deadline: e.target.value }))} />
+              </div>
+              <textarea style={{ ...inp, fontSize: "13px", minHeight: "60px", resize: "vertical", marginBottom: "10px" }} placeholder="Notes..." value={newApp.notes} onChange={e => setNewApp(p => ({ ...p, notes: e.target.value }))} />
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button style={{ ...btn(true), flex: 1, padding: "9px" }} onClick={() => { if (!newApp.title || !newApp.company) return; saveApplication(newApp); setNewApp({ title: "", company: "", url: "", type: "Job", status: "Applied", notes: "", deadline: "", location: "" }); setShowAddApp(false); }}>Save application</button>
+                <button style={{ ...btn(false), padding: "9px 16px" }} onClick={() => setShowAddApp(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {/* Applications list */}
+          {applications.length === 0 ? (
+            <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
+              <p style={{ fontSize: "2rem", margin: "0 0 0.75rem" }}>📋</p>
+              <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No applications tracked yet</p>
+              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>Add your first application to start tracking</p>
+              <button style={{ ...btn(true), padding: "9px 20px" }} onClick={() => setShowAddApp(true)}>+ Add first application</button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {applications.map(a => (
+                <div key={a.id} style={{ ...card, padding: "0", overflow: "hidden" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "12px 1.25rem" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+                        <span style={{ fontSize: "11px", padding: "1px 8px", borderRadius: "20px", background: "rgba(124,58,237,0.1)", color: "#7C3AED", fontWeight: 500 }}>{a.type}</span>
+                        <p style={{ fontWeight: 600, margin: 0, fontSize: "14px" }}>{a.title}</p>
+                      </div>
+                      <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 6px" }}>{a.company}{a.location ? " · " + a.location : ""}</p>
+                      {a.deadline && <p style={{ fontSize: "12px", color: "#D97706", margin: 0 }}>Deadline: {new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
+                      <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
+                        style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "20px", border: "none", fontFamily: "inherit", cursor: "pointer", fontWeight: 600,
+                          background: a.status === "Applied" ? "rgba(26,63,168,0.1)" : a.status === "Interview" ? "rgba(217,119,6,0.1)" : a.status === "Offer" ? "rgba(22,163,74,0.1)" : "rgba(220,38,38,0.1)",
+                          color: a.status === "Applied" ? "#1A3FA8" : a.status === "Interview" ? "#D97706" : a.status === "Offer" ? "#16A34A" : "#DC2626" }}>
+                        <option>Applied</option>
+                        <option>Interview</option>
+                        <option>Offer</option>
+                        <option>Rejected</option>
+                      </select>
+                      <button onClick={() => deleteApplication(a.id)} style={{ fontSize: "11px", color: "#DC2626", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>Remove</button>
+                    </div>
+                  </div>
+                  {a.notes && <div style={{ padding: "8px 1.25rem 12px", borderTop: "0.5px solid var(--color-border-tertiary)" }}><p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{a.notes}</p></div>}
+                  {a.url && <div style={{ padding: "8px 1.25rem", background: "var(--color-background-secondary)", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
+                    <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#1A3FA8", fontWeight: 500 }}>View job posting ↗</a>
+                  </div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PhD FINDER ── */}
+      {tab === "phd" && (
+        <div>
+          <div style={{ marginBottom: "1.25rem" }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>🎓 PhD Finder</h3>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Find funded and non-funded PhD positions in UK and Germany</p>
+          </div>
+
+          {/* Search */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "8px", marginBottom: "1rem", alignItems: "center" }}>
+            <input style={{ ...inp, fontSize: "13px" }} placeholder="Search by field, topic, university..." id="phd-search" />
+            <select style={{ ...inp, fontSize: "13px", width: "auto" }} id="phd-country">
+              <option value="all">UK + Germany</option>
+              <option value="uk">UK only</option>
+              <option value="de">Germany only</option>
+            </select>
+            <select style={{ ...inp, fontSize: "13px", width: "auto" }} id="phd-funding">
+              <option value="all">All funding</option>
+              <option value="funded">Funded only</option>
+              <option value="unfunded">Non-funded</option>
+            </select>
+          </div>
+
+          {/* PhD listings */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {[
+              { title: "PhD in Machine Learning and Computer Vision", uni: "University of Edinburgh", country: "UK", funded: true, deadline: "2025-05-30", field: "Computer Science", stipend: "£19,668/year", url: "https://www.findaphd.com" },
+              { title: "PhD in Computational Neuroscience", uni: "University College London", country: "UK", funded: true, deadline: "2025-06-15", field: "Neuroscience", stipend: "£21,000/year", url: "https://www.findaphd.com" },
+              { title: "PhD in Artificial Intelligence", uni: "Technical University of Munich", country: "Germany", funded: true, deadline: "2025-07-01", field: "AI", stipend: "€2,000/month", url: "https://www.academics.de" },
+              { title: "PhD in Data Science and Analytics", uni: "University of Manchester", country: "UK", funded: false, deadline: "2025-05-01", field: "Data Science", stipend: "Self-funded", url: "https://www.findaphd.com" },
+              { title: "PhD in Robotics and Autonomous Systems", uni: "Imperial College London", country: "UK", funded: true, deadline: "2025-06-30", field: "Engineering", stipend: "£22,000/year", url: "https://www.findaphd.com" },
+              { title: "PhD in Sustainable Energy Systems", uni: "RWTH Aachen University", country: "Germany", funded: true, deadline: "2025-08-01", field: "Engineering", stipend: "€2,200/month", url: "https://www.academics.de" },
+              { title: "PhD in Biomedical Engineering", uni: "University of Cambridge", country: "UK", funded: true, deadline: "2025-05-15", field: "Medicine", stipend: "£20,500/year", url: "https://www.findaphd.com" },
+              { title: "PhD in Climate Science", uni: "Heidelberg University", country: "Germany", funded: false, deadline: "2025-09-01", field: "Environmental Science", stipend: "Self-funded", url: "https://www.academics.de" },
+            ].map((p, i) => (
+              <div key={i} style={{ ...card, padding: "0", overflow: "hidden" }}>
+                <div style={{ padding: "12px 1.25rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "6px" }}>
+                    <p style={{ fontWeight: 600, margin: 0, fontSize: "14px", lineHeight: 1.3 }}>{p.title}</p>
+                    <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0,
+                      background: p.funded ? "rgba(22,163,74,0.1)" : "rgba(220,38,38,0.1)",
+                      color: p.funded ? "#16A34A" : "#DC2626" }}>
+                      {p.funded ? "✓ Funded" : "Self-funded"}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 8px" }}>{p.uni} · {p.country === "UK" ? "🇬🇧" : "🇩🇪"} {p.country}</p>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                    <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "20px", background: "rgba(26,63,168,0.08)", color: "#1A3FA8" }}>{p.field}</span>
+                    <span style={{ fontSize: "12px", color: "#16A34A", fontWeight: 600 }}>{p.stipend}</span>
+                    <span style={{ fontSize: "12px", color: "#D97706" }}>Deadline: {new Date(p.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "8px", padding: "10px 1.25rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>
+                  <a href={p.url} target="_blank" rel="noopener noreferrer"
+                    style={{ flex: 1, padding: "7px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", fontWeight: 600, textAlign: "center", textDecoration: "none" }}>
+                    View Position ↗
+                  </a>
+                  <button onClick={() => { saveApplication({ title: p.title, company: p.uni, url: p.url, type: "PhD", status: "Applied", notes: p.funded ? "Funded position · " + p.stipend : "Self-funded", deadline: p.deadline, location: p.country }); }}
+                    style={{ flex: 1, padding: "7px 14px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "12px", cursor: "pointer", fontFamily: "inherit" }}>
+                    + Track Application
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "10px" }}>Find more PhD positions on these platforms:</p>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
+              {[["FindAPhD.com (UK)", "https://www.findaphd.com"], ["Academics.de (Germany)", "https://www.academics.de"], ["DAAD Portal", "https://www.daad.de/en/study-and-research-in-germany/phd-studies-and-research/"], ["jobs.ac.uk", "https://www.jobs.ac.uk/phd"]].map(([name, url]) => (
+                <a key={name} href={url} target="_blank" rel="noopener noreferrer"
+                  style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", fontSize: "12px", color: "#1A3FA8", textDecoration: "none", fontWeight: 500 }}>
+                  {name} ↗
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+            {tab === "security" && (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>📧 Account Information</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {[["Email address", user.email], ["Email verified", "✓ Verified"], ["Account created", new Date(user.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })]].map(([l, v]) => (
+                <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }}>
+                  <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>{l}</span>
+                  <span style={{ fontSize: "13px", fontWeight: 500, color: l === "Email verified" ? "#16A34A" : "inherit" }}>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>🔑 Change Password</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {passMsg.text && <div style={{ padding: "10px 14px", borderRadius: "var(--border-radius-md)", fontSize: "13px", background: passMsg.type === "ok" ? "rgba(22,163,74,0.1)" : "#FEE8E8", color: passMsg.type === "ok" ? "#16A34A" : "#9B1C1C" }}>{passMsg.text}</div>}
+              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>New password</label><input style={inp} type="password" placeholder="At least 8 characters" value={newPass} onChange={e => setNewPass(e.target.value)} /></div>
+              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Confirm new password</label><input style={inp} type="password" placeholder="Repeat new password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} /></div>
+              <button style={{ ...btn(true), opacity: passLoading ? 0.7 : 1 }} onClick={changePassword} disabled={passLoading}>{passLoading ? "Updating..." : "Update password"}</button>
+            </div>
+          </div>
+
+          <div style={card}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>🔒 Your Data & Privacy</h3>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>Under UK GDPR you have rights over your personal data. Contact us at <strong>info@mentorgramai.com</strong>.</p>
+            <a href="mailto:info@mentorgramai.com?subject=Data Request" style={{ ...btn(false), textDecoration: "none", display: "inline-block", fontSize: "13px", padding: "8px 16px" }}>Request my data</a>
+          </div>
+
+          <div style={{ border: "0.5px solid rgba(226,75,74,0.3)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
+            <h3 style={{ fontSize: "0.95rem", fontWeight: 500, margin: "0 0 0.5rem", color: "#E24B4A" }}>⚠️ Delete Account</h3>
+            {!deleteOpen ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Permanently delete your account and all data. Cannot be undone.</p>
+                <button onClick={() => setDeleteOpen(true)} style={{ ...btn(false), fontSize: "13px", padding: "8px 16px", color: "#E24B4A", borderColor: "rgba(226,75,74,0.5)" }}>Delete account</button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Type <strong>delete</strong> to confirm.</p>
+                <input style={{ ...inp, borderColor: "#E24B4A" }} placeholder='Type "delete" to confirm' value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} />
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button onClick={() => { setDeleteOpen(false); setDeleteConfirm(""); }} style={{ ...btn(false), flex: 1 }}>Cancel</button>
+                  <button onClick={deleteAccount} disabled={deleteLoading || deleteConfirm.toLowerCase() !== "delete"} style={{ ...btn(false, true), flex: 1, opacity: deleteConfirm.toLowerCase() === "delete" ? 1 : 0.4 }}>
+                    {deleteLoading ? "Deleting..." : "Permanently delete"}
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
-      )}
-
-      {result && (
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: savedToProfile ? "rgba(22,163,74,0.08)" : "rgba(26,63,168,0.06)", border: "0.5px solid " + (savedToProfile ? "rgba(22,163,74,0.25)" : "rgba(26,63,168,0.15)"), borderRadius: "var(--border-radius-md)", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "13px" }}>🎓</span>
-            <p style={{ fontSize: "13px", margin: 0, fontWeight: 500 }}>{selectedLevel} recommendations{savedToProfile && <span style={{ color: "#16A34A", marginLeft: "8px" }}>· ✅ Saved</span>}</p>
-            <button onClick={() => { setResult(null); setCvText(""); setFileName(""); setSavedToProfile(false); }} style={{ marginLeft: "auto", fontSize: "12px", color: "var(--color-text-secondary)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>Start over ↺</button>
-          </div>
-
-          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.25rem" }}>
-            <p style={{ fontWeight: 600, margin: "0 0 10px", fontSize: "15px" }}>👤 Your Profile Summary</p>
-            <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 12px" }}>{result.summary}</p>
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
-              {(result.profile?.keySkills || []).map(s => <span key={s} style={{ padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "#1A3FA8" }}>{s}</span>)}
-            </div>
-          </div>
-
-          <p style={{ fontWeight: 600, fontSize: "15px", margin: "0 0 10px" }}>🚀 Career Paths</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "10px", marginBottom: "1.5rem" }}>
-            {(result.careerPaths || []).map((cp, i) => (
-              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px", gap: "8px" }}>
-                  <p style={{ fontWeight: 600, margin: 0, fontSize: "14px", flex: 1 }}>{cp.title}</p>
-                  <span style={{ padding: "2px 8px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 600, background: demandBg(cp.demandLevel), color: demandColor(cp.demandLevel), whiteSpace: "nowrap" }}>{cp.demandLevel}</span>
-                </div>
-                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 8px", lineHeight: 1.6 }}>{cp.description}</p>
-                <div style={{ fontSize: "12px", display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "var(--color-text-secondary)" }}>UK Salary</span>
-                  <span style={{ fontWeight: 500, color: "#16A34A" }}>{cp.salaryRange}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "10px" }}>
-            <p style={{ fontWeight: 600, fontSize: "15px", margin: 0 }}>🎓 Recommended {selectedLevel} Programmes</p>
-          </div>
-          <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-              <span style={{ fontSize: "12px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Country:</span>
-              {[{ key: "All", label: "All", count: allUniversities.length }, { key: "UK", label: "🇬🇧 UK", count: ukCount }, { key: "Germany", label: "🇩🇪 Germany", count: deCount }].filter(f => f.count > 0 || f.key === "All").map(({ key, label, count }) => (
-                <button key={key} onClick={() => setUniCountry(key)}
-                  style={{ padding: "4px 12px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", border: uniCountry === key ? "0.5px solid #1A3FA8" : "0.5px solid var(--color-border-tertiary)", background: uniCountry === key ? "#1A3FA8" : "var(--color-background-primary)", color: uniCountry === key ? "#fff" : "var(--color-text-secondary)" }}>
-                  {label} ({count})
-                </button>
-              ))}
-            </div>
-          </div>
-          <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>Showing <strong>{filteredUnis.length}</strong> of <strong>{allUniversities.length}</strong> programmes</p>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "1.5rem" }}>
-            {filteredUnis.map((u, i) => (
-              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid " + ((u.degreeType || "").includes("PhD") ? "rgba(220,38,38,0.2)" : u.country === "Germany" ? "rgba(22,163,74,0.2)" : "var(--color-border-tertiary)"), borderRadius: "var(--border-radius-lg)", padding: "1.25rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px", gap: "8px", flexWrap: "wrap" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", flexWrap: "wrap" }}>
-                      <p style={{ fontWeight: 600, margin: 0, fontSize: "14px" }}>{u.course}</p>
-                      <span style={{ fontSize: "11px", padding: "1px 7px", borderRadius: "var(--border-radius-md)", background: u.country === "Germany" ? "rgba(22,163,74,0.12)" : "rgba(26,63,168,0.12)", color: u.country === "Germany" ? "#16A34A" : "#1A3FA8", fontWeight: 600 }}>{u.country === "Germany" ? "🇩🇪 Germany" : "🇬🇧 UK"}</span>
-                      {(u.degreeType || "").includes("PhD") && <span style={{ fontSize: "11px", padding: "1px 7px", borderRadius: "var(--border-radius-md)", background: "rgba(220,38,38,0.12)", color: "#DC2626", fontWeight: 600 }}>🔬 PhD</span>}
-                    </div>
-                    <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>{u.name}</p>
-                  </div>
-                  <span style={{ padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "rgba(26,63,168,0.12)", color: "#1A3FA8", whiteSpace: "nowrap" }}>{u.degreeType}</span>
-                </div>
-                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6, margin: "0 0 10px", borderLeft: "3px solid rgba(26,63,168,0.25)", paddingLeft: "10px", fontStyle: "italic" }}>{u.whyMatch}</p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "6px", fontSize: "12px", marginBottom: "12px" }}>
-                  {[["⏱", "Duration", u.duration], ["💰", "Fees", u.fees || u.avgSalary], ["📋", "Entry req", u.entryRequirements], ["🎁", "Funding", u.scholarships]].map(([icon, label, val]) => val ? (
-                    <div key={label} style={{ background: "var(--color-background-secondary)", padding: "6px 10px", borderRadius: "var(--border-radius-md)" }}>
-                      <p style={{ color: "var(--color-text-secondary)", margin: "0 0 2px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.04em" }}>{icon} {label}</p>
-                      <p style={{ margin: 0, fontWeight: 500, fontSize: "12px" }}>{val}</p>
-                    </div>
-                  ) : null)}
-                </div>
-                <a href={buildCourseLink(u)} target="_blank" rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "7px 16px", borderRadius: "var(--border-radius-md)", background: (u.degreeType || "").includes("PhD") ? "#DC2626" : u.country === "Germany" ? "#16A34A" : "#1A3FA8", color: "#fff", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
-                  {(u.degreeType || "").includes("PhD") ? "Search PhD Programmes ↗" : u.country === "Germany" ? "Browse Courses ↗" : "Search on UCAS ↗"}
-                </a>
-              </div>
-            ))}
-          </div>
-
-          {result.gaps?.length > 0 && (
-            <div style={{ background: "rgba(245,158,11,0.06)", border: "0.5px solid rgba(245,158,11,0.25)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", marginBottom: "1.25rem" }}>
-              <p style={{ fontWeight: 600, margin: "0 0 10px", fontSize: "14px" }}>⚡ Gaps to Address</p>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                {result.gaps.map((g, i) => <span key={i} style={{ padding: "4px 12px", borderRadius: "var(--border-radius-md)", fontSize: "13px", background: "rgba(245,158,11,0.12)", color: "#D97706", fontWeight: 500 }}>{g}</span>)}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Universities Page ─────────────────────────────────────────────────────
-// ─── Intake Calendar Component ──────────────────────────────────────────────
-function IntakeCalendar({ country }) {
-  const isDE = country === "Germany";
-  const intakes = isDE ? [
-    { intake: "Winter Semester", period: "Oct – Mar", deadline: "July 15", prepStart: "Jan – Feb", color: "#1A3FA8", icon: "❄️",
-      steps: ["Research programmes (Jan–Feb)", "Prepare documents (Mar–Apr)", "Language test if needed (Apr–May)", "Submit application by July 15", "Receive offer (Aug)", "Apply for student visa (Aug–Sep)", "Arrive & enrol (Oct)"] },
-    { intake: "Summer Semester", period: "Apr – Sep", deadline: "January 15", prepStart: "Jul – Aug (prior year)", color: "#16A34A", icon: "🌸",
-      steps: ["Research programmes (Jul–Aug)", "Prepare documents (Sep–Oct)", "Language test if needed (Oct–Nov)", "Submit application by Jan 15", "Receive offer (Feb)", "Apply for student visa (Feb–Mar)", "Arrive & enrol (Apr)"] },
-  ] : [
-    { intake: "September Intake", period: "Sep – Jun", deadline: "Jan 31 (UCAS)", prepStart: "12–18 months before", color: "#1A3FA8", icon: "🎓",
-      steps: ["Research courses & unis (Jan–Mar)", "Attend open days (Apr–Jun)", "Write personal statement (Jun–Aug)", "Submit UCAS by Jan 31", "Receive offers (Feb–May)", "Confirm place (May)", "Apply for student visa (Jun–Aug)", "Arrive & enrol (Sep)"] },
-    { intake: "January Intake", period: "Jan – May", deadline: "Oct / Nov", prepStart: "6–12 months before", color: "#7C3AED", icon: "🌟",
-      steps: ["Check if your course has Jan entry", "Apply direct to university", "Receive offer (Oct–Nov)", "Apply for student visa (Nov–Dec)", "Arrive & enrol (Jan)"] },
-    { intake: "Postgraduate (Masters)", period: "Sep or Jan", deadline: "Rolling admissions", prepStart: "9–12 months before", color: "#FF4500", icon: "📚",
-      steps: ["Research programmes (9–12 months before)", "Request references (6–9 months before)", "Write statement of purpose", "Apply to universities", "Receive offer & CAS letter", "Apply for student visa", "Enrol"] },
-  ];
-
-  return (
-    <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem", marginBottom: "1.5rem" }}>
-      <div style={{ marginBottom: "1.25rem" }}>
-        <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>📅 Intake Calendar — {isDE ? "Germany" : "United Kingdom"}</h3>
-        <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Key application deadlines and when to start preparing</p>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" }}>
-        {intakes.map(function(item, i) {
-          return (
-            <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", borderLeft: "3px solid " + item.color }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                <span style={{ fontSize: "22px" }}>{item.icon}</span>
-                <div>
-                  <p style={{ fontWeight: 700, margin: "0 0 2px", fontSize: "14px" }}>{item.intake}</p>
-                  <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{item.period}</p>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
-                <div style={{ background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", padding: "8px 10px" }}>
-                  <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Deadline</p>
-                  <p style={{ fontWeight: 700, fontSize: "13px", margin: 0, color: item.color }}>{item.deadline}</p>
-                </div>
-                <div style={{ background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)", padding: "8px 10px" }}>
-                  <p style={{ fontSize: "10px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Start preparing</p>
-                  <p style={{ fontWeight: 600, fontSize: "12px", margin: 0 }}>{item.prepStart}</p>
-                </div>
-              </div>
-              <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 6px" }}>Timeline</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                {item.steps.map(function(step, j) {
-                  return (
-                    <div key={j} style={{ display: "flex", gap: "7px", alignItems: "flex-start" }}>
-                      <div style={{ width: "16px", height: "16px", borderRadius: "50%", background: item.color, color: "#fff", fontSize: "9px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "2px" }}>{j + 1}</div>
-                      <p style={{ fontSize: "11px", margin: 0, lineHeight: 1.5 }}>{step}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-
-function UniversitiesPage({ setChatInput, navTo, user }) {
-  const [activeTab, setActiveTab] = useState("UK");
-  const [tabAnimating, setTabAnimating] = useState(false);
-  const [displayTab, setDisplayTab] = useState("UK");
-  const [ukSearch, setUkSearch] = useState("");
-  const [ukPage, setUkPage] = useState(1);
-  const [deFilter, setDeFilter] = useState("All");
-  const [deSearch, setDeSearch] = useState("");
-  const [dePage, setDePage] = useState(1);
-  const UK_PER_PAGE = 12;
-  const DE_PER_PAGE = 24;
-
-  const filteredUK = UK_UNIVERSITIES.filter(u => {
-    const q = ukSearch.toLowerCase().trim();
-    return !q || u.name.toLowerCase().includes(q) || (u.focus || "").toLowerCase().includes(q) || (u.city || "").toLowerCase().includes(q);
-  });
-  const totalUKPages = Math.max(1, Math.ceil(filteredUK.length / UK_PER_PAGE));
-  const safeUKPage = Math.min(ukPage, totalUKPages);
-  const paginatedUK = filteredUK.slice((safeUKPage - 1) * UK_PER_PAGE, safeUKPage * UK_PER_PAGE);
-
-  const publicCount  = GERMAN_UNIVERSITIES.filter(u => u.type === "Public").length;
-  const privateCount = GERMAN_UNIVERSITIES.filter(u => u.type === "Private").length;
-
-  const filteredGerman = GERMAN_UNIVERSITIES.filter(u => {
-    const matchType = deFilter === "All" || u.type === deFilter;
-    const q = deSearch.toLowerCase().trim();
-    const matchSearch = !q || u.name.toLowerCase().includes(q) || (u.focus || "").toLowerCase().includes(q);
-    return matchType && matchSearch;
-  });
-
-  const totalDePages = Math.max(1, Math.ceil(filteredGerman.length / DE_PER_PAGE));
-  const safePage = Math.min(dePage, totalDePages);
-  const paginatedGerman = filteredGerman.slice((safePage - 1) * DE_PER_PAGE, safePage * DE_PER_PAGE);
-
-  useEffect(() => { setDePage(1); }, [deFilter, deSearch]);
-
-  const tabKeys = ["UK", "Germany", "CV Matcher"];
-  const tabLabels = { UK: "🇬🇧 United Kingdom", Germany: "🇩🇪 Germany", "CV Matcher": "🎯 CV Matcher" };
-  const tabAccents = { UK: "#1A3FA8", Germany: "#16A34A", "CV Matcher": "#7C3AED" };
-
-  return (
-    <div style={S.section}>
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>University Finder</h2>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "15px", margin: "0 0 1.75rem" }}>Explore top UK and German universities — entry requirements, scholarships and CV matching.</p>
-
-        {/* ── Country tabs — equal width, centred ── */}
-        <div style={{ display: "inline-flex", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "5px", gap: "4px" }}>
-          {["UK", "Germany"].map(key => (
-            <button key={key} onClick={() => {
-              if (key === activeTab || tabAnimating) return;
-              setTabAnimating(true);
-              setTimeout(() => {
-                setActiveTab(key);
-                setDisplayTab(key);
-                setTabAnimating(false);
-              }, 220);
-            }}
-              style={{ width: "180px", padding: "10px 0", borderRadius: "var(--border-radius-md)", border: "none", fontSize: "14px", fontWeight: 500, cursor: tabAnimating ? "default" : "pointer", fontFamily: "inherit", transition: "all 0.25s",
-                background: activeTab === key ? tabAccents[key] : "transparent",
-                color: activeTab === key ? "#fff" : "var(--color-text-secondary)",
-                boxShadow: activeTab === key ? "0 2px 8px rgba(0,0,0,0.15)" : "none" }}>
-              {tabLabels[key]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{
-        animation: tabAnimating ? "uniTabOut 0.2s ease forwards" : "uniTabIn 0.25s ease forwards",
-        opacity: tabAnimating ? 0 : 1,
-      }}>
-      <style>{"@keyframes uniTabIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes uniTabOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-8px)}}"}</style>
-
-      {activeTab === "UK" && (
-        <div>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "15px", margin: "0 0 1.5rem" }}>Top UK universities ranked by reputation, research output and student experience.</p>
-
-          {/* ── Intake Calendar ── */}
-          <IntakeCalendar country="UK" />
-
-          {/* Search */}
-          <div style={{ position: "relative", marginBottom: "1rem", display: "flex", alignItems: "center" }}>
-            <input
-              style={{ padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" }}
-              placeholder="🔍 Search universities by name, subject or city..."
-              value={ukSearch}
-              onChange={e => { setUkSearch(e.target.value); setUkPage(1); }}
-            />
-            {ukSearch && <button onClick={() => { setUkSearch(""); setUkPage(1); }} style={{ position: "absolute", right: "10px", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: "18px", lineHeight: 1, padding: 0 }}>×</button>}
-          </div>
-
-          <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
-            Showing <strong>{paginatedUK.length}</strong> of <strong>{filteredUK.length}</strong> universities
-            {ukSearch && <span> · matching "{ukSearch}"</span>}
-          </p>
-
-          <div style={S.grid2}>
-            {paginatedUK.map(u => (
-              <div key={u.name} style={{ ...S.card, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px", gap: "8px" }}>
-                    <div>
-                      <p style={{ fontWeight: 600, margin: "0 0 2px", fontSize: "14px", lineHeight: 1.3 }}>{u.name}</p>
-                      {u.city && <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>📍 {u.city}</p>}
-                    </div>
-                    <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 600, background: "rgba(26,63,168,0.15)", color: "#1A3FA8", whiteSpace: "nowrap", flexShrink: 0 }}>{u.rank}</span>
-                  </div>
-                  <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: "0 0 10px" }}>{u.focus}</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "12px" }}>
-                    {[["UK entry", u.entry], ["International", u.intl], ["Scholarships", u.scholarships]].map(([l, v]) => (
-                      <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", gap: "8px" }}>
-                        <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>{l}</span>
-                        <span style={{ color: l === "Scholarships" ? "#1A3FA8" : "inherit", textAlign: "right" }}>{v}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: "6px" }}>
-                  {u.website && (
-                    <a href={u.website} target="_blank" rel="noopener noreferrer"
-                      style={{ flex: 1, padding: "7px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, textAlign: "center", textDecoration: "none", border: "0.5px solid rgba(26,63,168,0.3)", color: "#1A3FA8", background: "transparent" }}>
-                      Visit ↗
-                    </a>
-                  )}
-                  <button style={{ flex: 1, padding: "7px 10px", fontSize: "12px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", cursor: "pointer", fontFamily: "inherit" }}
-                    onClick={() => { setChatInput("Tell me more about " + u.name + " — courses, tips and scholarships"); navTo("AI Mentor"); }}>
-                    Ask Mentor ↗
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredUK.length === 0 && (
-            <div style={{ ...S.card, textAlign: "center", padding: "2.5rem" }}>
-              <p style={{ fontSize: "1.5rem", margin: "0 0 0.75rem" }}>🔍</p>
-              <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No universities found</p>
-              <button style={{ padding: "8px 20px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", cursor: "pointer", fontFamily: "inherit", fontSize: "13px" }} onClick={() => setUkSearch("")}>Clear search</button>
-            </div>
-          )}
-
-          {totalUKPages > 1 && (
-            <div style={{ marginTop: "1.5rem" }}>
-              <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
-                {safeUKPage > 1 && <button style={S.pageBtn(false)} onClick={() => setUkPage(p => p - 1)}>← Prev</button>}
-                {Array.from({ length: Math.min(totalUKPages, 7) }, (_, i) => {
-                  const p = totalUKPages <= 7 ? i + 1 : safeUKPage <= 4 ? i + 1 : safeUKPage >= totalUKPages - 3 ? totalUKPages - 6 + i : safeUKPage - 3 + i;
-                  return <button key={p} style={S.pageBtn(p === safeUKPage)} onClick={() => setUkPage(p)}>{p}</button>;
-                })}
-                {safeUKPage < totalUKPages && <button style={S.pageBtn(false)} onClick={() => setUkPage(p => p + 1)}>Next →</button>}
-              </div>
-              <p style={{ textAlign: "center", fontSize: "12px", color: "var(--color-text-secondary)", marginTop: "0.5rem" }}>Page {safeUKPage} of {totalUKPages} · {filteredUK.length} universities</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === "Germany" && (
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem", flexWrap: "wrap" }}>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: "15px", margin: 0 }}>World-class education — mostly tuition-free for international students.</p>
-            <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, background: "rgba(22,163,74,0.15)", color: "#16A34A" }}>Mostly free</span>
-          </div>
-
-          <div style={{ background: "rgba(22,163,74,0.06)", border: "0.5px solid rgba(22,163,74,0.2)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
-            {[{ icon: "💶", label: "Tuition", value: "Free at public unis (small semester fee)" }, { icon: "🗣️", label: "Language", value: "English & German-taught programmes" }, { icon: "📋", label: "Application", value: "Uni-Assist or direct university portal" }, { icon: "🛂", label: "Visa", value: "Student visa required for non-EU" }].map(f => (
-              <div key={f.label} style={{ display: "flex", gap: "8px", alignItems: "flex-start", minWidth: "180px" }}>
-                <span style={{ fontSize: "18px" }}>{f.icon}</span>
-                <div>
-                  <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "0 0 2px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.label}</p>
-                  <p style={{ fontSize: "13px", margin: 0, fontWeight: 500 }}>{f.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* ── Intake Calendar ── */}
-          <IntakeCalendar country="Germany" />
-
-          <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: 1, minWidth: "200px", display: "flex", alignItems: "center" }}>
-              <input style={{ padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" }}
-                placeholder="🔍 Search universities..." value={deSearch} onChange={e => setDeSearch(e.target.value)} />
-              {deSearch && <button onClick={() => setDeSearch("")} style={{ position: "absolute", right: "8px", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: "18px", lineHeight: 1, padding: 0 }}>×</button>}
-            </div>
-            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-              <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>Type:</span>
-              {[{ key: "All", label: "All", count: GERMAN_UNIVERSITIES.length }, { key: "Public", label: "🏛 Public", count: publicCount }, { key: "Private", label: "🏢 Private", count: privateCount }].map(({ key, label, count }) => (
-                <button key={key} onClick={() => setDeFilter(key)}
-                  style={{ padding: "5px 14px", borderRadius: "var(--border-radius-md)", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", border: deFilter === key ? "0.5px solid #16A34A" : "0.5px solid var(--color-border-tertiary)", background: deFilter === key ? "#16A34A" : "var(--color-background-primary)", color: deFilter === key ? "#fff" : "var(--color-text-secondary)" }}>
-                  {label} ({count})
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>Showing <strong>{paginatedGerman.length}</strong> of <strong>{filteredGerman.length}</strong> universities</p>
-
-          <div style={S.grid2}>
-            {paginatedGerman.map(u => (
-              <div key={u.name} style={{ background: "var(--color-background-primary)", border: "0.5px solid " + (u.type === "Private" ? "rgba(245,158,11,0.25)" : "var(--color-border-tertiary)"), borderRadius: "var(--border-radius-lg)", padding: "1.25rem", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px", gap: "8px" }}>
-                    <p style={{ fontWeight: 500, margin: 0, fontSize: "14px", flex: 1, lineHeight: 1.4 }}>{u.name}</p>
-                    {u.rank && <span style={{ padding: "3px 8px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 500, flexShrink: 0, background: u.type === "Private" ? "rgba(255,69,0,0.15)" : "rgba(22,163,74,0.15)", color: u.type === "Private" ? "#FF4500" : "#16A34A" }}>{u.rank}</span>}
-                  </div>
-                  <span style={{ display: "inline-block", marginBottom: "8px", padding: "2px 8px", borderRadius: "var(--border-radius-md)", fontSize: "11px", fontWeight: 600, background: u.type === "Private" ? "rgba(245,158,11,0.12)" : "rgba(22,163,74,0.1)", color: u.type === "Private" ? "#D97706" : "#16A34A" }}>
-                    {u.type === "Private" ? "🏢 Private" : "🏛 Public"}
-                  </span>
-                  <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: "0 0 10px" }}>{u.focus}</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "12px" }}>
-                    {[["Tuition", u.tuition], ["International", u.intl], ["Scholarships", u.scholarships]].map(([l, v]) => (
-                      <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", gap: "8px" }}>
-                        <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>{l}</span>
-                        <span style={{ textAlign: "right", color: l === "Scholarships" ? "#16A34A" : l === "Tuition" ? (u.type === "Public" ? "#16A34A" : "#D97706") : "var(--color-text-primary)", fontWeight: l === "Tuition" ? 500 : 400 }}>{v}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: "6px" }}>
-                  {u.website && <a href={u.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: "7px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, textAlign: "center", textDecoration: "none", border: u.type === "Private" ? "0.5px solid rgba(245,158,11,0.3)" : "0.5px solid rgba(22,163,74,0.3)", color: u.type === "Private" ? "#D97706" : "#16A34A", background: "transparent" }}>Visit ↗</a>}
-                  <button style={{ flex: 1, padding: "7px 10px", borderRadius: "var(--border-radius-md)", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", border: u.type === "Private" ? "0.5px solid rgba(245,158,11,0.3)" : "0.5px solid rgba(22,163,74,0.3)", color: u.type === "Private" ? "#D97706" : "#16A34A", background: "transparent" }}
-                    onClick={() => { setChatInput("Tell me more about " + u.name + " in Germany — English programmes, application and scholarships"); navTo("AI Mentor"); }}>
-                    Ask Mentor ↗
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredGerman.length === 0 && (
-            <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "2.5rem", textAlign: "center" }}>
-              <p style={{ fontSize: "1.5rem", margin: "0 0 0.75rem" }}>🔍</p>
-              <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No universities found</p>
-              <button style={{ padding: "8px 20px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", cursor: "pointer", fontFamily: "inherit", fontSize: "13px" }} onClick={() => { setDeSearch(""); setDeFilter("All"); }}>Clear filters</button>
-            </div>
-          )}
-
-          {totalDePages > 1 && (
-            <div style={{ marginTop: "1.5rem" }}>
-              <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
-                {safePage > 1 && <button style={S.pageBtn(false)} onClick={() => setDePage(p => p - 1)}>← Prev</button>}
-                {Array.from({ length: Math.min(totalDePages, 7) }, (_, i) => {
-                  const p = totalDePages <= 7 ? i + 1 : safePage <= 4 ? i + 1 : safePage >= totalDePages - 3 ? totalDePages - 6 + i : safePage - 3 + i;
-                  return <button key={p} style={S.pageBtn(p === safePage)} onClick={() => setDePage(p)}>{p}</button>;
-                })}
-                {safePage < totalDePages && <button style={S.pageBtn(false)} onClick={() => setDePage(p => p + 1)}>Next →</button>}
-              </div>
-              <p style={{ textAlign: "center", fontSize: "12px", color: "var(--color-text-secondary)", marginTop: "0.5rem" }}>Page {safePage} of {totalDePages} · {filteredGerman.length} universities</p>
-            </div>
-          )}
-
-          <div style={{ marginTop: "2rem", background: "rgba(26,63,168,0.06)", border: "0.5px solid rgba(26,63,168,0.15)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem", display: "flex", gap: "14px", alignItems: "flex-start", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "28px" }}>🎓</span>
-            <div style={{ flex: 1, minWidth: "220px" }}>
-              <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "14px" }}>DAAD Scholarships — Germany's main international scholarship</p>
-              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 10px", lineHeight: 1.6 }}>The German Academic Exchange Service (DAAD) offers hundreds of scholarships for international students covering tuition, living costs and health insurance.</p>
-              <a href="https://www.daad.de/en/study-and-research-in-germany/scholarships/" target="_blank" rel="noopener noreferrer" style={{ fontSize: "13px", color: "#1A3FA8", fontWeight: 500, textDecoration: "none" }}>Explore DAAD scholarships ↗</a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── University News + Intake Calendar (shown on UK + Germany tabs) ── */}
-      {activeTab !== "CV Matcher" && (
-        <div style={{ marginTop: "2.5rem", display: "grid", gap: "1.5rem" }}>
-
-
-
-          {/* Latest University News */}
-          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
-              <div>
-                <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>📰 Latest University News</h3>
-                <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>Important updates for international students in {new Date().getFullYear()}</p>
-              </div>
-              <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 600, background: "rgba(26,63,168,0.12)", color: "#1A3FA8" }}>Updated {new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "10px" }}>
-              {(activeTab === "Germany" ? [
-                { tag: "Visa", color: "#1A3FA8", bg: "rgba(26,63,168,0.08)", title: "Blocked Account Requirement Updated", body: "Germany now requires international students to show €11,904 in a blocked account (Sperrkonto) for 2024/25 — up from previous years. This covers living costs for one year.", link: "https://www.daad.de/en/study-and-research-in-germany/plan-your-studies/blocked-account/" },
-                { tag: "Applications", color: "#16A34A", bg: "rgba(22,163,74,0.08)", title: "Uni-Assist Goes Digital", body: "Uni-Assist has fully digitised its application portal. All documents must now be uploaded online — no postal applications accepted. Check individual university portals too.", link: "https://www.uni-assist.de/en/" },
-                { tag: "Scholarships", color: "#7C3AED", bg: "rgba(124,58,237,0.08)", title: "DAAD Scholarships 2025/26 Now Open", body: "The German Academic Exchange Service has opened applications for its 2025/26 scholarship programmes. Over 100,000 students supported annually across all levels.", link: "https://www.daad.de/en/study-and-research-in-germany/scholarships/" },
-                { tag: "Language", color: "#FF4500", bg: "rgba(255,69,0,0.08)", title: "More English-Taught Programmes", body: "German universities now offer 1,500+ English-taught Masters programmes. No German required for many STEM and business courses at top universities.", link: "https://www.daad.de/en/study-and-research-in-germany/plan-your-studies/finding-the-right-degree-programme/" },
-              ] : [
-                { tag: "Visa", color: "#DC2626", bg: "rgba(220,38,38,0.08)", title: "Student Visa: New Requirements 2024", body: "UKVI now requires evidence of English language proficiency at B2 level or above. Maintenance funds threshold raised — students need £1,334/month for London studies.", link: "https://www.gov.uk/student-visa" },
-                { tag: "Fees", color: "#D97706", bg: "rgba(217,119,6,0.08)", title: "Tuition Fees Rise for 2025/26", body: "UK universities can now charge up to £9,535/year for undergraduate courses (up from £9,250). International fees vary widely — always check individual university pages.", link: "https://www.ucas.com/money-and-student-life/money/student-finance" },
-                { tag: "UCAS", color: "#1A3FA8", bg: "rgba(26,63,168,0.08)", title: "UCAS Deadline: January 2025", body: "The main UCAS deadline for 2025 entry was January 31. Late applications may still be considered through Clearing. Equal Consideration deadline passed — apply directly.", link: "https://www.ucas.com/ucas/undergraduate/getting-started/when-apply" },
-                { tag: "Scholarships", color: "#16A34A", bg: "rgba(22,163,74,0.08)", title: "Chevening Scholarships Now Open", body: "The UK government's flagship scholarship programme for future leaders is open for 2025/26. Fully funded Masters for students from 160+ countries. Deadline November 2024.", link: "https://www.chevening.org/" },
-                { tag: "Jobs", color: "#7C3AED", bg: "rgba(124,58,237,0.08)", title: "Graduate Route Visa: 2 Year Stay", body: "International graduates can still stay in the UK for 2 years (3 for PhDs) to work after graduating. The Graduate Route visa remains available for 2024 graduates.", link: "https://www.gov.uk/graduate-visa" },
-              ]).map(function(item, i) {
-                return (
-                  <a key={i} href={item.link} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "block", textDecoration: "none", padding: "1rem", borderRadius: "var(--border-radius-lg)", background: item.bg, border: "0.5px solid " + item.color + "33", transition: "transform 0.15s" }}
-                    onMouseEnter={function(e) { e.currentTarget.style.transform = "translateY(-2px)"; }}
-                    onMouseLeave={function(e) { e.currentTarget.style.transform = "none"; }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px", gap: "8px" }}>
-                      <span style={{ padding: "2px 8px", borderRadius: "20px", fontSize: "10px", fontWeight: 700, background: item.color, color: "#fff", whiteSpace: "nowrap" }}>{item.tag}</span>
-                      <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>↗</span>
-                    </div>
-                    <p style={{ fontWeight: 600, fontSize: "13px", margin: "0 0 6px", color: "var(--color-text-primary)", lineHeight: 1.4 }}>{item.title}</p>
-                    <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>{item.body}</p>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Preparation Tips */}
-          <div style={{ background: "linear-gradient(135deg, rgba(26,63,168,0.06), rgba(124,58,237,0.04))", border: "0.5px solid rgba(26,63,168,0.15)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
-            <h3 style={{ margin: "0 0 1rem", fontSize: "1rem", fontWeight: 600 }}>✅ Your Application Checklist</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
-              {[
-                { icon: "📄", title: "Academic Transcripts", desc: "Certified copies of all grades — get them translated if not in English/German" },
-                { icon: "🌐", title: "Language Certificate", desc: activeTab === "Germany" ? "IELTS 6.0+ or TestDaF for German-taught courses" : "IELTS 6.0–7.0+ depending on course and university" },
-                { icon: "✍️", title: "Personal Statement", desc: "2–3 pages explaining your motivation, background and career goals" },
-                { icon: "📬", title: "References", desc: "2 academic or professional referees who know your work well" },
-                { icon: "🛂", title: "Valid Passport", desc: "Must be valid for the full duration of your studies — renew early if needed" },
-                { icon: "💰", title: "Proof of Funds", desc: activeTab === "Germany" ? "€11,904 in a blocked account (Sperrkonto)" : "£1,334/month maintenance funds (more for London)" },
-              ].map(function(item, i) {
-                return (
-                  <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "10px 12px", background: "var(--color-background-primary)", borderRadius: "var(--border-radius-md)" }}>
-                    <span style={{ fontSize: "20px", flexShrink: 0 }}>{item.icon}</span>
-                    <div>
-                      <p style={{ fontWeight: 600, margin: "0 0 3px", fontSize: "13px" }}>{item.title}</p>
-                      <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
-      )}
-
-      </div>
-
-      {/* ── CV Matcher promo card — always shown below ── */}
-      {activeTab !== "CV Matcher" && (
-        <div style={{ marginTop: "2rem", background: "linear-gradient(135deg, rgba(124,58,237,0.08), rgba(26,63,168,0.06))", border: "0.5px solid rgba(124,58,237,0.25)", borderRadius: "var(--border-radius-lg)", padding: "2rem", textAlign: "center" }}>
-          <div style={{ fontSize: "48px", marginBottom: "1rem" }}>🎯</div>
-          <h3 style={{ margin: "0 0 8px", fontSize: "1.2rem", fontWeight: 600 }}>Find the university and course that matches your experience</h3>
-          <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem", lineHeight: 1.7, maxWidth: "540px", marginLeft: "auto", marginRight: "auto" }}>
-            Upload your CV and our AI will analyse your background, skills and qualifications — then recommend the best matching courses across UK and German universities tailored specifically to you.
-          </p>
-          <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap", marginBottom: "1.25rem" }}>
-            {["🎓 Undergraduate", "📚 Masters", "🔬 PhD"].map(function(level) {
-              return <span key={level} style={{ padding: "5px 14px", borderRadius: "20px", fontSize: "12px", background: "rgba(124,58,237,0.12)", color: "#7C3AED", fontWeight: 500 }}>{level}</span>;
-            })}
-          </div>
-          <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={function() { setActiveTab("CV Matcher"); }}
-              style={{ padding: "12px 32px", borderRadius: "var(--border-radius-md)", background: "#7C3AED", color: "#fff", border: "none", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-              ✨ Match My CV to Universities
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "CV Matcher" && (
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-            <button onClick={function() { setActiveTab("UK"); }}
-              style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", background: "var(--color-background-secondary)", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-tertiary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit" }}>
-              ← Back to universities
-            </button>
-            <p style={{ margin: 0, fontSize: "14px", color: "var(--color-text-secondary)" }}>CV Matcher — find courses tailored to your background</p>
-          </div>
-          <CVAnalyserTab user={user} navTo={navTo} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── AI Mentor Chat ──────────────────────────────────────
-function AIMentorChat({ user }) {
-  var s1 = useState([{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor. I can help with UK universities, visa sponsorship jobs, career planning and much more. What would you like to explore?" }]);
-  var messages = s1[0], setMessages = s1[1];
-  var s2 = useState(""); var chatInput = s2[0], setChatInput = s2[1];
-  var s3 = useState(false); var loading = s3[0], setLoading = s3[1];
-  var endRef = useRef(null);
-
-  useEffect(function() {
-    if (messages.length > 1 && endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(function() {
-    if (!user || !user.id) return;
-    try {
-      var saved = localStorage.getItem("mg_chat_" + user.id);
-      if (saved) { var p = JSON.parse(saved); if (p && p.length > 0) setMessages(p); }
-    } catch(e) {}
-  }, []);
-
-  function clearChat() {
-    setMessages([{ role: "assistant", content: "Hi! Starting fresh. What would you like to know?" }]);
-    try { if (user && user.id) localStorage.removeItem("mg_chat_" + user.id); } catch(e) {}
-  }
-
-  async function send() {
-    var msg = chatInput.trim();
-    if (!msg || loading) return;
-    setChatInput("");
-    var next = [...messages, { role: "user", content: msg }];
-    setMessages(next);
-    setLoading(true);
-    try {
-      var res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next })
-      });
-      var data = await res.json();
-      var final = [...next, { role: "assistant", content: data.reply || "Sorry, please try again." }];
-      setMessages(final);
-      try { if (user && user.id) localStorage.setItem("mg_chat_" + user.id, JSON.stringify(final.slice(-30))); } catch(e) {}
-    } catch(e) {
-      setMessages([...next, { role: "assistant", content: "Sorry, trouble connecting. Please try again." }]);
-    }
-    setLoading(false);
-  }
-
-  var PROMPTS = ["UK universities and UCAS", "Skilled Worker visa", "Find sponsorship jobs", "Career path planning", "German universities"];
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)" }}>
-      <style>{"@keyframes mgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}@keyframes mgDot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}"}</style>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0 8px", borderBottom: "0.5px solid var(--color-border-tertiary)", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "22px" }}>🤖</span>
-          <div>
-            <p style={{ fontWeight: 600, margin: 0, fontSize: "14px" }}>Mentorgram AI Mentor</p>
-            <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>Free for all users</p>
-          </div>
-        </div>
-        {messages.length > 1 && (
-          <button onClick={clearChat} style={{ fontSize: "11px", padding: "4px 10px", borderRadius: "6px", border: "0.5px solid var(--color-border-tertiary)", background: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontFamily: "inherit" }}>New chat</button>
-        )}
-      </div>
-
-      {messages.length <= 1 && (
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", padding: "10px 0", flexShrink: 0 }}>
-          {PROMPTS.map(function(q) {
-            return (
-              <button key={q} onClick={function() { setChatInput(q); }}
-                style={{ padding: "5px 12px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-secondary)" }}>
-                {q}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", padding: "10px 0", minHeight: 0 }}>
-        {messages.map(function(m, i) {
-          var isUser = m.role === "user";
-          return (
-            <div key={i} style={{ display: "flex", gap: "8px", justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-end", animation: "mgIn 0.2s ease" }}>
-              {!isUser && <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0 }}>🤖</div>}
-              <div style={{ maxWidth: "78%", padding: "9px 13px", fontSize: "14px", lineHeight: 1.6,
-                borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                background: isUser ? "#1A3FA8" : "var(--color-background-primary)",
-                color: isUser ? "#fff" : "var(--color-text-primary)",
-                border: isUser ? "none" : "0.5px solid var(--color-border-tertiary)" }}>
-                {m.content.split("\n").map(function(line, li) {
-                  if (line.startsWith("* ") || line.startsWith("- ")) return <div key={li} style={{ display: "flex", gap: "6px", marginTop: "3px" }}><span style={{ color: isUser ? "#fff" : "#1A3FA8", fontWeight: 700 }}>•</span><span>{line.slice(2)}</span></div>;
-                  if (!line.trim()) return <div key={li} style={{ height: "4px" }} />;
-                  var parts = line.split(/\*\*([^*]+)\*\*/g);
-                  return <div key={li} style={{ marginTop: li > 0 ? "2px" : 0 }}>{parts.map(function(p, pi) { return pi % 2 === 1 ? <strong key={pi}>{p}</strong> : p; })}</div>;
-                })}
-              </div>
-              {isUser && <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "11px", flexShrink: 0 }}>
-                {user && user.email ? user.email[0].toUpperCase() : "U"}
-              </div>}
-            </div>
-          );
-        })}
-        {loading && (
-          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
-            <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px" }}>🤖</div>
-            <div style={{ padding: "10px 14px", borderRadius: "16px 16px 16px 4px", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", display: "flex", gap: "4px", alignItems: "center" }}>
-              {[0,1,2].map(function(j) { return <div key={j} style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#1A3FA8", animation: "mgDot 1.2s ease infinite", animationDelay: (j * 0.2) + "s" }} />; })}
-            </div>
-          </div>
-        )}
-        <div ref={endRef} />
-      </div>
-
-      <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: "10px", paddingBottom: "8px", flexShrink: 0 }}>
-        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
-          <textarea value={chatInput} onChange={function(e) { setChatInput(e.target.value); }}
-            onKeyDown={function(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Ask me anything..." rows={1}
-            style={{ flex: 1, padding: "10px 14px", borderRadius: "20px", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", resize: "none", lineHeight: 1.5, maxHeight: "100px", overflowY: "auto" }}
-            onInput={function(e) { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; }} />
-          <button onClick={send} disabled={loading || !chatInput.trim()}
-            style={{ width: "40px", height: "40px", borderRadius: "50%", border: "none", cursor: loading || !chatInput.trim() ? "default" : "pointer", fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s",
-              background: loading || !chatInput.trim() ? "var(--color-background-secondary)" : "#1A3FA8",
-              color: loading || !chatInput.trim() ? "var(--color-text-secondary)" : "#fff" }}>
-            ↑
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Premium Success Page ─────────────────────────────────────────────────
-function PremiumSuccessPage({ navTo, user }) {
-  var connected = (typeof window !== 'undefined' && window.__tgConnected) || false;
-  var userId = user ? user.id : "";
-  var botLink = "https://t.me/MentorgramAIBot?start=" + userId;
-
-  return (
-    <div style={{ maxWidth: "560px", margin: "0 auto", padding: "3rem 1.25rem", textAlign: "center" }}>
-      <style>{"@keyframes popIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}"}</style>
-
-      {/* Success icon */}
-      <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,#16A34A,#14532d)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem", fontSize: "36px", animation: "popIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards", boxShadow: "0 8px 30px rgba(22,163,74,0.3)" }}>
-        ✅
-      </div>
-
-      <h1 style={{ fontSize: "1.8rem", fontWeight: 800, margin: "0 0 0.75rem" }}>Payment successful!</h1>
-      <p style={{ fontSize: "15px", color: "var(--color-text-secondary)", margin: "0 0 2rem", lineHeight: 1.7 }}>
-        Welcome to Mentorgram Premium 🎉 You will receive 5 curated visa sponsorship jobs every Friday.
-      </p>
-
-      {/* Step indicator */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "2rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#16A34A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700 }}>✓</div>
-          <span style={{ fontSize: "13px", fontWeight: 600, color: "#16A34A" }}>Payment done</span>
-        </div>
-        <div style={{ flex: 1, height: "2px", background: "var(--color-border-tertiary)", maxWidth: "60px" }} />
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#229ED9", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700 }}>2</div>
-          <span style={{ fontSize: "13px", fontWeight: 600, color: "#229ED9" }}>Connect Telegram</span>
-        </div>
-      </div>
-
-      {/* Connect card */}
-      <div style={{ background: "var(--color-background-primary)", border: "2px solid #229ED9", borderRadius: "16px", padding: "2rem", marginBottom: "1.5rem" }}>
-        <div style={{ fontSize: "48px", marginBottom: "1rem" }}>📱</div>
-        <h2 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 0.75rem" }}>One last step — connect Telegram</h2>
-        <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
-          Click below to open Telegram and start our bot. This is how we will deliver your weekly jobs — it only takes 10 seconds.
-        </p>
-
-        {user ? (
-          <a href={botLink} target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 28px", borderRadius: "12px", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(34,158,217,0.35)", marginBottom: "1rem" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
-            Connect Telegram Now
-          </a>
-        ) : (
-          <button onClick={function() { localStorage.setItem("mg_return_page", "Premium Success"); navTo("My Profile"); }}
-            style={{ width: "100%", padding: "14px", borderRadius: "12px", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: "1rem" }}>
-            Sign in first to connect Telegram
-          </button>
-        )}
-
-        <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>
-          Opens Telegram app → tap Start → done! Your first jobs arrive this Friday.
-        </p>
-      </div>
-
-      {/* What happens next */}
-      <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px", padding: "1.25rem", marginBottom: "1.5rem", textAlign: "left" }}>
-        <p style={{ fontWeight: 600, margin: "0 0 0.75rem", fontSize: "14px" }}>What happens next:</p>
-        {[
-          { icon: "📱", text: "Connect Telegram above (takes 10 seconds)" },
-          { icon: "✅", text: "Our bot confirms you are connected" },
-          { icon: "📋", text: "Every Friday you receive 5 curated visa sponsorship jobs" },
-          { icon: "🎯", text: "Jobs matched to your sectors and UK location preferences" },
-        ].map(function(item, i) {
-          return (
-            <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: i < 3 ? "8px" : 0 }}>
-              <span style={{ fontSize: "18px", flexShrink: 0 }}>{item.icon}</span>
-              <p style={{ fontSize: "13px", margin: 0, lineHeight: 1.5 }}>{item.text}</p>
-            </div>
-          );
-        })}
-      </div>
-
-      <button onClick={function() { navTo("Sponsorship Jobs"); }}
-        style={{ padding: "10px 24px", borderRadius: "12px", background: "transparent", color: "var(--color-text-secondary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit" }}>
-        Browse jobs while you wait →
-      </button>
-    </div>
-  );
-}
-
-
-// ─── Premium Page ─────────────────────────────────────────────────────────
-function PremiumPage({ navTo, user }) {
-  var STRIPE_LINK = "https://buy.stripe.com/4gM14o1jZ0EJgVp3gh0RG00";
-  var perks = [
-    { icon: "📋", title: "5 curated jobs every Friday", desc: "Hand-picked visa sponsorship roles — no noise, just quality" },
-    { icon: "🎯", title: "Matched to your profile", desc: "Jobs filtered by your sector, location and visa needs" },
-    { icon: "⚡", title: "Early access", desc: "See jobs before they get hundreds of applications" },
-    { icon: "🏥", title: "All major sectors", desc: "NHS, Tech, Finance, Engineering, Education and more" },
-    { icon: "💬", title: "Community of job seekers", desc: "Connect with 1,000+ international professionals" },
-    { icon: "❌", title: "Cancel anytime", desc: "No contracts, cancel directly inside Telegram" },
-  ];
-  var testimonials = [
-    { quote: "Got an interview within 2 weeks. The jobs are actually relevant to my profile.", name: "Priya S.", role: "Software Engineer", flag: "🇮🇳" },
-    { quote: "Finally a service that understands visa sponsorship. Worth every penny.", name: "David O.", role: "NHS Nurse", flag: "🇳🇬" },
-    { quote: "Saved me hours every week. Friday alerts are the first thing I check.", name: "Fatima K.", role: "Data Analyst", flag: "🇵🇰" },
-  ];
-  return (
-    <div style={{ maxWidth: "860px", margin: "0 auto", padding: "2rem 1.25rem" }}>
-
-      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 16px", borderRadius: "20px", background: "rgba(26,63,168,0.1)", border: "0.5px solid rgba(26,63,168,0.3)", marginBottom: "1.25rem" }}>
-          <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#1A3FA8" }}>⭐ Premium Membership</span>
-        </div>
-        <h1 style={{ fontSize: "clamp(1.8rem,4vw,2.6rem)", fontWeight: 800, margin: "0 0 1rem", lineHeight: 1.2 }}>
-          Stop searching.<br />
-          <span style={{ background: "linear-gradient(135deg,#1A3FA8,#FF4500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Let the jobs come to you.</span>
-        </h1>
-        <p style={{ fontSize: "16px", color: "var(--color-text-secondary)", maxWidth: "500px", margin: "0 auto 2rem", lineHeight: 1.7 }}>
-          Get 5 hand-picked UK visa sponsorship jobs delivered to your Telegram every Friday — matched to your profile.
-        </p>
-        <div style={{ display: "inline-block", background: "var(--color-background-primary)", border: "2px solid #1A3FA8", borderRadius: "20px", padding: "2rem 2.5rem", position: "relative", boxShadow: "0 20px 60px rgba(26,63,168,0.15)", minWidth: "300px" }}>
-          <div style={{ position: "absolute", top: "-14px", left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#1A3FA8,#0d2478)", color: "#fff", padding: "4px 20px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>MOST POPULAR</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "1rem" }}>
-            <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#229ED9", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
-            </div>
-            <div style={{ textAlign: "left" }}>
-              <p style={{ fontWeight: 700, margin: 0, fontSize: "16px" }}>Telegram Premium</p>
-              <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Weekly visa job alerts</p>
-            </div>
-          </div>
-          <div style={{ marginBottom: "1.25rem" }}>
-            <span style={{ fontSize: "3.5rem", fontWeight: 800, lineHeight: 1 }}>£6.99</span>
-            <span style={{ fontSize: "15px", color: "var(--color-text-secondary)", marginLeft: "4px" }}>/month</span>
-            <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>Billed monthly · Cancel anytime in Telegram</p>
-          </div>
-          <a href={STRIPE_LINK} target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px 28px", borderRadius: "12px", background: "linear-gradient(135deg,#229ED9,#1a7fb5)", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(34,158,217,0.35)" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
-            Join Telegram — £6.99/month
-          </a>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: "3rem" }}>
-        <h2 style={{ textAlign: "center", fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.5rem" }}>Everything included</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
-          {perks.map(function(p, i) {
-            return (
-              <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start", padding: "1rem 1.25rem", background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px" }}>
-                <span style={{ fontSize: "22px", flexShrink: 0 }}>{p.icon}</span>
-                <div>
-                  <p style={{ fontWeight: 600, margin: "0 0 3px", fontSize: "13px" }}>{p.title}</p>
-                  <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.5 }}>{p.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: "3rem" }}>
-        <h2 style={{ textAlign: "center", fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.5rem" }}>What members say</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "12px" }}>
-          {testimonials.map(function(t, i) {
-            return (
-              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px", padding: "1.25rem" }}>
-                <p style={{ fontSize: "28px", color: "#1A3FA8", lineHeight: 1, margin: "0 0 8px", opacity: 0.4 }}>"</p>
-                <p style={{ fontSize: "13px", lineHeight: 1.7, margin: "0 0 12px", fontStyle: "italic" }}>{t.quote}</p>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "13px" }}>{t.name[0]}</div>
-                  <div>
-                    <p style={{ fontWeight: 600, margin: 0, fontSize: "13px" }}>{t.flag} {t.name}</p>
-                    <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: "3rem" }}>
-        <h2 style={{ textAlign: "center", fontSize: "1.2rem", fontWeight: 700, margin: "0 0 1.5rem" }}>Common questions</h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {[
-            { q: "How do I join?", a: "Click Join Telegram above. You will be taken to our channel where you subscribe for £6.99/month directly through Telegram's built-in payments." },
-            { q: "How are jobs selected?", a: "Every week we curate the best visa sponsorship roles from 15,000+ listings — filtering for quality, salary and genuine sponsorship." },
-            { q: "Can I cancel anytime?", a: "Yes — cancel directly inside Telegram. No questions asked, no hidden fees." },
-            { q: "What sectors are covered?", a: "Technology, Healthcare/NHS, Finance, Engineering, Education, Business and all major sectors offering UK visa sponsorship." },
-            { q: "Is this different from the free jobs board?", a: "Yes — the free board has 15,000+ jobs to search. Premium delivers a personalised shortlist to your phone every Friday." },
-          ].map(function(item, i) {
-            return (
-              <div key={i} style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "12px", padding: "1rem 1.25rem" }}>
-                <p style={{ fontWeight: 600, margin: "0 0 5px", fontSize: "14px" }}>{item.q}</p>
-                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>{item.a}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div style={{ background: "linear-gradient(135deg,#1A3FA8,#0d2478)", borderRadius: "20px", padding: "2.5rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(255,69,0,0.15)", filter: "blur(40px)" }} />
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#fff", margin: "0 0 8px" }}>Ready to land your UK visa job?</p>
-          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", margin: "0 0 1.5rem" }}>Join hundreds of international professionals getting weekly job alerts.</p>
-          <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-            <a href={STRIPE_LINK} target="_blank" rel="noopener noreferrer"
-              style={{ padding: "12px 28px", borderRadius: "12px", background: "#FF4500", color: "#fff", textDecoration: "none", fontSize: "15px", fontWeight: 700, boxShadow: "0 4px 20px rgba(255,69,0,0.4)" }}>
-              Join for £6.99/month →
-            </a>
-            <button onClick={function() { navTo("Sponsorship Jobs"); }}
-              style={{ padding: "12px 24px", borderRadius: "12px", background: "rgba(255,255,255,0.1)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)", fontSize: "14px", cursor: "pointer", fontFamily: "inherit" }}>
-              Browse free jobs first
-            </button>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  );
-}
-
-// ─── Page routing (outside component) ──────────────────────────────────────
-const PAGE_SLUGS = {
-  "Home": "",
-  "AI Mentor": "ai-mentor",
-  "Education Paths": "education",
-  "Universities": "universities",
-  "Sponsorship Jobs": "jobs",
-  "Visa Sponsors": "visa-sponsors",
-  "CV Generator": "cv-generator",
-  "Premium": "premium",
-  "Premium Success": "premium-success",
-  "Contact": "contact",
-  "My Profile": "profile",
-  "Privacy Policy": "privacy",
-  "Terms & Conditions": "terms",
-  "Guide": "guide",
-};
-const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_SLUGS).map(([k,v]) => [v, k]));
-
-export default function Mentorgram() {
-  function getInitialPage() {
-    const path = window.location.pathname.replace("/", "").split("?")[0];
-    return SLUG_TO_PAGE[path] || "Home";
-  }
-
-  const [activePage, setActivePage] = useState(getInitialPage);
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I am your Mentorgram AI Mentor 👋\n\nI am here to help you with UK universities, visa sponsorship jobs, career planning and much more. What would you like to explore?" }]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
-  const [allJobs, setAllJobs] = useState(() => {
-    // ✅ Load from sessionStorage cache for instant display on revisit
-    try {
-      const cached = sessionStorage.getItem("mg_jobs_cache");
-      if (cached) {
-        const { jobs, ts } = JSON.parse(cached);
-        // Use cache if less than 10 minutes old
-        if (jobs && Date.now() - ts < 10 * 60 * 1000) return jobs;
-      }
-    } catch {}
-    return [];
-  });
-  const [jobsLoading, setJobsLoading] = useState(false);
-  const [updatedAt, setUpdatedAt] = useState(null);
-  const [selectedJob, setSelectedJob] = useState(null);
-  // ✅ NEW: pendingJobId state for resolving shared job links
-  const [pendingJobId, setPendingJobId] = useState(null);
-  const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [waitlistDone, setWaitlistDone] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("mg_user") || "null"); } catch { return null; }
-  });
-  const [cookieConsent, setCookieConsent] = useState(() => localStorage.getItem("mg_cookies") || null);
-  const [profileFilter, setProfileFilter] = useState(null);
-  const [pageTransition, setPageTransition] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-
-  useEffect(() => {
-    if (!user) return;
-    try {
-      var saved = localStorage.getItem("mg_chat_history_" + user.id);
-      if (saved) { var parsed = JSON.parse(saved); if (parsed && parsed.length > 0) setMessages(parsed); }
-    } catch(e) {}
-  }, [user]);
-
-  // ✅ UPDATED: hash handler now uses job ID instead of decoding base64
-  useEffect(() => {
-    function checkHash() {
-      try {
-        const hash = window.location.hash;
-        if (hash.startsWith("#job=")) {
-          const jobId = hash.replace("#job=", "");
-          setActivePage("Sponsorship Jobs");
-          setPendingJobId(jobId);
-          return;
-        }
-        const path = window.location.pathname.replace("/", "").split("?")[0];
-        const page = SLUG_TO_PAGE[path];
-        if (page) setActivePage(page);
-      } catch { /* ignore */ }
-    }
-    checkHash();
-    window.addEventListener("popstate", checkHash);
-    return () => window.removeEventListener("popstate", checkHash);
-  }, []);
-
-  // ✅ NEW: resolve pendingJobId once jobs have loaded
-  useEffect(() => {
-    if (pendingJobId && allJobs.length > 0) {
-      const found = allJobs.find(j => String(j.id) === String(pendingJobId));
-      if (found) {
-        setSelectedJob(found);
-        setPendingJobId(null);
-      }
-    }
-  }, [pendingJobId, allJobs]);
-
-  useEffect(() => {
-    if (activePage === "Sponsorship Jobs" && !selectedJob) {
-      // If we have cached jobs, still refresh in background but don't show loading
-      if (allJobs.length > 0) {
-        fetchJobs("", ""); // silent background refresh
-      } else {
-        fetchJobs("", "");
-      }
-    }
-  }, [activePage]);
-
-  function dedupe(jobs) {
-    const seen = new Set();
-    return jobs.filter(j => {
-      if (!j.url || seen.has(j.url)) return false;
-      seen.add(j.url);
-      return true;
-    });
-  }
-
-  function applyFilter(jobs, q, loc) {
-    if (!q && !loc) return jobs;
-    return jobs.filter(j => {
-      const matchQ = !q || (j.title||"").toLowerCase().includes(q.toLowerCase()) ||
-        (j.company||"").toLowerCase().includes(q.toLowerCase()) ||
-        (j.sector||"").toLowerCase().includes(q.toLowerCase());
-      const matchL = !loc || (j.location||"").toLowerCase().includes(loc.toLowerCase());
-      return matchQ && matchL;
-    });
-  }
-
-  async function fetchJobs(q, loc) {
-    setJobsLoading(true);
-    const params = new URLSearchParams();
-    if (q) params.set("q", q);
-    if (loc) params.set("location", loc);
-
-    // ── Step 1: Load DB jobs first (fast — Supabase) ──────────────────────
-    try {
-      const dbParams = new URLSearchParams(params);
-      dbParams.set("pageSize", "2000");
-      const dbData = await fetch("/api/jobs-db?" + dbParams).then(r => r.json()).catch(() => ({ jobs: [] }));
-      const dbJobs = dbData.jobs || [];
-      if (dbJobs.length > 0) {
-        const filtered = applyFilter(dedupe(dbJobs), q, loc);
-        setAllJobs(filtered);
-        setUpdatedAt(new Date().toISOString());
-        setJobsLoading(false); // ✅ Show jobs immediately, keep loading in background
-        try { sessionStorage.setItem("mg_jobs_cache", JSON.stringify({ jobs: filtered, ts: Date.now() })); } catch {}
-      }
-    } catch { /* continue */ }
-
-    // ── Step 2: Load RSS + Indeed in background (slower) ──────────────────
-    try {
-      const [rssRes, indeedRes] = await Promise.allSettled([
-        fetch("/api/jobsacuk?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
-        fetch("/api/jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
-      ]);
-      const rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
-      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
-
-      if (rssJobs.length > 0 || indeedJobs.length > 0) {
-        setAllJobs(prev => {
-          const combined = dedupe([...prev, ...rssJobs, ...indeedJobs]);
-          const result = applyFilter(combined, q, loc);
-          try { sessionStorage.setItem("mg_jobs_cache", JSON.stringify({ jobs: result, ts: Date.now() })); } catch {}
-          return result;
-        });
-        setUpdatedAt(new Date().toISOString());
-      }
-    } catch { /* keep existing */ }
-
-    setJobsLoading(false);
-  }
-
-  async function sendMessage() {
-    if (!chatInput.trim() || chatLoading) return;
-    const msg = chatInput.trim();
-    setChatInput("");
-    const updatedMessages = [...messages, { role: "user", content: msg }];
-    setMessages(updatedMessages);
-    setChatLoading(true);
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages })
-      });
-      const data = await res.json();
-      setMessages(prev => {
-        const updated = [...prev, { role: "assistant", content: data.reply || "Could you rephrase that?" }];
-        try { localStorage.setItem("mg_chat_history_" + (user && user.id ? user.id : "guest"), JSON.stringify(updated.slice(-30))); } catch {}
-        return updated;
-      });
-    } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, trouble connecting. Please try again." }]);
-    }
-    setChatLoading(false);
-  }
-
-  function navTo(page) {
-    setPageTransition(true);
-    setTimeout(() => {
-      setActivePage(page);
-      setMobileMenu(false);
-      setSelectedJob(null);
-      setPageTransition(false);
-      window.scrollTo({ top: 0, behavior: "instant" });
-      const slug = PAGE_SLUGS[page] || "";
-      window.history.pushState(null, "", slug ? `/${slug}` : "/");
-      if (window.va) window.va("pageview", { path: slug ? `/${slug}` : "/" });
-    }, 220);
-  }
-
-  const heroAccent = { background: "linear-gradient(135deg, #1A3FA8, #FF4500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" };
-
-  function renderPage() {
-    switch (activePage) {
-      case "Home": return (
-        <div>
-          <style>{`
-            @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-            @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-            @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-            @keyframes countUp { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
-            @keyframes slideIn { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } }
-            @keyframes shimmer { 0% { background-position:-200% center; } 100% { background-position:200% center; } }
-            @keyframes orb1 { 0%,100% { transform:translate(0,0); } 33% { transform:translate(60px,-40px); } 66% { transform:translate(-30px,50px); } }
-            @keyframes orb2 { 0%,100% { transform:translate(0,0); } 33% { transform:translate(-50px,60px); } 66% { transform:translate(40px,-30px); } }
-            @keyframes orb3 { 0%,100% { transform:translate(0,0); } 50% { transform:translate(30px,40px); } }
-            @keyframes particle { 0% { transform:translateY(0) rotate(0deg) scale(0); opacity:0; } 10% { opacity:0.8; transform:translateY(-20px) rotate(45deg) scale(1); } 90% { opacity:0.6; } 100% { transform:translateY(-700px) rotate(900deg) scale(0); opacity:0; } }
-            @keyframes orbPulse { 0%,100% { opacity:0.6; transform:scale(1); } 50% { opacity:1; transform:scale(1.08); } }
-            .hero-badge { animation:fadeIn 0.6s ease forwards; }
-            .hero-title { animation:fadeUp 0.7s ease 0.1s both; }
-            .hero-sub { animation:fadeUp 0.7s ease 0.2s both; }
-            .hero-btns { animation:fadeUp 0.7s ease 0.3s both; }
-            .stat-card { animation:countUp 0.6s ease both; }
-            .stat-card:nth-child(1){animation-delay:0.4s} .stat-card:nth-child(2){animation-delay:0.5s} .stat-card:nth-child(3){animation-delay:0.6s} .stat-card:nth-child(4){animation-delay:0.7s}
-            .feature-card { animation:fadeUp 0.6s ease both; transition:transform 0.2s,box-shadow 0.2s; }
-            .feature-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(26,63,168,0.12); }
-            .feature-card:nth-child(1){animation-delay:0.1s} .feature-card:nth-child(2){animation-delay:0.2s} .feature-card:nth-child(3){animation-delay:0.3s} .feature-card:nth-child(4){animation-delay:0.4s} .feature-card:nth-child(5){animation-delay:0.5s} .feature-card:nth-child(6){animation-delay:0.6s}
-            .float-icon { animation:float 3s ease-in-out infinite; display:inline-block; }
-            .hero-btn-primary { transition:transform 0.15s,background 0.15s; } .hero-btn-primary:hover { transform:scale(1.03); background:#4840a0 !important; }
-            .hero-btn-outline { transition:transform 0.15s,background 0.15s; } .hero-btn-outline:hover { transform:scale(1.03); background:var(--color-background-secondary) !important; }
-            .step-item { animation:slideIn 0.6s ease both; }
-            .step-item:nth-child(1){animation-delay:0.1s} .step-item:nth-child(2){animation-delay:0.25s} .step-item:nth-child(3){animation-delay:0.4s} .step-item:nth-child(4){animation-delay:0.55s}
-            .shimmer-text { background:linear-gradient(90deg,#1A3FA8,#FF4500,#1A3FA8); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation:shimmer 3s linear infinite; }
-            .orb1 { animation:orb1 12s ease-in-out infinite; } .orb2 { animation:orb2 15s ease-in-out infinite; } .orb3 { animation:orb3 10s ease-in-out infinite; }
-            .particle { animation:particle linear infinite; position:absolute; bottom:-10px; border-radius:50%; }
-            .particle:nth-child(1){left:10%;animation-duration:8s;width:6px;height:6px}
-            .particle:nth-child(2){left:20%;animation-duration:10s;animation-delay:1s;width:4px;height:4px}
-            .particle:nth-child(3){left:35%;animation-duration:7s;animation-delay:2s;width:5px;height:5px}
-            .particle:nth-child(4){left:50%;animation-duration:11s;animation-delay:0.5s;width:3px;height:3px}
-            .particle:nth-child(5){left:65%;animation-duration:9s;animation-delay:1.5s;width:6px;height:6px}
-            .particle:nth-child(6){left:75%;animation-duration:12s;animation-delay:3s;width:4px;height:4px}
-            .particle:nth-child(7){left:85%;animation-duration:8s;animation-delay:2.5s;width:5px;height:5px}
-            .particle:nth-child(8){left:90%;animation-duration:10s;animation-delay:4s}
-            .particle:nth-child(9){left:25%;animation-duration:9s;animation-delay:3.5s}
-            .particle:nth-child(10){left:55%;animation-duration:12s;animation-delay:1s}
-            .particle:nth-child(11){left:70%;animation-duration:8s;animation-delay:2s}
-            .particle:nth-child(12){left:45%;animation-duration:11s;animation-delay:5s}
-          `}</style>
-
-          <div style={{ position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-              <div className="orb1" style={{ position: "absolute", top: "5%", left: "10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,63,168,0.22) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb1 12s ease-in-out infinite, orbPulse 4s ease-in-out infinite" }} />
-              <div className="orb2" style={{ position: "absolute", top: "10%", right: "5%", width: "350px", height: "350px", borderRadius: "50%", background: "radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb2 15s ease-in-out infinite, orbPulse 6s ease-in-out 2s infinite" }} />
-              <div className="orb3" style={{ position: "absolute", bottom: "5%", left: "40%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,63,168,0.1) 0%, transparent 70%)", filter: "blur(50px)" }} />
-              <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(26,63,168,1) 1px,transparent 1px),linear-gradient(90deg,rgba(26,63,168,1) 1px,transparent 1px)", backgroundSize: "60px 60px", opacity: 0.04 }} />
-              <div style={{ position: "absolute", inset: 0 }}>
-                {[...Array(12)].map((_, i) => <div key={i} className="particle" style={{ background: i % 3 === 0 ? "rgba(26,63,168,0.6)" : i % 3 === 1 ? "rgba(29,158,117,0.6)" : "rgba(255,69,0,0.4)", width: (4 + (i % 4)) + "px", height: (4 + (i % 4)) + "px" }} />)}
-              </div>
-            </div>
-
-            <div style={{ padding: "5rem 1.5rem 4rem", textAlign: "center", maxWidth: "760px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-              <div className="hero-badge" style={{ ...S.tag("purple"), marginBottom: "1.25rem", fontSize: "13px" }}>🚀 AI-Powered Education & Career Platform</div>
-              <h1 className="hero-title" style={{ fontSize: "clamp(2.2rem,5vw,3.4rem)", fontWeight: 500, lineHeight: 1.15, margin: "0 0 1.25rem" }}>
-                Your AI Mentor for<br /><span className="shimmer-text">Education & UK Careers</span>
-              </h1>
-              <p className="hero-sub" style={{ fontSize: "1.1rem", color: "var(--color-text-secondary)", lineHeight: 1.8, margin: "0 0 2.25rem", maxWidth: "560px", marginLeft: "auto", marginRight: "auto" }}>
-                Mentorgram guides students from education to employment across the UK, Australia, Germany, Finland and Austria — with AI mentoring, university pathways, and visa-sponsored job opportunities.
-              </p>
-              <div className="hero-btns" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-                <button className="hero-btn-primary" style={S.btnPrimary} onClick={() => navTo("AI Mentor")}>Chat with AI Mentor</button>
-                <button className="hero-btn-outline" style={S.btnOutline} onClick={() => navTo("Sponsorship Jobs")}>Browse Jobs</button>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1rem", margin: "3rem 0 0" }}>
-                {[{n:"5",target:5,label:"Countries Covered",icon:"🌍",suffix:""},{n:"Free",target:null,label:"To Use",icon:"✨",suffix:""},{n:"500+",target:500,label:"Visa Sponsors",icon:"🏢",suffix:"+"},{n:"15,000+",target:15000,label:"Live Jobs",icon:"💼",suffix:"+"}].map((s,idx) => (
-                  <div key={s.label} className="stat-card"
-                    style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1.25rem 1rem", textAlign: "center", border: "0.5px solid var(--color-border-tertiary)", cursor: "default" }}
-                    ref={el => {
-                      if (!el || !s.target || el._counted) return;
-                      el._counted = true;
-                      const obs = new IntersectionObserver(entries => {
-                        if (!entries[0].isIntersecting) return;
-                        obs.disconnect();
-                        const display = el.querySelector(".stat-num");
-                        if (!display) return;
-                        const duration = 1800;
-                        const start = performance.now();
-                        function tick(now) {
-                          const p = Math.min((now - start) / duration, 1);
-                          const ease = 1 - Math.pow(1 - p, 3);
-                          const val = Math.round(ease * s.target);
-                          display.textContent = val >= 1000 ? (val >= 10000 ? Math.round(val/1000) + "k" : val.toLocaleString()) + s.suffix : val + s.suffix;
-                          if (p < 1) requestAnimationFrame(tick);
-                          else display.textContent = s.n;
-                        }
-                        requestAnimationFrame(tick);
-                      }, { threshold: 0.3 });
-                      obs.observe(el);
-                    }}>
-                    <div style={{ fontSize: "22px", marginBottom: "6px" }}>{s.icon}</div>
-                    <p className="stat-num" style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px" }}>{s.n}</p>
-                    <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ background: "var(--color-background-primary)", borderTop: "0.5px solid var(--color-border-tertiary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "3rem 1.5rem" }}>
-            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-              <h2 style={{ ...S.sectionTitle, textAlign: "center", marginBottom: "0.5rem" }}>How Mentorgram works</h2>
-              <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "2.5rem" }}>Four simple steps from student to UK career</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: "1rem" }}>
-                {[{ step:"01",icon:"🗺️",title:"Choose your pathway",desc:"Tell us your education background and career goals." },{ step:"02",icon:"🤖",title:"Get AI guidance",desc:"Your personal AI mentor creates a tailored plan." },{ step:"03",icon:"🎓",title:"Apply to UK universities",desc:"Navigate UCAS with expert step-by-step support." },{ step:"04",icon:"💼",title:"Land a sponsored job",desc:"Find UK employers who will sponsor your visa." }].map(s => (
-                  <div key={s.step} className="step-item" style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "1.25rem", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", border: "0.5px solid var(--color-border-tertiary)" }}>
-                    <div style={{ minWidth: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "13px", fontWeight: 500 }}>{s.step}</div>
-                    <div>
-                      <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "15px" }}>{s.title}</p>
-                      <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ padding: "3rem 1.5rem" }}>
-            <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-              <h2 style={{ ...S.sectionTitle, textAlign: "center", marginBottom: "0.5rem" }}>Everything you need to succeed</h2>
-              <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "2.5rem" }}>From subject selection to landing your first UK job.</p>
-              <div style={S.grid3}>
-                {FEATURES.map(f => (
-                  <div key={f.title} className="feature-card" style={S.card}>
-                    <div className="float-icon" style={{ fontSize: "28px", marginBottom: "12px" }}>{f.icon}</div>
-                    <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "15px" }}>{f.title}</p>
-                    <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0, lineHeight: 1.6 }}>{f.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Premium banner */}
-          <div style={{ padding: "3rem 1.5rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-primary)" }}>
-            <div style={{ maxWidth: "700px", margin: "0 auto", background: "linear-gradient(135deg, #1A3FA8, #0d2478)", borderRadius: "var(--border-radius-lg)", padding: "2.5rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(255,69,0,0.15)", filter: "blur(40px)" }} />
-              <div style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ display: "inline-block", padding: "3px 14px", borderRadius: "20px", background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "1rem" }}>⭐ Premium</div>
-                <h2 style={{ fontSize: "1.6rem", fontWeight: 700, color: "#fff", margin: "0 0 0.75rem", lineHeight: 1.3 }}>Get 5 visa jobs delivered to your phone every Friday</h2>
-                <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.75)", margin: "0 0 1.5rem", lineHeight: 1.7 }}>Join our premium Telegram channel — curated sponsorship jobs matched to your profile, delivered weekly.</p>
-                <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-                  <a href="https://buy.stripe.com/4gM14o1jZ0EJgVp3gh0RG00" target="_blank" rel="noopener noreferrer"
-                    style={{ padding: "12px 28px", borderRadius: "var(--border-radius-md)", background: "#FF4500", color: "#fff", fontSize: "15px", fontWeight: 700, textDecoration: "none" }}>
-                    Join for £6.99/month →
-                  </a>
-                  <button onClick={() => navTo("Premium")}
-                    style={{ padding: "12px 20px", borderRadius: "var(--border-radius-md)", background: "rgba(255,255,255,0.1)", color: "#fff", border: "0.5px solid rgba(255,255,255,0.3)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
-                    Learn more
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ padding: "4rem 1.5rem", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-            <div style={{ maxWidth: "540px", margin: "0 auto", textAlign: "center" }}>
-              <h2 style={S.sectionTitle}>Join the waitlist</h2>
-              <p style={S.sectionSub}>Be among the first to access Mentorgram's full platform.</p>
-              {waitlistDone ? (
-                <div style={{ ...S.card, background: "rgba(255,69,0,0.1)", border: "0.5px solid rgba(255,69,0,0.3)" }}><p style={{ color: "#FF4500", fontWeight: 500, margin: 0 }}>🎉 You're on the list! We'll be in touch soon.</p></div>
-              ) : (
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <input style={{ ...S.input, flex: 1 }} type="email" placeholder="Enter your email address" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && waitlistEmail && setWaitlistDone(true)} />
-                  <button style={S.btnPrimary} onClick={() => waitlistEmail && setWaitlistDone(true)}>Join</button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-
-      case "AI Mentor": return (
-        <div style={{ maxWidth: "780px", margin: "0 auto", padding: "1rem" }}>
-          {!user ? (
-            <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
-              <p style={{ fontSize: "48px" }}>🤖</p>
-              <h2 style={{ margin: "0 0 1rem" }}>AI Mentor</h2>
-              <p style={{ color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>Sign in to chat with your AI Mentor for free.</p>
-              <button onClick={() => { localStorage.setItem("mg_return_page", "AI Mentor"); navTo("My Profile"); }}
-                style={{ padding: "12px 28px", background: "#1A3FA8", color: "#fff", border: "none", borderRadius: "8px", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-                Sign in — it is free
-              </button>
-            </div>
-          ) : (
-            <AIMentorChat user={user} />
-          )}
-        </div>
-      );
-      case "Education Paths": return (
-        <div style={S.section}>
-          <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>Education pathways</h2>
-          <p style={{ ...S.sectionSub, textAlign: "center" }}>Supporting students from all major education systems worldwide.</p>
-          <div style={S.grid2}>
-            {EDUCATION_SYSTEMS.map(e => (
-              <div key={e.country} style={S.card}>
-                <p style={{ fontWeight: 500, margin: "0 0 10px", fontSize: "15px" }}>{e.country}</p>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>{e.systems.map(sys => <span key={sys} style={S.tag("purple")}>{sys}</span>)}</div>
-                <button style={{ ...S.btnOutline, marginTop: "12px", padding: "8px 16px", fontSize: "13px" }} onClick={() => { setChatInput(`Tell me about ${e.systems[0]} and UK university pathways`); navTo("AI Mentor"); }}>Get guidance ↗</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-
-      // ✅ UPDATED: Universities page now includes German universities section with tab switcher
-      case "Universities": return (
-        <UniversitiesPage setChatInput={setChatInput} navTo={navTo} user={user} />
-      );
-
-      case "Sponsorship Jobs": return selectedJob ? (
-        <JobDetailPage job={selectedJob} onBack={() => { setSelectedJob(null); window.location.hash = ""; }} onAskMentor={(msg) => { setChatInput(msg); setSelectedJob(null); navTo("AI Mentor"); }} />
-      ) : (
-        <JobsPage allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt} onFetchJobs={fetchJobs}
-          onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }}
-          profileFilter={profileFilter} onClearProfileFilter={() => setProfileFilter(null)} />
-      );
-
-      case "CV Generator": return (
-        <CVGenerator
-          user={user}
-          cvText=""
-          onNavigateToCV={() => { localStorage.setItem("mg_return_page", "CV Generator"); navTo("My Profile"); }}
-          onSignIn={() => {
-            // ✅ Fix 2: store return page so after sign-in they come back here
-            localStorage.setItem("mg_return_page", "CV Generator");
-            navTo("My Profile");
-          }}
-        />
-      );
-
-      case "Premium": return <PremiumPage navTo={navTo} user={user} />;
-      case "Premium Success": return <PremiumSuccessPage navTo={navTo} user={user} />;
-      case "Contact": return <ContactPage />;
-      case "Visa Sponsors": return <SponsorsPage />;
-      case "Privacy Policy": return <PrivacyPage />;
-      case "Terms & Conditions": return <TermsPage />;
-      case "Guide": return <GuidePage navTo={navTo} />;
-
-      case "My Profile": return user ? (
-        <Dashboard
-          user={user}
-          allJobs={allJobs}
-          onLogout={() => { setUser(null); navTo("Home"); }}
-          onFilterByProfile={(filter) => setProfileFilter(filter)}
-          onNavigate={navTo}
-        />
-      ) : (
-        <AuthPage onLogin={(u) => {
-              setUser(u);
-              // ✅ Fix 2: return to the page they were trying to access
-              const returnPage = localStorage.getItem("mg_return_page");
-              if (returnPage) { localStorage.removeItem("mg_return_page"); setTimeout(() => navTo(returnPage), 100); }
-            }} onNavToHome={() => navTo("Home")} />
-      );
-
-      default: return null;
-    }
-  }
-
-  return (
-    <div style={S.wrap}>
-      <style>{`
-        @media (max-width: 768px) { .desktop-nav { display:none !important; } .hamburger-btn { display:flex !important; } }
-        @media (min-width: 769px) { .mobile-menu { display:none !important; } .hamburger-btn { display:none !important; } .desktop-nav { display:flex !important; } }
-      `}</style>
-      <nav style={{ background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer" }} onClick={() => navTo("Home")}>
-          <img src="/logo.png" alt="Mentorgram" style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "22%", display: "block" }} />
-          <span style={{ fontSize: "17px", fontWeight: 600, color: "var(--color-text-primary)", letterSpacing: "-0.01em" }}>Mentorgram</span>
-        </div>
-        <div className="desktop-nav" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-          {NAV_LINKS.filter(l => l !== "My Profile").map(l => {
-            const isDisabled = false;
-            return (
-              <button key={l} className="nav-btn"
-                style={{ padding: "6px 12px", borderRadius: "var(--border-radius-md)", cursor: isDisabled ? "default" : "pointer", fontSize: "14px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: isDisabled ? "var(--color-border-secondary)" : activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", opacity: isDisabled ? 0.45 : 1 }}
-                onClick={() => !isDisabled && navTo(l)}
-                title={isDisabled ? "Coming soon" : ""}
-              >
-                {l}
-              </button>
-            );
-          })}
-          {user ? (
-            <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "34px", height: "34px", borderRadius: "50%", background: activePage === "My Profile" ? "#1A3FA8" : "linear-gradient(135deg,#1A3FA8,#FF4500)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
-              {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
-            </button>
-          ) : (
-            <button onClick={() => navTo("My Profile")} style={{ padding: "6px 16px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Sign in</button>
-          )}
-        </div>
-        <button className="hamburger-btn" style={{ display: "none", flexDirection: "column", gap: "5px", cursor: "pointer", padding: "8px", border: "none", background: "transparent" }} onClick={() => setMobileMenu(m => !m)}>
-          <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(45deg) translate(5px,5px)" : "none" }} />
-          <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", opacity: mobileMenu ? 0 : 1, transition: "opacity 0.2s" }} />
-          <span style={{ width: "22px", height: "2px", background: "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
-        </button>
-      </nav>
-      <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
-        {NAV_LINKS.filter(l => l !== "My Profile").map(l => {
-          const isDisabled = false;
-          return (
-            <button key={l}
-              style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: isDisabled ? "default" : "pointer", fontSize: "15px", background: activePage === l ? "var(--color-background-secondary)" : "transparent", color: isDisabled ? "var(--color-border-secondary)" : activePage === l ? "var(--color-text-primary)" : "var(--color-text-secondary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: activePage === l ? 500 : 400, opacity: isDisabled ? 0.5 : 1 }}
-              onClick={() => !isDisabled && navTo(l)}
-            >
-              {l}
-            </button>
-          );
-        })}
-        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", marginTop: "4px", paddingTop: "8px" }}>
-          {user ? (
-            <button onClick={() => { navTo("My Profile"); setMobileMenu(false); }}
-              style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: activePage === "My Profile" ? "var(--color-background-secondary)" : "transparent", color: "var(--color-text-primary)", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: 500, display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: "12px", flexShrink: 0 }}>
-                {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
-              </div>
-              My Dashboard
-            </button>
-          ) : (
-            <button onClick={() => { navTo("My Profile"); setMobileMenu(false); }}
-              style={{ padding: "12px 14px", borderRadius: "var(--border-radius-md)", cursor: "pointer", fontSize: "15px", background: "#1A3FA8", color: "#fff", border: "none", fontFamily: "inherit", textAlign: "left", width: "100%", fontWeight: 500 }}>
-              Sign In / Register
-            </button>
-          )}
-        </div>
-      </div>
-      <main onClick={() => mobileMenu && setMobileMenu(false)} style={{ paddingBottom: cookieConsent ? 0 : "80px" }}>
-        <style>{`
-          @keyframes pageIn { from { opacity: 0; transform: translateY(16px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
-          @keyframes pageOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-10px) scale(0.99); } }
-          @keyframes jobCardPop { 0% { transform: scale(1); } 40% { transform: scale(0.97); } 70% { transform: scale(1.02); } 100% { transform: scale(1); } }
-          .page-enter { animation: pageIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards; }
-          .page-exit { animation: pageOut 0.22s ease forwards; }
-          .job-card-click { animation: jobCardPop 0.35s ease forwards; }
-          .nav-btn { transition: all 0.15s ease; }
-          .nav-btn:hover { transform: translateY(-1px); }
-        `}</style>
-        <div className={pageTransition ? "page-exit" : "page-enter"} key={activePage}>
-          {renderPage()}
-        </div>
-      </main>
-      <footer style={S.footer}>
-        <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginBottom: "14px" }}>
-          <a href="https://www.linkedin.com/company/mentorgramai" target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-text-secondary)", textDecoration: "none", fontSize: "13px", fontWeight: 500, transition: "color 0.15s" }}
-            onMouseEnter={e => e.currentTarget.style.color = "#0A66C2"}
-            onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-            LinkedIn
-          </a>
-          <a href="https://www.instagram.com/mentorgramai" target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-text-secondary)", textDecoration: "none", fontSize: "13px", fontWeight: 500, transition: "color 0.15s" }}
-            onMouseEnter={e => e.currentTarget.style.color = "#E1306C"}
-            onMouseLeave={e => e.currentTarget.style.color = "var(--color-text-secondary)"}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-            Instagram
-          </a>
-        </div>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: 0 }}>© 2026 Mentorgram AI · <span style={{ textDecoration: "none" }}>info@mentorgramai.com</span> · mentorgramai.com</p>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: "6px 0 0" }}>Guiding students to study, work and thrive in 🇬🇧 UK · 🇦🇺 Australia · 🇩🇪 Germany · 🇫🇮 Finland · 🇦🇹 Austria</p>
-        <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "1rem", flexWrap: "wrap" }}>
-          {["Privacy Policy", "Terms & Conditions", "Contact"].map(l => (
-            <button key={l} onClick={() => navTo(l)} style={{ background: "none", border: "none", color: "var(--color-text-secondary)", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>{l}</button>
-          ))}
-        </div>
-      </footer>
-
-      {!cookieConsent && (
-        <CookieBanner
-          onAccept={() => { localStorage.setItem("mg_cookies", "all"); setCookieConsent("all"); }}
-          onReject={() => { localStorage.setItem("mg_cookies", "essential"); setCookieConsent("essential"); }}
-        />
       )}
     </div>
   );
