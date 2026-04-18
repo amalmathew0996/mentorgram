@@ -2566,7 +2566,7 @@ export default function Mentorgram() {
         <Dashboard
           user={user}
           allJobs={allJobs}
-          onLogout={() => { setUser(null); navTo("Home"); }}
+          onLogout={() => { setUser(null); setActivePage("My Profile"); }}
           onFilterByProfile={(filter) => setProfileFilter(filter)}
           onNavigate={navTo}
         />
