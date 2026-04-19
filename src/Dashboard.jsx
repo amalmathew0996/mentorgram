@@ -300,6 +300,15 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   // Saved jobs
   const [savedJobs, setSavedJobs] = useState(() => { try { return JSON.parse(localStorage.getItem("mg_saved_jobs") || "[]"); } catch { return []; } });
 
+  // PhD Finder state — live feed from jobs.ac.uk
+  const [phds, setPhds] = useState([]);
+  const [phdsLoading, setPhdsLoading] = useState(false);
+  const [phdsError, setPhdsError] = useState("");
+  const [phdSearch, setPhdSearch] = useState("");
+  const [phdCountry, setPhdCountry] = useState("all");
+  const [phdFunding, setPhdFunding] = useState("all");
+  const [phdCached, setPhdCached] = useState(false);
+
   // Telegram
   const [telegramConnected, setTelegramConnected] = useState(false);
 
@@ -351,6 +360,25 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   }, [allJobs]);
 
   const jobs = (allJobs && allJobs.length > 0) ? allJobs : localJobs;
+
+  // Fetch live PhD feed the first time the user opens the PhD tab
+  useEffect(() => {
+    if (view !== "phd") return;
+    if (phds.length > 0 || phdsLoading) return; // already have data
+    setPhdsLoading(true); setPhdsError("");
+    fetch("/api/phd-feed")
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok && Array.isArray(d.items)) {
+          setPhds(d.items);
+          setPhdCached(!!d.cached);
+        } else {
+          setPhdsError(d.error || "Could not load PhD listings.");
+        }
+      })
+      .catch(err => setPhdsError("Network error: " + err.message))
+      .finally(() => setPhdsLoading(false));
+  }, [view]);
 
   // ── Application CRUD ──
   async function loadApplications() {
@@ -1450,67 +1478,151 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         )}
 
         {/* ═══════════════ PhD FINDER ═══════════════ */}
-        {view === "phd" && (
-          <div>
-            <div style={{ marginBottom: "20px" }}>
-              <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>PhD Finder</h1>
-              <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Find funded and non-funded PhD positions in UK and Germany</p>
-            </div>
+        {view === "phd" && (() => {
+          // Apply live filters
+          const phdFiltered = phds.filter(p => {
+            if (phdCountry !== "all") {
+              if (phdCountry === "uk" && p.country !== "UK") return false;
+              if (phdCountry === "de" && p.country !== "Germany") return false;
+              if (phdCountry === "other" && (p.country === "UK" || p.country === "Germany")) return false;
+            }
+            if (phdFunding === "funded" && !p.funded) return false;
+            if (phdFunding === "unfunded" && p.funded) return false;
+            if (phdSearch.trim()) {
+              const q = phdSearch.toLowerCase();
+              const hay = `${p.title} ${p.uni} ${p.department || ""} ${p.field || ""}`.toLowerCase();
+              if (!hay.includes(q)) return false;
+            }
+            return true;
+          });
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[
-                { title: "PhD in Machine Learning and Computer Vision", uni: "University of Edinburgh", country: "UK", funded: true, deadline: "2025-05-30", field: "Computer Science", stipend: "£19,668/year", url: "https://www.findaphd.com" },
-                { title: "PhD in Computational Neuroscience", uni: "University College London", country: "UK", funded: true, deadline: "2025-06-15", field: "Neuroscience", stipend: "£21,000/year", url: "https://www.findaphd.com" },
-                { title: "PhD in Artificial Intelligence", uni: "Technical University of Munich", country: "Germany", funded: true, deadline: "2025-07-01", field: "AI", stipend: "€2,000/month", url: "https://www.academics.de" },
-                { title: "PhD in Data Science and Analytics", uni: "University of Manchester", country: "UK", funded: false, deadline: "2025-05-01", field: "Data Science", stipend: "Self-funded", url: "https://www.findaphd.com" },
-                { title: "PhD in Robotics and Autonomous Systems", uni: "Imperial College London", country: "UK", funded: true, deadline: "2025-06-30", field: "Engineering", stipend: "£22,000/year", url: "https://www.findaphd.com" },
-                { title: "PhD in Sustainable Energy Systems", uni: "RWTH Aachen University", country: "Germany", funded: true, deadline: "2025-08-01", field: "Engineering", stipend: "€2,200/month", url: "https://www.academics.de" },
-                { title: "PhD in Biomedical Engineering", uni: "University of Cambridge", country: "UK", funded: true, deadline: "2025-05-15", field: "Medicine", stipend: "£20,500/year", url: "https://www.findaphd.com" },
-                { title: "PhD in Climate Science", uni: "Heidelberg University", country: "Germany", funded: false, deadline: "2025-09-01", field: "Environmental Science", stipend: "Self-funded", url: "https://www.academics.de" },
-              ].map((p, i) => (
-                <div key={i} style={{ ...card, padding: "0", overflow: "hidden" }}>
-                  <div style={{ padding: "12px 16px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "4px" }}>
-                      <p style={{ fontWeight: 500, margin: 0, fontSize: "13px" }}>{p.title}</p>
-                      <span style={{ padding: "3px 10px", borderRadius: "14px", fontSize: "10px", fontWeight: 600, whiteSpace: "nowrap",
-                        background: p.funded ? "rgba(34,197,94,0.1)" : "rgba(226,75,74,0.1)", color: p.funded ? T.green : T.red }}>
-                        {p.funded ? "✓ Funded" : "Self-funded"}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 6px" }}>{p.uni} · {p.country === "UK" ? "🇬🇧" : "🇩🇪"} {p.country}</p>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", fontSize: "11px" }}>
-                      <span style={{ padding: "2px 8px", borderRadius: "12px", background: T.accentBg, color: T.accent, fontWeight: 500 }}>{p.field}</span>
-                      <span style={{ color: T.green, fontWeight: 500 }}>{p.stipend}</span>
-                      <span style={{ color: T.amber }}>Deadline: {new Date(p.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "8px", padding: "8px 16px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
-                    <a href={p.url} target="_blank" rel="noopener noreferrer"
-                      style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", fontWeight: 500, textAlign: "center", textDecoration: "none" }}>
-                      View Position ↗
-                    </a>
-                    <button onClick={async () => { const r = await saveApplication({ title: p.title, company: p.uni, url: p.url, type: "PhD", status: "Want to apply", notes: p.funded ? "Funded · " + p.stipend : "Self-funded", deadline: p.deadline, location: p.country, reminder_days: 7 }); if (r) alert("Saved to Applications ✓"); }}
-                      style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>
-                      + Track
-                    </button>
-                  </div>
+          return (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
+                <div>
+                  <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>PhD Finder</h1>
+                  <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>
+                    {phdsLoading ? "Loading latest PhD opportunities..." :
+                     phds.length > 0 ? `${phdFiltered.length} of ${phds.length} PhD positions · Live from jobs.ac.uk` :
+                     "Live PhD opportunities from UK universities"}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <button onClick={() => { setPhds([]); setPhdsLoading(false); setTimeout(() => setView("phd"), 10); }}
+                  disabled={phdsLoading}
+                  style={{ ...btnGhost, fontSize: "12px", padding: "7px 14px", opacity: phdsLoading ? 0.5 : 1 }}>
+                  {phdsLoading ? "Loading..." : "↻ Refresh"}
+                </button>
+              </div>
 
-            <div style={{ textAlign: "center", marginTop: "20px" }}>
-              <p style={{ fontSize: "12px", color: T.mute, marginBottom: "10px" }}>Find more PhD positions on these platforms:</p>
-              <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
-                {[["FindAPhD.com (UK)", "https://www.findaphd.com"], ["Academics.de (Germany)", "https://www.academics.de"], ["DAAD Portal", "https://www.daad.de/en/study-and-research-in-germany/phd-studies-and-research/"], ["jobs.ac.uk", "https://www.jobs.ac.uk/phd"]].map(([name, url]) => (
-                  <a key={name} href={url} target="_blank" rel="noopener noreferrer"
-                    style={{ padding: "6px 12px", borderRadius: "6px", border: `1px solid ${T.line}`, fontSize: "11px", color: T.accent, textDecoration: "none" }}>
-                    {name} ↗
-                  </a>
-                ))}
+              {/* Filters */}
+              <div style={{ ...card, marginBottom: "14px", padding: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "8px" }}>
+                  <input style={{ ...inp, fontSize: "12px" }} placeholder="🔍 Search by field, topic, university..."
+                    value={phdSearch} onChange={e => setPhdSearch(e.target.value)} />
+                  <select style={{ ...inp, fontSize: "12px" }} value={phdCountry} onChange={e => setPhdCountry(e.target.value)}>
+                    <option value="all">All countries</option>
+                    <option value="uk">🇬🇧 UK only</option>
+                    <option value="de">🇩🇪 Germany only</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <select style={{ ...inp, fontSize: "12px" }} value={phdFunding} onChange={e => setPhdFunding(e.target.value)}>
+                    <option value="all">All funding</option>
+                    <option value="funded">Funded only</option>
+                    <option value="unfunded">Self-funded</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Loading */}
+              {phdsLoading && (
+                <div style={{ ...panelCard, textAlign: "center", padding: "3rem 2rem" }}>
+                  <div style={{ width: "28px", height: "28px", border: `3px solid ${T.line}`, borderTopColor: T.accent, borderRadius: "50%", animation: "mgSpin 0.9s linear infinite", margin: "0 auto 14px" }} />
+                  <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Fetching latest PhD listings...</p>
+                </div>
+              )}
+
+              {/* Error */}
+              {phdsError && !phdsLoading && (
+                <div style={{ ...panelCard, textAlign: "center", padding: "2rem", borderColor: T.red + "55" }}>
+                  <p style={{ fontSize: "13px", color: T.red, margin: "0 0 10px" }}>⚠️ {phdsError}</p>
+                  <button onClick={() => { setPhds([]); setTimeout(() => setView("phd"), 10); }} style={btnGhost}>Try again</button>
+                </div>
+              )}
+
+              {/* Results */}
+              {!phdsLoading && !phdsError && phdFiltered.length === 0 && phds.length > 0 && (
+                <div style={{ ...panelCard, textAlign: "center", padding: "2rem" }}>
+                  <p style={{ fontSize: "13px", color: T.mute, margin: "0 0 10px" }}>No matches for your filters.</p>
+                  <button onClick={() => { setPhdSearch(""); setPhdCountry("all"); setPhdFunding("all"); }} style={btnGhost}>Clear filters</button>
+                </div>
+              )}
+
+              {!phdsLoading && phdFiltered.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {phdFiltered.map((p, i) => (
+                    <div key={p.url || i} style={{ ...card, padding: "0", overflow: "hidden" }}>
+                      <div style={{ padding: "12px 16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "4px" }}>
+                          <p style={{ fontWeight: 500, margin: 0, fontSize: "13px", lineHeight: 1.4 }}>{p.title}</p>
+                          <span style={{ padding: "3px 10px", borderRadius: "14px", fontSize: "10px", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0,
+                            background: p.funded ? "rgba(34,197,94,0.12)" : "rgba(245,158,11,0.12)",
+                            color: p.funded ? T.green : T.amber }}>
+                            {p.funded ? "✓ Funded" : "Self-funded"}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 6px" }}>
+                          {p.uni}{p.department ? " · " + p.department : ""} · {p.country === "UK" ? "🇬🇧" : p.country === "Germany" ? "🇩🇪" : p.country === "USA" ? "🇺🇸" : p.country === "Netherlands" ? "🇳🇱" : p.country === "China" ? "🇨🇳" : p.country === "France" ? "🇫🇷" : "🌍"} {p.country}
+                        </p>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", fontSize: "11px" }}>
+                          {p.field && <span style={{ padding: "2px 8px", borderRadius: "12px", background: T.accentBg, color: T.accent, fontWeight: 500 }}>{p.field}</span>}
+                          {p.stipend && <span style={{ color: T.green, fontWeight: 500 }}>{p.stipend}</span>}
+                          {p.pubDate && <span style={{ color: T.dim }}>Posted: {new Date(p.pubDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", padding: "8px 16px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
+                        <a href={p.url} target="_blank" rel="noopener noreferrer"
+                          style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", fontWeight: 500, textAlign: "center", textDecoration: "none" }}>
+                          View Position ↗
+                        </a>
+                        <button onClick={async () => {
+                          const r = await saveApplication({
+                            title: p.title,
+                            company: p.uni,
+                            url: p.url,
+                            type: "PhD",
+                            status: "Want to apply",
+                            notes: p.funded ? "Funded · " + p.stipend : ("Self-funded · " + (p.stipend || "")),
+                            deadline: "",
+                            location: p.country,
+                            reminder_days: 7,
+                          });
+                          if (r) alert("Saved to Applications ✓");
+                        }}
+                          style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>
+                          + Track
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ textAlign: "center", marginTop: "20px" }}>
+                <p style={{ fontSize: "12px", color: T.mute, marginBottom: "10px" }}>
+                  {phdCached ? "Results cached from the last fetch. Click Refresh for the latest." : "Want more PhD positions? Try these sites directly:"}
+                </p>
+                <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
+                  {[["FindAPhD.com", "https://www.findaphd.com"], ["Academics.de (Germany)", "https://www.academics.de"], ["DAAD Portal", "https://www.daad.de/en/study-and-research-in-germany/phd-studies-and-research/"], ["jobs.ac.uk", "https://www.jobs.ac.uk/phd"]].map(([name, url]) => (
+                    <a key={name} href={url} target="_blank" rel="noopener noreferrer"
+                      style={{ padding: "6px 12px", borderRadius: "6px", border: `1px solid ${T.line}`, fontSize: "11px", color: T.accent, textDecoration: "none" }}>
+                      {name} ↗
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ═══════════════ SAVED JOBS ═══════════════ */}
         {view === "saved" && (
