@@ -1,5 +1,5 @@
 import CVGenerator from "./CVGenerator.jsx";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -32,39 +32,63 @@ const SALARY_RANGES = ["Any", "£20,000+", "£30,000+", "£40,000+", "£50,000+"
 const VISA_OPTIONS = ["I need visa sponsorship", "I have the right to work in the UK", "Either is fine"];
 
 // ── Design tokens (electric blue + dark UI) ──
-const T = {
-  bg:      "#0A0A12",
-  sidebar: "#0F0F1A",
-  surf:    "#14141E",
-  surf2:   "#1B1B28",
-  line:    "#24243A",
-  line2:   "#33334A",
-  text:    "#ECECF1",
-  mute:    "#8989A5",
-  dim:     "#5C5C78",
-  accent:  "#3B82F6",
-  accentBg:"rgba(59,130,246,0.08)",
-  accentHi:"rgba(59,130,246,0.18)",
-  green:   "#22C55E",
-  purple:  "#A78BFA",
-  amber:   "#F59E0B",
-  red:     "#E24B4A",
-};
+// ── Theme factory: generate color tokens based on mode + accent ──
+function makeTheme(mode, accentKey) {
+  const accents = {
+    blue:   { c: "#3B82F6", rgb: "59,130,246" },
+    purple: { c: "#A78BFA", rgb: "167,139,250" },
+    green:  { c: "#22C55E", rgb: "34,197,94" },
+    coral:  { c: "#F97866", rgb: "249,120,102" },
+  };
+  const a = accents[accentKey] || accents.blue;
 
-// ── Reusable styles ──
-const card = { background: T.surf, border: `1px solid ${T.line}`, borderRadius: "10px", padding: "16px 18px" };
-const panelCard = { ...card, padding: "18px 22px" };
-const inp = { padding: "11px 13px", borderRadius: "8px", border: `1px solid ${T.line}`, background: T.surf, color: T.text, fontSize: "13px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box", transition: "border-color 0.2s, background 0.2s" };
-const inpFilled = { ...inp, borderColor: T.line2, background: T.surf2 };
-const inpEmpty  = { ...inp, borderStyle: "dashed" };
-const chip = (active) => ({
-  padding: "6px 12px", borderRadius: "16px", border: `1px solid ${active ? T.accent : T.line}`,
-  background: active ? T.accent : "transparent", color: active ? "#fff" : T.mute,
-  fontSize: "12px", fontWeight: active ? 500 : 400, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-});
-const btnPrimary = { padding: "10px 18px", background: T.accent, color: "#fff", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" };
-const btnGhost = { padding: "10px 18px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" };
-const lbl = { display: "block", fontSize: "11px", color: T.mute, marginBottom: "5px", fontWeight: 400 };
+  if (mode === "light") {
+    return {
+      mode: "light",
+      accentKey,
+      bg:      "#F7F8FA",
+      sidebar: "#FFFFFF",
+      surf:    "#FFFFFF",
+      surf2:   "#F3F4F8",
+      line:    "#E5E7EB",
+      line2:   "#D1D5DB",
+      text:    "#111827",
+      mute:    "#6B7280",
+      dim:     "#9CA3AF",
+      accent:  a.c,
+      accentBg:`rgba(${a.rgb},0.10)`,
+      accentHi:`rgba(${a.rgb},0.20)`,
+      green:   "#16A34A",
+      purple:  "#7C3AED",
+      amber:   "#D97706",
+      red:     "#DC2626",
+    };
+  }
+  // dark (default)
+  return {
+    mode: "dark",
+    accentKey,
+    bg:      "#0A0A12",
+    sidebar: "#0F0F1A",
+    surf:    "#14141E",
+    surf2:   "#1B1B28",
+    line:    "#24243A",
+    line2:   "#33334A",
+    text:    "#ECECF1",
+    mute:    "#8989A5",
+    dim:     "#5C5C78",
+    accent:  a.c,
+    accentBg:`rgba(${a.rgb},0.08)`,
+    accentHi:`rgba(${a.rgb},0.18)`,
+    green:   "#22C55E",
+    purple:  "#A78BFA",
+    amber:   "#F59E0B",
+    red:     "#E24B4A",
+  };
+}
+
+// Default export for module-level use (CV helpers etc.)
+const T = makeTheme("dark", "blue");
 
 // ── CV text extraction helpers ──
 async function loadScript(src) {
@@ -187,6 +211,34 @@ const ICONS = {
 // MAIN COMPONENT
 // ═════════════════════════════════════════════════════════════════
 export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, onNavigate }) {
+  // ── Theme state ──
+  const [themeMode, setThemeMode] = useState(() => { try { return localStorage.getItem("mg_theme_mode") || "dark"; } catch { return "dark"; } });
+  const [themeAccent, setThemeAccent] = useState(() => { try { return localStorage.getItem("mg_theme_accent") || "blue"; } catch { return "blue"; } });
+
+  // Local T shadows the module-level T — all existing T.xxx references resolve to this
+  // eslint-disable-next-line no-shadow
+  const T = useMemo(() => makeTheme(themeMode, themeAccent), [themeMode, themeAccent]);
+
+  // Persist theme changes
+  useEffect(() => {
+    try { localStorage.setItem("mg_theme_mode", themeMode); localStorage.setItem("mg_theme_accent", themeAccent); } catch {}
+  }, [themeMode, themeAccent]);
+
+  // ── Reusable styles (recomputed when T changes) ──
+  const card = useMemo(() => ({ background: T.surf, border: `1px solid ${T.line}`, borderRadius: "10px", padding: "16px 18px" }), [T]);
+  const panelCard = useMemo(() => ({ ...card, padding: "18px 22px" }), [card]);
+  const inp = useMemo(() => ({ padding: "11px 13px", borderRadius: "8px", border: `1px solid ${T.line}`, background: T.surf, color: T.text, fontSize: "13px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box", transition: "border-color 0.2s, background 0.2s" }), [T]);
+  const inpFilled = useMemo(() => ({ ...inp, borderColor: T.line2, background: T.surf2 }), [inp, T]);
+  const inpEmpty = useMemo(() => ({ ...inp, borderStyle: "dashed" }), [inp]);
+  const chip = (active) => ({
+    padding: "6px 12px", borderRadius: "16px", border: `1px solid ${active ? T.accent : T.line}`,
+    background: active ? T.accent : "transparent", color: active ? "#fff" : T.mute,
+    fontSize: "12px", fontWeight: active ? 500 : 400, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+  });
+  const btnPrimary = useMemo(() => ({ padding: "10px 18px", background: T.accent, color: "#fff", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" }), [T]);
+  const btnGhost = useMemo(() => ({ padding: "10px 18px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }), [T]);
+  const lbl = useMemo(() => ({ display: "block", fontSize: "11px", color: T.mute, marginBottom: "5px", fontWeight: 400 }), [T]);
+
   const [view, setView] = useState("dashboard");  // sidebar page: dashboard | profile | cv | matches | phd | tracker | saved | cvgen | interview | security
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile hamburger
   const [jobsSubOpen, setJobsSubOpen] = useState(true);
@@ -868,7 +920,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
               <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
                 {/* Section 1: Basics */}
-                <ProfileSection num={1} done={!!(fullName && jobTitle)} title="The basics">
+                <ProfileSection T={T} num={1} done={!!(fullName && jobTitle)} title="The basics">
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                     <div><label style={lbl}>Full name</label><input style={fullName ? inpFilled : inpEmpty} value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" /></div>
                     <div><label style={lbl}>Target role</label><input style={jobTitle ? inpFilled : inpEmpty} value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder="e.g. Software Engineer" /></div>
@@ -880,7 +932,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </ProfileSection>
 
                 {/* Section 2: Where and how */}
-                <ProfileSection num={2} done={!!(location && salary && salary !== "Any")} title="Where and how">
+                <ProfileSection T={T} num={2} done={!!(location && salary && salary !== "Any")} title="Where and how">
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "12px" }}>
                     <div><label style={lbl}>Preferred city</label><input style={location ? inpFilled : inpEmpty} value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. London" /></div>
                     <div><label style={lbl}>Min salary</label>
@@ -892,26 +944,26 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </ProfileSection>
 
                 {/* Section 3: Sectors */}
-                <ProfileSection num={3} done={sectors.length > 0} title="Your sectors" meta={sectors.length > 0 ? `${sectors.length} selected` : "Pick any"}>
+                <ProfileSection T={T} num={3} done={sectors.length > 0} title="Your sectors" meta={sectors.length > 0 ? `${sectors.length} selected` : "Pick any"}>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                     {SECTORS.map(s => <button key={s} style={chip(sectors.includes(s))} onClick={() => setSectors(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s])}>{s}</button>)}
                   </div>
                 </ProfileSection>
 
                 {/* Section 4: Experience */}
-                <ProfileSection num={4} done={!!experience} title="Experience level" meta="Pick one">
+                <ProfileSection T={T} num={4} done={!!experience} title="Experience level" meta="Pick one">
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                     {EXPERIENCE_LEVELS.map(lv => <button key={lv} style={chip(experience === lv)} onClick={() => setExperience(experience === lv ? "" : lv)}>{lv}</button>)}
                   </div>
                 </ProfileSection>
 
                 {/* Section 5: Skills */}
-                <ProfileSection num={5} done={!!skills} title="Skills">
+                <ProfileSection T={T} num={5} done={!!skills} title="Skills">
                   <input style={skills ? inpFilled : inpEmpty} value={skills} onChange={e => setSkills(e.target.value)} placeholder="e.g. Python, React, Project Management, NHS, IELTS 7.0" />
                 </ProfileSection>
 
                 {/* Section 6: Visa */}
-                <ProfileSection num={6} done={!!visaStatus} title="Visa preference">
+                <ProfileSection T={T} num={6} done={!!visaStatus} title="Visa preference">
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                     {VISA_OPTIONS.map(v => <button key={v} style={chip(visaStatus === v)} onClick={() => setVisaStatus(v)}>{v}</button>)}
                   </div>
@@ -1438,6 +1490,74 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             </div>
 
             <div style={{ display: "grid", gap: "12px" }}>
+
+              {/* ── APPEARANCE ── */}
+              <div style={panelCard}>
+                <h3 style={{ fontSize: "13px", margin: "0 0 4px", fontWeight: 500 }}>🎨 Appearance</h3>
+                <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 14px" }}>Customise your dashboard theme. Changes apply instantly.</p>
+
+                {/* Mode toggle */}
+                <div style={{ marginBottom: "16px" }}>
+                  <div style={{ fontSize: "11px", color: T.mute, marginBottom: "8px", fontWeight: 500, letterSpacing: "0.04em" }}>Mode</div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    {[
+                      { k: "dark",  label: "Dark",  icon: "🌙" },
+                      { k: "light", label: "Light", icon: "☀️" },
+                    ].map(m => (
+                      <button key={m.k} onClick={() => setThemeMode(m.k)}
+                        style={{
+                          flex: 1, padding: "11px 14px", borderRadius: "8px",
+                          border: `1.5px solid ${themeMode === m.k ? T.accent : T.line}`,
+                          background: themeMode === m.k ? T.accentBg : "transparent",
+                          color: themeMode === m.k ? T.accent : T.text,
+                          fontSize: "13px", fontWeight: themeMode === m.k ? 500 : 400,
+                          cursor: "pointer", fontFamily: "inherit",
+                          display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                          transition: "all 0.15s",
+                        }}>
+                        <span style={{ fontSize: "15px" }}>{m.icon}</span> {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Accent color */}
+                <div>
+                  <div style={{ fontSize: "11px", color: T.mute, marginBottom: "8px", fontWeight: 500, letterSpacing: "0.04em" }}>Accent colour</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+                    {[
+                      { k: "blue",   label: "Blue",   color: "#3B82F6" },
+                      { k: "purple", label: "Purple", color: "#A78BFA" },
+                      { k: "green",  label: "Green",  color: "#22C55E" },
+                      { k: "coral",  label: "Coral",  color: "#F97866" },
+                    ].map(a => (
+                      <button key={a.k} onClick={() => setThemeAccent(a.k)}
+                        style={{
+                          padding: "10px 8px", borderRadius: "8px",
+                          border: `1.5px solid ${themeAccent === a.k ? a.color : T.line}`,
+                          background: themeAccent === a.k ? `${a.color}15` : "transparent",
+                          color: T.text,
+                          fontSize: "12px", fontWeight: themeAccent === a.k ? 500 : 400,
+                          cursor: "pointer", fontFamily: "inherit",
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
+                          transition: "all 0.15s",
+                        }}>
+                        <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: a.color, display: "block", boxShadow: themeAccent === a.k ? `0 0 0 3px ${T.bg}, 0 0 0 4px ${a.color}` : "none", transition: "box-shadow 0.15s" }} />
+                        <span>{a.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div style={{ marginTop: "16px", padding: "12px 14px", background: T.bg, borderRadius: "8px", border: `1px solid ${T.line}`, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "11px", color: T.dim, textTransform: "uppercase", letterSpacing: "0.08em" }}>Preview:</span>
+                  <button style={{ padding: "6px 14px", background: T.accent, color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 500, fontFamily: "inherit" }}>Primary button</button>
+                  <span style={{ padding: "3px 10px", borderRadius: "14px", fontSize: "11px", fontWeight: 500, background: T.accentBg, color: T.accent }}>Tag style</span>
+                  <span style={{ fontSize: "11px", color: T.mute }}>Currently: {themeMode} + {themeAccent}</span>
+                </div>
+              </div>
+
               <div style={panelCard}>
                 <h3 style={{ fontSize: "13px", margin: "0 0 12px", fontWeight: 500 }}>Account information</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -1499,7 +1619,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 // ═════════════════════════════════════════════════════════════════
 // HELPER COMPONENTS
 // ═════════════════════════════════════════════════════════════════
-function ProfileSection({ num, done, title, meta, children }) {
+function ProfileSection({ num, done, title, meta, children, T }) {
   return (
     <div className="mg-fade" style={{ animationDelay: `${num * 0.05}s` }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
