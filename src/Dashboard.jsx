@@ -229,6 +229,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [cvApplied, setCvApplied] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("Masters");
   const fileRef = useRef(null);
+  const profileCvRef = useRef(null);
+  const [profileCvLoading, setProfileCvLoading] = useState(false);
+  const [profileCvMsg, setProfileCvMsg] = useState("");
 
   const DEGREE_LEVELS = [
     { key: "Undergraduate", label: "Undergraduate", color: T.accent },
@@ -370,6 +373,45 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       setCvAnalysis(analysis);
     } catch (err) { setCvError("Analysis failed: " + err.message); }
     setCvLoading(false);
+  }
+
+  // Quick-fill profile from CV — one-click upload on profile page
+  async function quickFillFromCV(file) {
+    if (!file) return;
+    setProfileCvLoading(true); setProfileCvMsg("");
+    try {
+      const cvText = await extractCVText(file);
+      if (!cvText || cvText.trim().length < 50) {
+        setProfileCvMsg("⚠️ Could not extract text from the file. Try a PDF or DOCX.");
+        setProfileCvLoading(false); return;
+      }
+      const res = await fetch("/api/cv-analyser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cvText, degreeLevel: "Masters" }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error || !data.result) throw new Error(data.error || "Analysis failed");
+
+      // Save the analysis for the CV Analysis page too
+      const analysis = { result: data.result, date: new Date().toISOString(), fileName: file.name, degreeLevel: "Masters" };
+      localStorage.setItem("mg_cv_analysis", JSON.stringify(analysis));
+      setCvAnalysis(analysis);
+
+      // Auto-apply to profile fields
+      const mapped = mapCVResultToProfile(data.result);
+      if (mapped.suggestedJobTitle) setJobTitle(prev => prev || mapped.suggestedJobTitle);
+      if (mapped.suggestedExperience) setExperience(prev => prev || mapped.suggestedExperience);
+      if (mapped.suggestedSectors.length > 0) setSectors(prev => [...new Set([...prev, ...mapped.suggestedSectors])]);
+      if (mapped.suggestedSkills) setSkills(prev => prev.trim() ? prev + ", " + mapped.suggestedSkills : mapped.suggestedSkills);
+      if (!visaStatus) setVisaStatus("I need visa sponsorship");
+
+      setProfileCvMsg("✓ Profile filled from " + file.name + ". Review and save below.");
+      setTimeout(() => setProfileCvMsg(""), 8000);
+    } catch (err) {
+      setProfileCvMsg("⚠️ " + (err.message || "Upload failed. Try again or use the CV Analysis tab."));
+    }
+    setProfileCvLoading(false);
   }
 
   function applyCVToProfile() {
@@ -764,6 +806,59 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             {cvApplied && (
               <div style={{ padding: "10px 14px", background: "rgba(167,139,250,0.1)", border: `1px solid ${T.purple}33`, borderRadius: "8px", fontSize: "12px", color: T.purple, fontWeight: 500, marginBottom: "16px" }}>
                 ✨ Profile auto-filled from your CV. Review and save below.
+              </div>
+            )}
+
+            {/* ── Quick-fill from CV card ── */}
+            <div
+              onClick={() => !profileCvLoading && profileCvRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); if (!profileCvLoading) e.currentTarget.style.borderColor = T.purple; }}
+              onDragLeave={e => { e.currentTarget.style.borderColor = T.purple + "55"; }}
+              onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = T.purple + "55"; if (!profileCvLoading) quickFillFromCV(e.dataTransfer.files[0]); }}
+              style={{
+                display: "flex", alignItems: "center", gap: "16px",
+                padding: "18px 22px", marginBottom: "22px",
+                background: "linear-gradient(135deg, rgba(167,139,250,0.08), rgba(59,130,246,0.04))",
+                border: `1.5px dashed ${T.purple}55`, borderRadius: "10px",
+                cursor: profileCvLoading ? "wait" : "pointer",
+                transition: "border-color 0.2s, background 0.2s",
+              }}
+              onMouseEnter={e => { if (!profileCvLoading) e.currentTarget.style.background = "linear-gradient(135deg, rgba(167,139,250,0.12), rgba(59,130,246,0.06))"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "linear-gradient(135deg, rgba(167,139,250,0.08), rgba(59,130,246,0.04))"; }}
+            >
+              <input ref={profileCvRef} type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: "none" }}
+                onChange={e => quickFillFromCV(e.target.files[0])} />
+              <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: "rgba(167,139,250,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: T.purple }}>
+                {profileCvLoading ? (
+                  <div style={{ width: "18px", height: "18px", border: `2px solid ${T.purple}33`, borderTopColor: T.purple, borderRadius: "50%", animation: "mgSpin 0.9s linear infinite" }} />
+                ) : (
+                  <Icon path={ICONS.spark} size={22} />
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h3 style={{ fontSize: "14px", margin: "0 0 3px", fontWeight: 500, color: T.text }}>
+                  {profileCvLoading ? "Analysing your CV..." : "Quick fill from your CV"}
+                </h3>
+                <p style={{ fontSize: "12px", color: T.mute, margin: 0, lineHeight: 1.5 }}>
+                  {profileCvLoading
+                    ? "This takes about 10 seconds. Hang tight."
+                    : cvAnalysis
+                      ? "Upload a new CV to re-fill your profile fields automatically."
+                      : "Drop your CV here or click to upload. We'll auto-fill your job title, skills, sectors and more. PDF or DOCX."}
+                </p>
+              </div>
+              {!profileCvLoading && (
+                <button
+                  onClick={e => { e.stopPropagation(); profileCvRef.current?.click(); }}
+                  style={{ padding: "9px 16px", background: T.purple, color: "#fff", border: "none", borderRadius: "7px", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}>
+                  {cvAnalysis ? "Upload new CV" : "Upload CV"}
+                </button>
+              )}
+            </div>
+
+            {profileCvMsg && (
+              <div style={{ padding: "10px 14px", background: profileCvMsg.startsWith("✓") ? "rgba(34,197,94,0.1)" : "rgba(226,75,74,0.1)", border: `1px solid ${profileCvMsg.startsWith("✓") ? T.green : T.red}33`, borderRadius: "8px", fontSize: "12px", color: profileCvMsg.startsWith("✓") ? T.green : T.red, fontWeight: 500, marginBottom: "16px" }}>
+                {profileCvMsg}
               </div>
             )}
 
