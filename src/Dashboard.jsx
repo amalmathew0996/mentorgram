@@ -1259,32 +1259,30 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </div>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "12px" }}>
                 {matchedJobs.slice(0, 20).map((j, i) => (
-                  <div key={i} style={{ ...card, transition: "border-color 0.15s", padding: "0", overflow: "hidden" }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = T.line2}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = T.line}>
-                    <div style={{ padding: "14px 18px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "6px" }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
-                            <span style={{ width: "20px", height: "20px", borderRadius: "5px", background: T.accentBg, color: T.accent, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 600 }}>{i + 1}</span>
-                            <p style={{ fontWeight: 500, margin: 0, fontSize: "14px" }}>{j.title}</p>
-                          </div>
-                          <p style={{ color: T.mute, fontSize: "12px", margin: 0 }}>{j.company}</p>
+                  <div key={i} style={{ ...card, transition: "border-color 0.15s, transform 0.15s", padding: "0", overflow: "hidden", display: "flex", flexDirection: "column" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = T.line2; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.line; e.currentTarget.style.transform = "translateY(0)"; }}>
+                    <div style={{ padding: "14px 16px", flex: 1 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "8px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: 0 }}>
+                          <span style={{ width: "22px", height: "22px", borderRadius: "6px", background: T.accentBg, color: T.accent, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 600, flexShrink: 0 }}>{i + 1}</span>
+                          <p style={{ fontWeight: 500, margin: 0, fontSize: "14px", lineHeight: 1.35, wordBreak: "break-word" }}>{j.title}</p>
                         </div>
-                        {j.sponsorship && <span style={{ padding: "3px 9px", borderRadius: "14px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.12)", color: T.green, whiteSpace: "nowrap" }}>✓ Visa sponsor</span>}
+                        {j.sponsorship && <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.12)", color: T.green, whiteSpace: "nowrap", flexShrink: 0 }}>✓ Visa</span>}
                       </div>
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", fontSize: "11px", color: T.mute }}>
+                      <p style={{ color: T.mute, fontSize: "12px", margin: "0 0 10px", paddingLeft: "30px" }}>{j.company}</p>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center", fontSize: "11px", color: T.mute, paddingLeft: "30px" }}>
                         {j.sector && <span style={{ padding: "2px 9px", borderRadius: "12px", background: T.accentBg, color: T.accent, fontWeight: 500 }}>{j.sector}</span>}
                         <span>📍 {j.location}</span>
                         {j.salary && <span style={{ color: T.green, fontWeight: 500 }}>💰 {j.salary}</span>}
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: "8px", padding: "10px 18px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
-                      {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: "7px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500, textAlign: "center" }}>Apply Now ↗</a>}
+                    <div style={{ display: "flex", gap: "6px", padding: "10px 16px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
+                      {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: "7px 10px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500, textAlign: "center" }}>Apply ↗</a>}
                       <button onClick={async () => { const r = await saveApplication({ title: j.title, company: j.company, url: j.url, type: "Job", status: "Want to apply", notes: "", deadline: "", location: j.location, reminder_days: null }); if (r) alert("Saved to Applications tracker ✓"); }}
-                        style={{ flex: 1, padding: "7px 12px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "12px", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>📋 Save & Track</button>
+                        style={{ flex: 1, padding: "7px 10px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "12px", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>📋 Save</button>
                     </div>
                   </div>
                 ))}
