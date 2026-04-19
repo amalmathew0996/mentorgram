@@ -737,13 +737,13 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
       {/* SIDEBAR */}
       <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "80px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
+        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "60px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
           {navItems.map((grp, gi) => (
             <div key={grp.group}>
-              <div style={{ padding: gi === 0 ? "4px 14px 4px" : "12px 14px 4px", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: T.dim, fontWeight: 500 }}>{grp.group}</div>
+              <div style={{ padding: gi === 0 ? "24px 14px 4px" : "12px 14px 4px", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: T.dim, fontWeight: 500 }}>{grp.group}</div>
               {grp.items.map(item => (
                 <div key={item.id}>
                   <NavButton item={item} />
