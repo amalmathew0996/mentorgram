@@ -5,20 +5,61 @@ const SUPA_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 function getToken() { try { return JSON.parse(localStorage.getItem("mg_session") || "{}").access_token; } catch { return null; } }
+function getRefreshToken() { try { return JSON.parse(localStorage.getItem("mg_session") || "{}").refresh_token; } catch { return null; } }
+function getTokenExpiry() { try { return JSON.parse(localStorage.getItem("mg_session") || "{}").expires_at; } catch { return null; } }
+
+// Refresh JWT if it's expired or about to expire (within 60 seconds)
+async function ensureFreshToken() {
+  const expiresAt = getTokenExpiry();
+  if (!expiresAt) return getToken();
+  // expires_at is in seconds (Unix timestamp)
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (expiresAt - nowSec > 60) return getToken(); // still fresh
+
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return getToken();
+
+  try {
+    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SUPA_KEY },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return getToken(); // fall back to whatever we have
+    const data = await res.json();
+    if (data.access_token) {
+      // Merge into existing session
+      const existing = JSON.parse(localStorage.getItem("mg_session") || "{}");
+      const updated = { ...existing, access_token: data.access_token, refresh_token: data.refresh_token || refreshToken, expires_at: data.expires_at, expires_in: data.expires_in };
+      localStorage.setItem("mg_session", JSON.stringify(updated));
+      return data.access_token;
+    }
+  } catch {}
+  return getToken();
+}
 
 async function supaFetch(path, opts = {}) {
+  const token = await ensureFreshToken();
   const res = await fetch(`${SUPA_URL}/rest/v1${path}`, {
     ...opts,
-    headers: { "Content-Type": "application/json", apikey: SUPA_KEY, Authorization: `Bearer ${getToken()}`, Prefer: "return=representation", ...(opts.headers || {}) },
+    headers: { "Content-Type": "application/json", apikey: SUPA_KEY, Authorization: `Bearer ${token}`, Prefer: "return=representation", ...(opts.headers || {}) },
   });
-  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || "Request failed"); }
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    // Clearer error for expired session
+    if (res.status === 401 || (e.message && /jwt|expired|invalid/i.test(e.message))) {
+      throw new Error("Your session has expired. Please refresh the page or sign in again.");
+    }
+    throw new Error(e.message || "Request failed");
+  }
   return res.status === 204 ? null : res.json();
 }
 
 async function supaAuthFetch(endpoint, method = "GET", body = null) {
+  const token = await ensureFreshToken();
   const res = await fetch(`${SUPA_URL}/auth/v1/${endpoint}`, {
     method,
-    headers: { "Content-Type": "application/json", apikey: SUPA_KEY, Authorization: `Bearer ${getToken()}` },
+    headers: { "Content-Type": "application/json", apikey: SUPA_KEY, Authorization: `Bearer ${token}` },
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
@@ -336,7 +377,11 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       setApplications(prev => [newEntry, ...prev]);
       return newEntry;
     } catch (e) {
-      alert("Failed to save application: " + e.message + "\n\nHave you run the Supabase migration?");
+      if (/session|jwt|expired/i.test(e.message)) {
+        alert(e.message);
+      } else {
+        alert("Failed to save application: " + e.message);
+      }
       return null;
     }
   }
@@ -1285,6 +1330,12 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                       <option>Job</option><option>PhD</option><option>Masters</option><option>Internship</option>
                     </select>
                   </div>
+                </div>
+
+                <div style={{ marginBottom: "10px" }}>
+                  <label style={lbl}>🔗 Job link (auto-filled if you pasted a URL above)</label>
+                  <input style={inp} placeholder="https://..." value={newApp.url}
+                    onChange={e => setNewApp(p => ({ ...p, url: e.target.value }))} />
                 </div>
 
                 <div style={{ background: "rgba(245,158,11,0.05)", border: `1px solid ${T.amber}33`, borderRadius: "7px", padding: "12px", marginBottom: "10px" }}>
