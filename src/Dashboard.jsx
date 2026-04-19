@@ -771,19 +771,12 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       </aside>
 
       {/* MAIN */}
-      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "16px 40px 48px" }}>
+      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "20px 40px 48px" }}>
 
-        {/* Header bar */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-          <button onClick={() => setSidebarOpen(true)} className="mg-hamburger" style={{ display: "none", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", background: T.surf, border: `1px solid ${T.line}`, borderRadius: "8px", color: T.text, cursor: "pointer" }}>
-            <Icon path={ICONS.menu} />
-          </button>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "auto" }}>
-            <button onClick={() => setView("security")} style={{ background: "transparent", border: "none", cursor: "pointer", color: T.mute, display: "flex", alignItems: "center" }}>
-              <Icon path={ICONS.cog} />
-            </button>
-          </div>
-        </div>
+        {/* Mobile hamburger */}
+        <button onClick={() => setSidebarOpen(true)} className="mg-hamburger" style={{ display: "none", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", background: T.surf, border: `1px solid ${T.line}`, borderRadius: "8px", color: T.text, cursor: "pointer", marginBottom: "16px" }}>
+          <Icon path={ICONS.menu} />
+        </button>
 
         {/* ═══════════════ DASHBOARD LANDING ═══════════════ */}
         {view === "dashboard" && (
