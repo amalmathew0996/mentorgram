@@ -292,6 +292,8 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [applications, setApplications] = useState([]);
   const [appsLoading, setAppsLoading] = useState(true);
   const [showAddApp, setShowAddApp] = useState(false);
+  const [appSearch, setAppSearch] = useState("");
+  const [appStatusFilter, setAppStatusFilter] = useState("All");
   const [urlInput, setUrlInput] = useState("");
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState(null);
@@ -737,7 +739,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
       {/* SIDEBAR */}
       <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "70px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
+        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
@@ -1295,12 +1297,40 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 { status: "Offer",         color: T.green,  bg: "rgba(34,197,94,0.08)" },
                 { status: "Rejected",      color: T.red,    bg: "rgba(226,75,74,0.08)" },
               ].map(s => (
-                <div key={s.status} style={{ background: s.bg, borderRadius: "8px", padding: "12px", textAlign: "center", border: `1px solid ${T.line}` }}>
+                <button key={s.status} onClick={() => setAppStatusFilter(appStatusFilter === s.status ? "All" : s.status)}
+                  style={{ background: s.bg, borderRadius: "8px", padding: "12px", textAlign: "center", border: `1px solid ${appStatusFilter === s.status ? s.color : T.line}`, cursor: "pointer", fontFamily: "inherit", transition: "border-color 0.15s" }}>
                   <p style={{ fontSize: "22px", fontWeight: 500, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
                   <p style={{ fontSize: "11px", color: T.mute, margin: 0 }}>{s.status}</p>
-                </div>
+                </button>
               ))}
             </div>
+
+            {/* Search bar + filter info */}
+            {applications.length > 0 && (
+              <div style={{ display: "flex", gap: "10px", marginBottom: "14px", flexWrap: "wrap", alignItems: "center" }}>
+                <div style={{ flex: 1, minWidth: "200px", position: "relative", display: "flex", alignItems: "center" }}>
+                  <span style={{ position: "absolute", left: "12px", color: T.dim, display: "flex", alignItems: "center" }}>
+                    <Icon path={ICONS.search} size={14} />
+                  </span>
+                  <input
+                    style={{ ...inp, paddingLeft: "36px", paddingRight: appSearch ? "34px" : "13px" }}
+                    placeholder="Search applications by title, company or location..."
+                    value={appSearch}
+                    onChange={e => setAppSearch(e.target.value)}
+                  />
+                  {appSearch && (
+                    <button onClick={() => setAppSearch("")}
+                      style={{ position: "absolute", right: "10px", background: "none", border: "none", cursor: "pointer", color: T.mute, fontSize: "16px", lineHeight: 1, padding: "2px 4px" }}>×</button>
+                  )}
+                </div>
+                {appStatusFilter !== "All" && (
+                  <button onClick={() => setAppStatusFilter("All")}
+                    style={{ padding: "8px 14px", borderRadius: "7px", fontSize: "12px", border: `1px solid ${T.line2}`, background: T.accentBg, color: T.accent, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", fontWeight: 500 }}>
+                    Showing: {appStatusFilter} ✕
+                  </button>
+                )}
+              </div>
+            )}
 
             {showAddApp && (
               <div style={{ ...panelCard, marginBottom: "12px", border: `1.5px solid ${T.accent}` }}>
@@ -1425,9 +1455,46 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px" }}>Add your first application to start tracking deadlines</p>
                 <button onClick={() => setShowAddApp(true)} style={btnPrimary}>+ Add first application</button>
               </div>
-            ) : (
+            ) : (() => {
+              // Filter applications by search + status
+              const q = appSearch.toLowerCase().trim();
+              const filteredApps = applications.filter(a => {
+                const matchesStatus = appStatusFilter === "All" || a.status === appStatusFilter;
+                const matchesSearch = !q || (
+                  (a.title || "").toLowerCase().includes(q) ||
+                  (a.company || "").toLowerCase().includes(q) ||
+                  (a.location || "").toLowerCase().includes(q) ||
+                  (a.notes || "").toLowerCase().includes(q)
+                );
+                return matchesStatus && matchesSearch;
+              });
+
+              if (filteredApps.length === 0) {
+                return (
+                  <div style={{ ...panelCard, textAlign: "center", padding: "2.5rem 2rem" }}>
+                    <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", color: T.accent }}>
+                      <Icon path={ICONS.search} size={20} />
+                    </div>
+                    <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>No matching applications</p>
+                    <p style={{ color: T.mute, fontSize: "13px", marginBottom: "14px" }}>
+                      {appSearch && appStatusFilter !== "All" ? `No results for "${appSearch}" in ${appStatusFilter}` :
+                       appSearch ? `No applications match "${appSearch}"` :
+                       `No applications with status "${appStatusFilter}"`}
+                    </p>
+                    <button onClick={() => { setAppSearch(""); setAppStatusFilter("All"); }} style={btnGhost}>Clear filters</button>
+                  </div>
+                );
+              }
+
+              return (
+              <>
+              {(appSearch || appStatusFilter !== "All") && (
+                <p style={{ fontSize: "12px", color: T.mute, marginBottom: "10px" }}>
+                  Showing <strong style={{ color: T.text }}>{filteredApps.length}</strong> of <strong style={{ color: T.text }}>{applications.length}</strong> applications
+                </p>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "12px" }}>
-                {applications.map(a => {
+                {filteredApps.map(a => {
                   const statusColor = a.status === "Want to apply" ? T.purple : a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red;
                   const statusBg = a.status === "Want to apply" ? "rgba(167,139,250,0.12)" : a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)";
                   return (
@@ -1465,7 +1532,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                   );
                 })}
               </div>
-            )}
+              </>
+              );
+            })()}
           </div>
         )}
 
