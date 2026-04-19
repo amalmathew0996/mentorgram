@@ -737,7 +737,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
       {/* SIDEBAR */}
       <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
+        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "68px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
@@ -771,7 +771,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       </aside>
 
       {/* MAIN */}
-      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "16px 40px 48px" }}>
+      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "16px 40px 48px", minHeight: "calc(100vh - 60px)" }}>
 
         {/* Mobile hamburger */}
         <button onClick={() => setSidebarOpen(true)} className="mg-hamburger" style={{ display: "none", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", background: T.surf, border: `1px solid ${T.line}`, borderRadius: "8px", color: T.text, cursor: "pointer", marginBottom: "16px" }}>
