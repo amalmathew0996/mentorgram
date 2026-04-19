@@ -366,10 +366,31 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       const data = await res.json();
       if (data.success && (data.title || data.company)) {
         setNewApp(prev => ({ ...prev, url: urlInput, title: data.title || prev.title, company: data.company || prev.company, location: data.location || prev.location, notes: data.description ? (prev.notes ? prev.notes : data.description) : prev.notes }));
-        setScrapeResult({ success: true, message: `Auto-filled from ${data.source || "the page"}. Review and edit below.` });
+
+        // Different message depending on how we got the data
+        if (data.method === "ai") {
+          const conf = data.confidence || "low";
+          setScrapeResult({
+            success: true,
+            aiAssisted: true,
+            message: `✨ AI-filled from ${data.source}. Confidence: ${conf}. Please double-check the fields below.`
+          });
+        } else {
+          setScrapeResult({
+            success: true,
+            message: `✓ Auto-filled from ${data.source || "the page"}. Review and edit below.`
+          });
+        }
       } else {
         setNewApp(prev => ({ ...prev, url: urlInput }));
-        setScrapeResult({ fallback: true, message: "Couldn't auto-fill (page may be protected). Fill in manually below." });
+        const host = (() => { try { return new URL(urlInput).hostname.replace("www.", ""); } catch { return "this site"; } })();
+        const isBlocked = /indeed|glassdoor/.test(host);
+        setScrapeResult({
+          fallback: true,
+          message: isBlocked
+            ? `${host} blocks auto-fill. Please enter details manually below (should take ~30 seconds).`
+            : `Couldn't auto-fill from ${host}. Please enter details manually below.`
+        });
       }
     } catch (err) {
       setNewApp(prev => ({ ...prev, url: urlInput }));
@@ -1243,7 +1264,14 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                       {scraping ? "..." : "Auto-fill"}
                     </button>
                   </div>
-                  {scrapeResult?.success && <p style={{ margin: "8px 0 0", fontSize: "11px", color: T.green }}>✓ {scrapeResult.message}</p>}
+                  <p style={{ margin: "6px 0 0", fontSize: "10px", color: T.mute, lineHeight: 1.5 }}>
+                    Works best on LinkedIn, Greenhouse, Workable, FindAPhD, jobs.ac.uk, company career pages. Indeed/Glassdoor may need manual entry.
+                  </p>
+                  {scrapeResult?.success && (
+                    <p style={{ margin: "8px 0 0", fontSize: "11px", color: scrapeResult.aiAssisted ? T.purple : T.green }}>
+                      {scrapeResult.message}
+                    </p>
+                  )}
                   {scrapeResult?.fallback && <p style={{ margin: "8px 0 0", fontSize: "11px", color: T.amber }}>⚠️ {scrapeResult.message}</p>}
                   {scrapeResult?.error && <p style={{ margin: "8px 0 0", fontSize: "11px", color: T.red }}>⚠️ {scrapeResult.error}</p>}
                 </div>
