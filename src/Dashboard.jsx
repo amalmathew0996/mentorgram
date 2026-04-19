@@ -31,21 +31,42 @@ const EXPERIENCE_LEVELS = ["Student", "Graduate (0–1 yr)", "Junior (1–3 yrs)
 const SALARY_RANGES = ["Any", "£20,000+", "£30,000+", "£40,000+", "£50,000+", "£60,000+", "£80,000+"];
 const VISA_OPTIONS = ["I need visa sponsorship", "I have the right to work in the UK", "Either is fine"];
 
-const pill = (active) => ({
-  padding: "6px 14px", borderRadius: "20px", fontSize: "13px", fontWeight: active ? 500 : 400,
-  cursor: "pointer", fontFamily: "inherit", border: active ? "none" : "0.5px solid var(--color-border-secondary)",
-  background: active ? "#1A3FA8" : "var(--color-background-primary)", color: active ? "#fff" : "var(--color-text-secondary)", transition: "all 0.15s",
-});
-const card = { background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" };
-const inp = { padding: "10px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "14px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box" };
-const btn = (primary, danger) => ({
-  padding: "10px 22px", borderRadius: "var(--border-radius-md)", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
-  background: danger ? "#E24B4A" : primary ? "#1A3FA8" : "transparent",
-  color: danger || primary ? "#fff" : "var(--color-text-primary)",
-  border: danger ? "none" : primary ? "none" : "0.5px solid var(--color-border-secondary)",
-});
+// ── Design tokens (electric blue + dark UI) ──
+const T = {
+  bg:      "#0A0A12",
+  sidebar: "#0F0F1A",
+  surf:    "#14141E",
+  surf2:   "#1B1B28",
+  line:    "#24243A",
+  line2:   "#33334A",
+  text:    "#ECECF1",
+  mute:    "#8989A5",
+  dim:     "#5C5C78",
+  accent:  "#3B82F6",
+  accentBg:"rgba(59,130,246,0.08)",
+  accentHi:"rgba(59,130,246,0.18)",
+  green:   "#22C55E",
+  purple:  "#A78BFA",
+  amber:   "#F59E0B",
+  red:     "#E24B4A",
+};
 
-// ── CV text extraction helpers ──────────────────────────────────────────────
+// ── Reusable styles ──
+const card = { background: T.surf, border: `1px solid ${T.line}`, borderRadius: "10px", padding: "16px 18px" };
+const panelCard = { ...card, padding: "18px 22px" };
+const inp = { padding: "11px 13px", borderRadius: "8px", border: `1px solid ${T.line}`, background: T.surf, color: T.text, fontSize: "13px", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box", transition: "border-color 0.2s, background 0.2s" };
+const inpFilled = { ...inp, borderColor: T.line2, background: T.surf2 };
+const inpEmpty  = { ...inp, borderStyle: "dashed" };
+const chip = (active) => ({
+  padding: "6px 12px", borderRadius: "16px", border: `1px solid ${active ? T.accent : T.line}`,
+  background: active ? T.accent : "transparent", color: active ? "#fff" : T.mute,
+  fontSize: "12px", fontWeight: active ? 500 : 400, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+});
+const btnPrimary = { padding: "10px 18px", background: T.accent, color: "#fff", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" };
+const btnGhost = { padding: "10px 18px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" };
+const lbl = { display: "block", fontSize: "11px", color: T.mute, marginBottom: "5px", fontWeight: 400 };
+
+// ── CV text extraction helpers ──
 async function loadScript(src) {
   if (document.querySelector(`script[src="${src}"]`)) return;
   return new Promise((res, rej) => {
@@ -96,18 +117,11 @@ async function extractCVText(file) {
   return file.text();
 }
 
-// Map AI result fields to profile fields
 function mapCVResultToProfile(result) {
   const profile = result.profile || {};
   const careers = result.careerPaths || [];
   const unis = result.universities || result.ukUniversities || [];
-
-  const levelMap = {
-    "undergraduate": "Student",
-    "postgraduate": "Graduate (0–1 yr)",
-    "professional": "Mid-level (3–5 yrs)",
-  };
-
+  const levelMap = { "undergraduate": "Student", "postgraduate": "Graduate (0–1 yr)", "professional": "Mid-level (3–5 yrs)" };
   const fieldToSector = (field = "") => {
     const f = field.toLowerCase();
     if (/software|developer|tech|it |web|cyber|cloud|devops|network/.test(f)) return ["Technology"];
@@ -121,15 +135,10 @@ function mapCVResultToProfile(result) {
     if (/social|public|council|government/.test(f)) return ["Public Sector"];
     return [];
   };
-
-  const suggestedSectors = fieldToSector(profile.currentField);
-  const suggestedSkills = (profile.keySkills || []).join(", ");
-  const suggestedJobTitle = careers[0]?.title || "";
-
   return {
-    suggestedSectors,
-    suggestedSkills,
-    suggestedJobTitle,
+    suggestedSectors: fieldToSector(profile.currentField),
+    suggestedSkills: (profile.keySkills || []).join(", "),
+    suggestedJobTitle: careers[0]?.title || "",
     suggestedExperience: levelMap[profile.level] || "",
     summary: result.summary || "",
     gaps: result.gaps || [],
@@ -142,21 +151,63 @@ function CVBuilderInline({ cvText }) {
   return <CVGenerator cvText={cvText} onNavigateToCV={null} />;
 }
 
+// ── Small UI atoms ──
+function Icon({ path, size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      {path}
+    </svg>
+  );
+}
+
+const ICONS = {
+  home:        <path d="M3 12L12 3l9 9M5 10v10h14V10" />,
+  user:        <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-7 8-7s8 3 8 7" /></>,
+  doc:         <><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 10h8M8 14h5" /></>,
+  target:      <><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></>,
+  grad:        <path d="M22 10L12 5 2 10l10 5 10-5zM6 12v5c3 2 9 2 12 0v-5" />,
+  clipboard:   <><path d="M9 2h6v4H9z" /><path d="M20 7V4a2 2 0 00-2-2h-2M4 7V4a2 2 0 012-2h2" /><rect x="4" y="7" width="16" height="15" rx="2" /></>,
+  bookmark:    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />,
+  pen:         <><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z" /></>,
+  mic:         <><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0014 0v-2M12 19v3" /></>,
+  cog:         <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></>,
+  logout:      <><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></>,
+  menu:        <><path d="M3 6h18M3 12h18M3 18h18" /></>,
+  close:       <><path d="M18 6L6 18M6 6l12 12" /></>,
+  check:       <path d="M20 6L9 17l-5-5" />,
+  chevron:     <path d="M9 6l6 6-6 6" />,
+  search:      <><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></>,
+  calendar:    <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>,
+  spark:       <><path d="M12 2v6M12 16v6M4.9 4.9l4.2 4.2M14.9 14.9l4.2 4.2M2 12h6M16 12h6M4.9 19.1l4.2-4.2M14.9 9.1l4.2-4.2" /></>,
+  bolt:        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />,
+  telegram:    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z" />,
+};
+
+// ═════════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ═════════════════════════════════════════════════════════════════
 export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, onNavigate }) {
-  const [tab, setTab] = useState("overview");
+  const [view, setView] = useState("dashboard");  // sidebar page: dashboard | profile | cv | matches | phd | tracker | saved | cvgen | interview | security
+  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile hamburger
+  const [jobsSubOpen, setJobsSubOpen] = useState(true);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [applications, setApplications] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("mg_applications") || "[]"); } catch { return []; }
-  });
-  const [trackerNote, setTrackerNote] = useState("");
-  const [savedJobs, setSavedJobs] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("mg_saved_jobs") || "[]"); } catch { return []; }
-  });
-  const [showAddApp, setShowAddApp] = useState(false);
-  const [newApp, setNewApp] = useState({ title: "", company: "", url: "", type: "Job", status: "Applied", notes: "", deadline: "", location: "" });
   const [saved, setSaved] = useState(false);
+
+  // Applications
+  const [applications, setApplications] = useState([]);
+  const [appsLoading, setAppsLoading] = useState(true);
+  const [showAddApp, setShowAddApp] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const [scraping, setScraping] = useState(false);
+  const [scrapeResult, setScrapeResult] = useState(null);
+  const [newApp, setNewApp] = useState({ title: "", company: "", url: "", type: "Job", status: "Applied", notes: "", deadline: "", location: "", reminder_days: 3 });
+
+  // Saved jobs
+  const [savedJobs, setSavedJobs] = useState(() => { try { return JSON.parse(localStorage.getItem("mg_saved_jobs") || "[]"); } catch { return []; } });
+
+  // Telegram
   const [telegramConnected, setTelegramConnected] = useState(false);
 
   // Profile fields
@@ -171,9 +222,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [bio, setBio] = useState("");
 
   // CV Analysis state
-  const [cvAnalysis, setCvAnalysis] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("mg_cv_analysis") || "null"); } catch { return null; }
-  });
+  const [cvAnalysis, setCvAnalysis] = useState(() => { try { return JSON.parse(localStorage.getItem("mg_cv_analysis") || "null"); } catch { return null; } });
   const [cvLoading, setCvLoading] = useState(false);
   const [cvError, setCvError] = useState("");
   const [cvFileName, setCvFileName] = useState("");
@@ -182,54 +231,101 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const fileRef = useRef(null);
 
   const DEGREE_LEVELS = [
-    { key: "Undergraduate", label: "🎓 Undergraduate", color: "#1A3FA8" },
-    { key: "Masters",       label: "📚 Masters",       color: "#7C3AED" },
-    { key: "PhD",           label: "🔬 PhD",            color: "#DC2626" },
+    { key: "Undergraduate", label: "Undergraduate", color: T.accent },
+    { key: "Masters",       label: "Masters",       color: T.purple },
+    { key: "PhD",           label: "PhD",           color: T.red },
   ];
 
-  // Password change
-  const [currentPass, setCurrentPass] = useState("");
+  // Password change / delete
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [passLoading, setPassLoading] = useState(false);
   const [passMsg, setPassMsg] = useState({ type: "", text: "" });
-
-  // Delete account
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  useEffect(() => { loadProfile(); }, [user]);
+  useEffect(() => { loadProfile(); loadApplications(); }, [user]);
 
+  // Fetch jobs if not loaded by parent
   const [localJobs, setLocalJobs] = useState([]);
   useEffect(() => {
     if (allJobs && allJobs.length > 0) return;
-    fetch("/api/jobs-db?pageSize=2000")
-      .then(r => r.json())
-      .then(d => setLocalJobs(d.jobs || []))
-      .catch(() => {});
+    fetch("/api/jobs-db?pageSize=2000").then(r => r.json()).then(d => setLocalJobs(d.jobs || [])).catch(() => {});
   }, [allJobs]);
 
   const jobs = (allJobs && allJobs.length > 0) ? allJobs : localJobs;
 
-  // ── APPLICATION TRACKER FUNCTIONS ──
-  function saveApplication(app) {
-    const newEntry = { ...app, id: Date.now().toString(), createdAt: new Date().toISOString() };
-    const updated = [newEntry, ...applications];
-    setApplications(updated);
-    localStorage.setItem("mg_applications", JSON.stringify(updated));
+  // ── Application CRUD ──
+  async function loadApplications() {
+    setAppsLoading(true);
+    try {
+      const data = await supaFetch(`/applications?user_id=eq.${user.id}&select=*&order=created_at.desc`);
+      setApplications(Array.isArray(data) ? data : []);
+    } catch (e) {
+      try { setApplications(JSON.parse(localStorage.getItem("mg_applications") || "[]")); }
+      catch { setApplications([]); }
+    }
+    setAppsLoading(false);
   }
 
-  function updateApplicationStatus(id, status) {
-    const updated = applications.map(a => a.id === id ? { ...a, status } : a);
-    setApplications(updated);
-    localStorage.setItem("mg_applications", JSON.stringify(updated));
+  async function saveApplication(app) {
+    const body = {
+      user_id: user.id, title: app.title, company: app.company, location: app.location || null,
+      url: app.url || null, type: app.type || "Job", status: app.status || "Applied", notes: app.notes || null,
+      deadline: app.deadline || null, reminder_days: app.reminder_days || null, reminder_sent: false,
+    };
+    try {
+      const data = await supaFetch(`/applications`, { method: "POST", body: JSON.stringify(body) });
+      const newEntry = Array.isArray(data) ? data[0] : data;
+      setApplications(prev => [newEntry, ...prev]);
+      return newEntry;
+    } catch (e) {
+      alert("Failed to save application: " + e.message + "\n\nHave you run the Supabase migration?");
+      return null;
+    }
   }
 
-  function deleteApplication(id) {
-    const updated = applications.filter(a => a.id !== id);
-    setApplications(updated);
-    localStorage.setItem("mg_applications", JSON.stringify(updated));
+  async function updateApplicationStatus(id, status) {
+    try { await supaFetch(`/applications?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+      setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+    } catch (e) { alert("Update failed: " + e.message); }
+  }
+
+  async function deleteApplication(id) {
+    if (!confirm("Remove this application from your tracker?")) return;
+    try { await supaFetch(`/applications?id=eq.${id}`, { method: "DELETE" });
+      setApplications(prev => prev.filter(a => a.id !== id));
+    } catch (e) { alert("Delete failed: " + e.message); }
+  }
+
+  // ── URL AUTO-FILL ──
+  async function scrapeUrl() {
+    if (!urlInput || !urlInput.startsWith("http")) {
+      setScrapeResult({ error: "Please paste a full URL (including https://)" });
+      return;
+    }
+    setScraping(true); setScrapeResult(null);
+    try {
+      const res = await fetch("/api/scrape-job", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: urlInput }) });
+      const data = await res.json();
+      if (data.success && (data.title || data.company)) {
+        setNewApp(prev => ({ ...prev, url: urlInput, title: data.title || prev.title, company: data.company || prev.company, location: data.location || prev.location, notes: data.description ? (prev.notes ? prev.notes : data.description) : prev.notes }));
+        setScrapeResult({ success: true, message: `Auto-filled from ${data.source || "the page"}. Review and edit below.` });
+      } else {
+        setNewApp(prev => ({ ...prev, url: urlInput }));
+        setScrapeResult({ fallback: true, message: "Couldn't auto-fill (page may be protected). Fill in manually below." });
+      }
+    } catch (err) {
+      setNewApp(prev => ({ ...prev, url: urlInput }));
+      setScrapeResult({ fallback: true, message: "Auto-fill failed. Fill in manually below." });
+    }
+    setScraping(false);
+  }
+
+  function resetAddForm() {
+    setUrlInput(""); setScrapeResult(null);
+    setNewApp({ title: "", company: "", url: "", type: "Job", status: "Applied", notes: "", deadline: "", location: "", reminder_days: 3 });
   }
 
   async function loadProfile() {
@@ -237,21 +333,13 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     try {
       const data = await supaFetch(`/profiles?user_id=eq.${user.id}&select=*`);
       if (data?.length > 0) {
-        const p = data[0];
-        setProfile(p);
-        setFullName(p.full_name || "");
-        setJobTitle(p.job_title || "");
-        setSectors(p.sectors || []);
-        setExperience(p.experience_level || "");
-        setSalary(p.min_salary || "Any");
-        setLocation(p.preferred_location || "");
-        setVisaStatus(p.visa_status || "");
-        setSkills(p.skills || "");
-        setBio(p.bio || "");
+        const p = data[0]; setProfile(p);
+        setFullName(p.full_name || ""); setJobTitle(p.job_title || ""); setSectors(p.sectors || []);
+        setExperience(p.experience_level || ""); setSalary(p.min_salary || "Any");
+        setLocation(p.preferred_location || ""); setVisaStatus(p.visa_status || "");
+        setSkills(p.skills || ""); setBio(p.bio || "");
         setTelegramConnected(!!p.telegram_chat_id);
-      } else {
-        setFullName(user.user_metadata?.full_name || "");
-      }
+      } else { setFullName(user.user_metadata?.full_name || ""); }
     } catch (e) { console.log(e.message); }
     setLoading(false);
   }
@@ -262,8 +350,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     try {
       if (profile) await supaFetch(`/profiles?user_id=eq.${user.id}`, { method: "PATCH", body: JSON.stringify(data) });
       else await supaFetch("/profiles", { method: "POST", body: JSON.stringify(data) });
-      setProfile(data); setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setProfile(data); setSaved(true); setTimeout(() => setSaved(false), 3000);
     } catch (e) { alert("Save failed: " + e.message); }
     setSaving(false);
   }
@@ -273,46 +360,27 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     setCvError(""); setCvFileName(file.name); setCvLoading(true); setCvApplied(false);
     try {
       const cvText = await extractCVText(file);
-      if (!cvText || cvText.trim().length < 50) {
-        setCvError("Could not extract text. Try a PDF or paste text below.");
-        setCvLoading(false); return;
-      }
-      const res = await fetch("/api/cv-analyser", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cvText, degreeLevel: selectedLevel }),
-      });
-      let data;
-      try { data = await res.json(); } catch { throw new Error("Server error"); }
+      if (!cvText || cvText.trim().length < 50) { setCvError("Could not extract text. Try a PDF or paste text below."); setCvLoading(false); return; }
+      const res = await fetch("/api/cv-analyser", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cvText, degreeLevel: selectedLevel }) });
+      let data; try { data = await res.json(); } catch { throw new Error("Server error"); }
       if (!res.ok || data.error) throw new Error(data.error || "Analysis failed");
       if (!data.result) throw new Error("No result returned");
-
       const analysis = { result: data.result, date: new Date().toISOString(), fileName: file.name, degreeLevel: selectedLevel };
       localStorage.setItem("mg_cv_analysis", JSON.stringify(analysis));
       setCvAnalysis(analysis);
-    } catch (err) {
-      setCvError("Analysis failed: " + err.message);
-    }
+    } catch (err) { setCvError("Analysis failed: " + err.message); }
     setCvLoading(false);
   }
 
   function applyCVToProfile() {
     if (!cvAnalysis?.result) return;
     const mapped = mapCVResultToProfile(cvAnalysis.result);
-
     if (mapped.suggestedJobTitle && !jobTitle) setJobTitle(mapped.suggestedJobTitle);
     if (mapped.suggestedExperience && !experience) setExperience(mapped.suggestedExperience);
     if (mapped.suggestedSectors.length > 0) setSectors(prev => [...new Set([...prev, ...mapped.suggestedSectors])]);
-    if (mapped.suggestedSkills) setSkills(prev => {
-      const existing = prev.trim();
-      const newSkills = mapped.suggestedSkills;
-      return existing ? existing + ", " + newSkills : newSkills;
-    });
-
+    if (mapped.suggestedSkills) setSkills(prev => { const e = prev.trim(); return e ? e + ", " + mapped.suggestedSkills : mapped.suggestedSkills; });
     if (!visaStatus) setVisaStatus("I need visa sponsorship");
-
-    setCvApplied(true);
-    setTimeout(() => setTab("profile"), 800);
+    setCvApplied(true); setTimeout(() => setView("profile"), 800);
   }
 
   async function changePassword() {
@@ -320,10 +388,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     if (newPass.length < 8) { setPassMsg({ type: "err", text: "Password must be at least 8 characters" }); return; }
     if (newPass !== confirmPass) { setPassMsg({ type: "err", text: "Passwords do not match" }); return; }
     setPassLoading(true); setPassMsg({ type: "", text: "" });
-    try {
-      await supaAuthFetch("user", "PUT", { password: newPass });
+    try { await supaAuthFetch("user", "PUT", { password: newPass });
       setPassMsg({ type: "ok", text: "Password updated successfully!" });
-      setCurrentPass(""); setNewPass(""); setConfirmPass("");
+      setNewPass(""); setConfirmPass("");
     } catch (e) { setPassMsg({ type: "err", text: e.message }); }
     setPassLoading(false);
   }
@@ -335,778 +402,1026 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       await supaFetch(`/profiles?user_id=eq.${user.id}`, { method: "DELETE" });
       const res = await fetch("/api/delete-account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: user.id, token: getToken() }) });
       if (!res.ok) throw new Error("Deletion failed");
-      localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user");
-      onLogout();
+      localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user"); onLogout();
     } catch (e) { alert(e.message); setDeleteLoading(false); }
   }
 
+  // ── Derived data ──
   const matchedJobs = jobs.filter(j => {
-    const titleLower = (j.title || "").toLowerCase();
+    const tL = (j.title || "").toLowerCase();
     const sectorByTitle = (() => {
-      if (/software|developer|devops|cloud|cyber|network|it.tech|helpdesk|full.stack|backend|frontend|react|python|java|aws|azure|linux|systems.eng|platform.eng/.test(titleLower)) return "Technology";
-      if (/data.sci|machine.learn|ai |data.eng|data.anal/.test(titleLower)) return "AI & Data";
-      if (/nurse|doctor|nhs|healthcare|medical|dental|care.work|clinical|therapist|pharmacist|midwife|paramedic/.test(titleLower)) return "Healthcare";
-      if (/financ|accountant|audit|banking|investment|payroll/.test(titleLower)) return "Finance";
-      if (/mechanical.eng|civil.eng|electrical.eng|embedded/.test(titleLower)) return "Engineering";
-      if (/teacher|teaching|lecturer|tutor|school|academic/.test(titleLower)) return "Education";
-      if (/chef|cook|hotel|restaurant|hospitality/.test(titleLower)) return "Hospitality";
-      if (/social.work|council|government|police|charity/.test(titleLower)) return "Public Sector";
-      if (/graphic.des|ui.des|ux.des|web.des|designer|creative|marketing|sales|hr |brand/.test(titleLower)) return "Business";
+      if (/software|developer|devops|cloud|cyber|network|it.tech|helpdesk|full.stack|backend|frontend|react|python|java|aws|azure|linux|systems.eng|platform.eng/.test(tL)) return "Technology";
+      if (/data.sci|machine.learn|ai |data.eng|data.anal/.test(tL)) return "AI & Data";
+      if (/nurse|doctor|nhs|healthcare|medical|dental|care.work|clinical|therapist|pharmacist|midwife|paramedic/.test(tL)) return "Healthcare";
+      if (/financ|accountant|audit|banking|investment|payroll/.test(tL)) return "Finance";
+      if (/mechanical.eng|civil.eng|electrical.eng|embedded/.test(tL)) return "Engineering";
+      if (/teacher|teaching|lecturer|tutor|school|academic/.test(tL)) return "Education";
+      if (/chef|cook|hotel|restaurant|hospitality/.test(tL)) return "Hospitality";
+      if (/social.work|council|government|police|charity/.test(tL)) return "Public Sector";
+      if (/graphic.des|ui.des|ux.des|web.des|designer|creative|marketing|sales|hr |brand/.test(tL)) return "Business";
       return null;
     })();
-    const effectiveSector = j.sector || sectorByTitle || "Other";
-    const sm = sectors.length === 0 || sectors.includes(effectiveSector) || sectors.includes(sectorByTitle);
+    const es = j.sector || sectorByTitle || "Other";
+    const sm = sectors.length === 0 || sectors.includes(es) || sectors.includes(sectorByTitle);
     const lm = !location || (j.location || "").toLowerCase().includes(location.toLowerCase());
     const vm = visaStatus !== "I need visa sponsorship" || j.sponsorship === true;
     return sm && lm && vm;
   });
 
-  const initials = fullName ? fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : (user.email || "?")[0].toUpperCase();
+  // Profile completion %
+  const profileFields = [fullName, jobTitle, location, sectors.length > 0, experience, skills, visaStatus, bio];
+  const filledCount = profileFields.filter(Boolean).length;
+  const completionPct = Math.round((filledCount / profileFields.length) * 100);
 
-  // ✅ FIXED: Added tracker and phd tabs
-  const tabs = [
-    { id: "overview", label: "Overview",            icon: "🏠" },
-    { id: "cv",       label: "CV Analysis",         icon: "📄", badge: cvAnalysis ? "✓" : null },
-    { id: "profile",  label: "My Profile",          icon: "👤" },
-    { id: "matches",  label: "Job Matches",         icon: "🎯", count: matchedJobs.length },
-    { id: "tracker",  label: "Application Tracker", icon: "📋", count: applications.length || null },
-    { id: "phd",      label: "PhD Finder",          icon: "🎓" },
-    { id: "cvgen",    label: "CV Builder",          icon: "✍️" },
-    { id: "security", label: "Security",            icon: "🔒" },
-  ];
+  // Stats for dashboard landing
+  const stats = {
+    matches: matchedJobs.length,
+    applications: applications.length,
+    interviews: applications.filter(a => a.status === "Interview").length,
+    offers: applications.filter(a => a.status === "Offer").length,
+  };
+
+  const initials = fullName ? fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : (user.email || "?")[0].toUpperCase();
+  const firstName = fullName.split(" ")[0] || "there";
 
   const cvResult = cvAnalysis?.result;
-  const cvTextForGen = "";
   const cvMapped = cvResult ? mapCVResultToProfile(cvResult) : null;
 
   if (loading) return (
-    <div style={{ textAlign: "center", padding: "4rem" }}>
-      <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
-      <p style={{ color: "var(--color-text-secondary)" }}>Loading your dashboard...</p>
+    <div style={{ background: T.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center", color: T.mute }}>
+        <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
+        <p>Loading your dashboard...</p>
+      </div>
     </div>
   );
 
+  // Sidebar items
+  const navItems = [
+    { group: "Main", items: [
+      { id: "dashboard", label: "Dashboard", icon: ICONS.home },
+      { id: "profile",   label: "Profile",   icon: ICONS.user },
+      { id: "cv",        label: "CV Analysis", icon: ICONS.doc, badge: cvAnalysis ? "✓" : null },
+    ]},
+    { group: "Job search", items: [
+      { id: "opportunities", label: "Opportunities", icon: ICONS.target, hasSub: true, children: [
+        { id: "matches", label: "Job Matches", count: matchedJobs.length || null },
+        { id: "phd", label: "PhD Finder" },
+      ]},
+      { id: "tracker", label: "Applications", icon: ICONS.clipboard, count: applications.length || null },
+      { id: "saved", label: "Saved", icon: ICONS.bookmark, count: savedJobs.length || null },
+    ]},
+    { group: "Tools", items: [
+      { id: "cvgen", label: "CV Builder", icon: ICONS.pen },
+      { id: "interview", label: "Interview Prep", icon: ICONS.mic },
+    ]},
+    { group: "Account", items: [
+      { id: "security", label: "Settings", icon: ICONS.cog },
+    ]},
+  ];
+
+  function NavButton({ item, depth = 0 }) {
+    const isActive = view === item.id || (item.hasSub && item.children?.some(c => c.id === view));
+    const isChild = depth > 0;
+    return (
+      <button
+        onClick={() => {
+          if (item.hasSub) { setJobsSubOpen(o => !o); return; }
+          setView(item.id);
+          setSidebarOpen(false);
+        }}
+        style={{
+          display: "flex", alignItems: "center", gap: "10px",
+          padding: isChild ? "6px 14px 6px 38px" : "8px 14px",
+          margin: "1px 8px", borderRadius: "6px",
+          fontSize: isChild ? "12px" : "13px",
+          color: isActive ? T.accent : T.mute,
+          background: isActive ? T.accentBg : "transparent",
+          cursor: "pointer", fontFamily: "inherit", border: "none",
+          width: "calc(100% - 16px)", textAlign: "left",
+          transition: "all 0.15s", fontWeight: isActive ? 500 : 400,
+        }}
+        onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = T.surf; e.currentTarget.style.color = T.text; } }}
+        onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.mute; } }}
+      >
+        {item.icon && <Icon path={item.icon} size={16} />}
+        <span>{item.label}</span>
+        {item.badge && <span style={{ marginLeft: "auto", fontSize: "10px", padding: "1px 6px", borderRadius: "8px", background: T.green, color: "#000", fontWeight: 700 }}>{item.badge}</span>}
+        {item.count != null && <span style={{ marginLeft: "auto", fontSize: "10px", padding: "1px 7px", borderRadius: "8px", background: isActive ? T.accent : T.line2, color: "#fff", fontWeight: 600 }}>{item.count}</span>}
+        {item.hasSub && <span style={{ marginLeft: "auto", color: T.dim, fontSize: "14px", transition: "transform 0.2s", display: "inline-block", transform: jobsSubOpen ? "rotate(90deg)" : "rotate(0deg)" }}>›</span>}
+      </button>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════════
   return (
-    <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "2rem 1.5rem" }}>
+    <div style={{ background: T.bg, minHeight: "100vh", color: T.text, fontFamily: "inherit" }}>
+      <style>{`
+        @keyframes mgFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes mgFillBar { to { width: var(--mg-pct, 0%); } }
+        @keyframes mgWave { 0%, 60%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(12deg); } 20% { transform: rotate(-8deg); } }
+        @keyframes mgSpin { to { transform: rotate(360deg); } }
+        @keyframes mgPulse { 50% { opacity: 0.4; } }
+        .mg-fade { opacity: 0; animation: mgFadeIn 0.5s ease-out forwards; }
+        .mg-wave { display: inline-block; animation: mgWave 2.4s ease-in-out infinite; transform-origin: 70% 70%; }
+        .mg-scrollbar::-webkit-scrollbar { width: 6px; }
+        .mg-scrollbar::-webkit-scrollbar-thumb { background: ${T.line2}; border-radius: 3px; }
+        .mg-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        @media (max-width: 860px) {
+          .mg-sidebar { transform: translateX(-100%); transition: transform 0.25s; z-index: 100; }
+          .mg-sidebar.open { transform: translateX(0); }
+          .mg-main { margin-left: 0 !important; }
+          .mg-hamburger { display: flex !important; }
+          .mg-hide-mobile { display: none !important; }
+          .mg-stats { grid-template-columns: 1fr 1fr !important; }
+          .mg-split { grid-template-columns: 1fr !important; }
+          .mg-profile-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
 
-      {/* Header */}
-      <div style={{ ...card, marginBottom: "1.5rem", background: "linear-gradient(135deg, rgba(26,63,168,0.06), rgba(29,158,117,0.04))", borderColor: "rgba(26,63,168,0.15)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "20px", flexShrink: 0 }}>{initials}</div>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: "1.25rem", fontWeight: 500, margin: "0 0 3px" }}>{fullName || "Your Account"}</h2>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{user.email}</p>
-            {jobTitle && <p style={{ color: "var(--color-text-primary)", fontSize: "13px", margin: "3px 0 0", fontWeight: 500 }}>{jobTitle}</p>}
-            {cvAnalysis && <p style={{ color: "#7C3AED", fontSize: "12px", margin: "3px 0 0" }}>📄 CV analysed · {new Date(cvAnalysis.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>}
-          </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            {matchedJobs.length > 0 && (
-              <button style={{ ...btn(true), fontSize: "13px", padding: "8px 16px" }}
-                onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }}>
-                🎯 {matchedJobs.length} job matches
-              </button>
-            )}
-            <button style={{ ...btn(false), fontSize: "13px", padding: "8px 16px", color: "#E24B4A", borderColor: "rgba(226,75,74,0.4)" }}
-              onClick={() => { localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user"); onLogout(); }}>
-              Sign out
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Mobile overlay */}
+      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 99 }} />}
 
-      {/* Tab bar */}
-      <div style={{ display: "flex", gap: "4px", marginBottom: "1.5rem", overflowX: "auto", paddingBottom: "2px" }}>
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "9px 16px", borderRadius: "var(--border-radius-md)", border: "none", background: tab === t.id ? "#1A3FA8" : "var(--color-background-primary)", color: tab === t.id ? "#fff" : "var(--color-text-secondary)", fontSize: "13px", fontWeight: tab === t.id ? 500 : 400, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "5px", transition: "all 0.15s", boxShadow: tab === t.id ? "0 2px 8px rgba(26,63,168,0.3)" : "none" }}>
-            <span>{t.icon}</span>
-            <span>{t.label}</span>
-            {t.badge && <span style={{ background: "#16A34A", color: "#fff", padding: "1px 6px", borderRadius: "10px", fontSize: "10px", fontWeight: 700 }}>{t.badge}</span>}
-            {t.count != null && <span style={{ background: tab === t.id ? "rgba(255,255,255,0.25)" : "#1A3FA8", color: "#fff", padding: "1px 7px", borderRadius: "10px", fontSize: "11px", fontWeight: 600 }}>{t.count}</span>}
+      {/* SIDEBAR */}
+      <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
+        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, borderRight: `1px solid ${T.line}`, padding: "18px 0", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 100 }}>
+
+        {/* Logo */}
+        <div style={{ padding: "0 18px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", color: "#fff", fontWeight: 700 }}>M</div>
+          <div style={{ fontWeight: 600, fontSize: "14px" }}>Mentorgram</div>
+          <button onClick={() => setSidebarOpen(false)} className="mg-hide-mobile" style={{ marginLeft: "auto", background: "transparent", border: "none", color: T.mute, cursor: "pointer", display: "none" }}>
+            <Icon path={ICONS.close} />
           </button>
-        ))}
-      </div>
-
-      {/* ── OVERVIEW ── */}
-      {tab === "overview" && (
-        <div style={{ display: "grid", gap: "1rem" }}>
-          {!cvAnalysis && (
-            <div style={{ ...card, background: "linear-gradient(135deg, rgba(124,58,237,0.06), rgba(26,63,168,0.04))", borderColor: "rgba(124,58,237,0.2)" }}>
-              <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "32px" }}>📄</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "15px" }}>Upload your CV to auto-fill your profile</p>
-                  <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 12px", lineHeight: 1.6 }}>Our AI will analyse your CV and automatically update your profile, recommend career paths, and match you with relevant jobs and universities.</p>
-                  <button onClick={() => setTab("cv")} style={{ ...btn(true), padding: "9px 20px", fontSize: "13px", background: "#7C3AED" }}>Analyse my CV →</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {cvAnalysis && cvMapped && (
-            <div style={{ ...card, borderColor: "rgba(124,58,237,0.2)", background: "linear-gradient(135deg, rgba(124,58,237,0.04), transparent)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px", gap: "10px", flexWrap: "wrap" }}>
-                <p style={{ fontWeight: 600, margin: 0, fontSize: "15px" }}>📄 Your CV Analysis</p>
-                <div style={{ display: "flex", gap: "6px" }}>
-                  <button onClick={() => setTab("cv")} style={{ ...btn(false), fontSize: "12px", padding: "5px 12px" }}>Update CV</button>
-                  <button onClick={() => { applyCVToProfile(); setTab("profile"); }} style={{ ...btn(true), fontSize: "12px", padding: "5px 12px", background: "#7C3AED" }}>Apply to profile</button>
-                </div>
-              </div>
-              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 12px" }}>{cvResult.summary}</p>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                {(cvResult.profile?.keySkills || []).slice(0, 6).map(s => (
-                  <span key={s} style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "12px", background: "rgba(124,58,237,0.12)", color: "#7C3AED", fontWeight: 500 }}>{s}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
-            {[
-              { icon: "🎯", label: "Job Matches",        value: matchedJobs.length,       color: "var(--color-text-primary)" },
-              { icon: "🏢", label: "Sectors Selected",   value: sectors.length || "None", color: "#FF4500" },
-              { icon: "📍", label: "Preferred Location", value: location || "Not set",    color: "#F59E0B" },
-              { icon: "📄", label: "CV Status",          value: cvAnalysis ? "Analysed" : "Not uploaded", color: cvAnalysis ? "#7C3AED" : "var(--color-text-secondary)" },
-            ].map(s => (
-              <div key={s.label} style={{ ...card, textAlign: "center" }}>
-                <div style={{ fontSize: "24px", marginBottom: "6px" }}>{s.icon}</div>
-                <p style={{ fontSize: "18px", fontWeight: 600, margin: "0 0 3px", color: s.color }}>{s.value}</p>
-                <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>Quick actions</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px" }}>
-              {[
-                { icon: "📄", title: "Analyse my CV",       desc: "Auto-fill profile and get job matches",    action: () => setTab("cv"),          color: "#7C3AED" },
-                { icon: "👤", title: "Complete your profile", desc: "Add experience and skills for better matches", action: () => setTab("profile") },
-                { icon: "🎯", title: "View job matches",    desc: `${matchedJobs.length} jobs match your profile`, action: () => setTab("matches") },
-                { icon: "📋", title: "Track applications",  desc: `${applications.length} applications tracked`, action: () => setTab("tracker") },
-                { icon: "🎓", title: "Find PhD positions",  desc: "UK & Germany funded PhDs",                  action: () => setTab("phd") },
-                { icon: "🔍", title: "Browse all jobs",     desc: "Search UK sponsorship jobs",               action: () => onNavigate("Sponsorship Jobs") },
-              ].map(a => (
-                <button key={a.title} onClick={a.action} style={{ ...card, border: "0.5px solid var(--color-border-tertiary)", textAlign: "left", cursor: "pointer", background: "var(--color-background-secondary)", transition: "all 0.15s" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(26,63,168,0.4)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-tertiary)"; e.currentTarget.style.transform = "none"; }}>
-                  <div style={{ fontSize: "20px", marginBottom: "6px" }}>{a.icon}</div>
-                  <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 3px", color: a.color || "var(--color-text-primary)" }}>{a.title}</p>
-                  <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{a.desc}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {matchedJobs.length > 0 && (
-            <div style={card}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: 0 }}>🎯 Your top job matches</h3>
-                <button onClick={() => setTab("matches")} style={{ ...btn(false), padding: "6px 14px", fontSize: "12px" }}>View all</button>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {matchedJobs.slice(0, 4).map((j, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", gap: "10px", flexWrap: "wrap" }}>
-                    <div style={{ flex: 1, minWidth: "140px" }}>
-                      <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 2px" }}>{j.title}</p>
-                      <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{j.company} · {j.location}</p>
-                    </div>
-                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                      {j.sponsorship && <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 500, background: "rgba(22,163,74,0.12)", color: "#16A34A" }}>✓ Visa</span>}
-                      <span style={{ fontSize: "13px", fontWeight: 500 }}>{j.salary}</span>
-                      {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
-      )}
 
-      {/* ── CV ANALYSIS TAB ── */}
-      {tab === "cv" && (
-        <div style={{ display: "grid", gap: "1rem" }}>
-          <div style={{ ...card, borderColor: "rgba(124,58,237,0.2)" }}>
-            <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "1.25rem" }}>
-              <span style={{ fontSize: "32px" }}>🤖</span>
-              <div>
-                <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>CV Analysis — Auto-fill your profile</h3>
-                <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>Upload your CV and our AI will analyse it, then automatically update your profile, suggest career paths and match you with relevant jobs and universities.</p>
-              </div>
-            </div>
-
-            <p style={{ fontSize: "13px", fontWeight: 600, margin: "0 0 8px" }}>What are you looking for?</p>
-            <div style={{ display: "flex", gap: "8px", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-              {DEGREE_LEVELS.map(l => (
-                <button key={l.key} onClick={() => setSelectedLevel(l.key)}
-                  style={{ padding: "7px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: selectedLevel === l.key ? 600 : 400, cursor: "pointer", fontFamily: "inherit",
-                    border: selectedLevel === l.key ? "2px solid " + l.color : "0.5px solid var(--color-border-tertiary)",
-                    background: selectedLevel === l.key ? "rgba(124,58,237,0.08)" : "var(--color-background-primary)",
-                    color: selectedLevel === l.key ? l.color : "var(--color-text-secondary)" }}>
-                  {l.label}
-                </button>
+        {/* Nav groups */}
+        <div style={{ flex: 1 }}>
+          {navItems.map(grp => (
+            <div key={grp.group}>
+              <div style={{ padding: "12px 14px 4px", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: T.dim, fontWeight: 500 }}>{grp.group}</div>
+              {grp.items.map(item => (
+                <div key={item.id}>
+                  <NavButton item={item} />
+                  {item.hasSub && jobsSubOpen && item.children?.map(c => (
+                    <NavButton key={c.id} item={c} depth={1} />
+                  ))}
+                </div>
               ))}
             </div>
+          ))}
+        </div>
 
-            <div
-              onClick={() => fileRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "#7C3AED"; }}
-              onDragLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-secondary)"; }}
-              onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--color-border-secondary)"; handleCVUpload(e.dataTransfer.files[0]); }}
-              style={{ border: "2px dashed var(--color-border-secondary)", borderRadius: "var(--border-radius-lg)", padding: "2rem", textAlign: "center", cursor: "pointer", marginBottom: "1rem", background: "var(--color-background-secondary)", transition: "border-color 0.2s" }}>
-              <input ref={fileRef} type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: "none" }} onChange={e => handleCVUpload(e.target.files[0])} />
-              <div style={{ fontSize: "36px", marginBottom: "10px" }}>📄</div>
-              {cvFileName ? (
-                <div>
-                  <p style={{ fontWeight: 500, margin: "0 0 4px", color: "#16A34A" }}>✓ {cvFileName}</p>
-                  <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Click to upload a different file</p>
-                </div>
-              ) : (
-                <div>
-                  <p style={{ fontWeight: 500, margin: "0 0 6px" }}>Drop your CV here or click to upload</p>
-                  <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>PDF, DOCX, TXT — max 5MB</p>
-                </div>
-              )}
+        {/* Bottom */}
+        <div style={{ padding: "8px", borderTop: `1px solid ${T.line}` }}>
+          <button style={{ width: "calc(100% - 16px)", margin: "6px 8px 4px", padding: "9px 12px", background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, border: "none", borderRadius: "7px", color: "#fff", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+            onClick={() => onNavigate("Premium")}>
+            <Icon path={ICONS.bolt} size={14} /> Upgrade to Premium
+          </button>
+          <button onClick={() => { localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user"); onLogout(); }}
+            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px", margin: "1px 8px", borderRadius: "6px", fontSize: "13px", color: T.red, background: "transparent", cursor: "pointer", fontFamily: "inherit", border: "none", width: "calc(100% - 16px)", textAlign: "left" }}>
+            <Icon path={ICONS.logout} />
+            <span>Sign out</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN */}
+      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "24px 32px 48px", maxWidth: "1280px" }}>
+
+        {/* Header bar */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+          <button onClick={() => setSidebarOpen(true)} className="mg-hamburger" style={{ display: "none", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", background: T.surf, border: `1px solid ${T.line}`, borderRadius: "8px", color: T.text, cursor: "pointer" }}>
+            <Icon path={ICONS.menu} />
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "auto" }}>
+            <button onClick={() => setView("security")} style={{ background: "transparent", border: "none", cursor: "pointer", color: T.mute, display: "flex", alignItems: "center" }}>
+              <Icon path={ICONS.cog} />
+            </button>
+            <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: T.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 500, fontSize: "14px" }}>{initials}</div>
+          </div>
+        </div>
+
+        {/* ═══════════════ DASHBOARD LANDING ═══════════════ */}
+        {view === "dashboard" && (
+          <div>
+            {/* Welcome */}
+            <div style={{ marginBottom: "24px" }}>
+              <h1 style={{ fontSize: "26px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>
+                Welcome back, {firstName} <span className="mg-wave">👋</span>
+              </h1>
+              <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Here's what's happening with your job search today.</p>
             </div>
 
-            {cvLoading && (
-              <div style={{ display: "flex", gap: "10px", alignItems: "center", padding: "12px 16px", background: "rgba(124,58,237,0.06)", borderRadius: "var(--border-radius-md)", marginBottom: "1rem" }}>
-                <div style={{ width: "16px", height: "16px", border: "2px solid rgba(124,58,237,0.2)", borderTopColor: "#7C3AED", borderRadius: "50%", animation: "spin 1s linear infinite", flexShrink: 0 }} />
-                <style>{".spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}"}</style>
-                <p style={{ margin: 0, fontSize: "13px", color: "#7C3AED" }}>Analysing your CV with AI...</p>
+            {/* Completion banner */}
+            {completionPct < 100 && (
+              <div style={{ ...panelCard, display: "flex", alignItems: "center", gap: "18px", marginBottom: "22px", flexWrap: "wrap" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: T.accent }}>
+                  <Icon path={ICONS.user} size={20} />
+                </div>
+                <div style={{ flex: 1, minWidth: "220px" }}>
+                  <h3 style={{ fontSize: "14px", margin: "0 0 3px", fontWeight: 500 }}>Complete your profile to get better matches</h3>
+                  <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 10px", lineHeight: 1.5 }}>
+                    A complete profile gets <strong style={{ color: T.text }}>3× more job matches</strong>. Add your skills, experience, and preferences.
+                  </p>
+                  <div style={{ height: "4px", background: T.line, borderRadius: "2px", overflow: "hidden", maxWidth: "440px" }}>
+                    <div style={{ height: "100%", background: T.accent, borderRadius: "2px", width: "0", animation: "mgFillBar 1.2s ease-out 0.3s forwards", "--mg-pct": completionPct + "%" }} />
+                  </div>
+                  <div style={{ fontSize: "11px", color: T.mute, marginTop: "4px" }}>{completionPct}% complete · {8 - filledCount} {8 - filledCount === 1 ? "step" : "steps"} left</div>
+                </div>
+                <button onClick={() => setView("profile")} style={{ ...btnPrimary, flexShrink: 0 }}>Complete profile →</button>
               </div>
             )}
-            {cvError && <p style={{ color: "#E24B4A", fontSize: "13px", margin: "0 0 1rem", lineHeight: 1.5 }}>⚠️ {cvError}</p>}
-          </div>
 
-          {cvResult && !cvLoading && (
-            <div style={{ display: "grid", gap: "1rem" }}>
-              <div style={{ ...card, background: "linear-gradient(135deg, rgba(124,58,237,0.08), rgba(26,63,168,0.04))", borderColor: "rgba(124,58,237,0.25)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+            {/* Stats */}
+            <div className="mg-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "22px" }}>
+              {[
+                { lbl: "Job Matches",    val: stats.matches,      sub: stats.matches > 0 ? "Matched to your profile" : "Complete profile to see matches", onClick: () => setView("matches") },
+                { lbl: "Applications",   val: stats.applications, sub: applications.filter(a => a.status === "Applied").length + " awaiting response", onClick: () => setView("tracker") },
+                { lbl: "Interviews",     val: stats.interviews,   sub: stats.interviews > 0 ? "Active interview rounds" : "No interviews yet", onClick: () => setView("tracker") },
+                { lbl: "Offers",         val: stats.offers,       sub: stats.offers > 0 ? "🎉 Well done!" : "Keep going", onClick: () => setView("tracker") },
+              ].map((s, i) => (
+                <button key={s.lbl} onClick={s.onClick} className="mg-fade" style={{ ...card, textAlign: "left", cursor: "pointer", fontFamily: "inherit", color: T.text, animationDelay: `${i * 0.06}s`, transition: "border-color 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = T.line2}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = T.line}>
+                  <div style={{ fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: T.dim, fontWeight: 500, marginBottom: "8px" }}>{s.lbl}</div>
+                  <div style={{ fontSize: "26px", fontWeight: 500, marginBottom: "4px", letterSpacing: "-0.02em" }}>{s.val}</div>
+                  <div style={{ fontSize: "11px", color: T.mute }}>{s.sub}</div>
+                </button>
+              ))}
+            </div>
+
+            {/* Split: Recent activity + Quick actions */}
+            <div className="mg-split" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "14px", marginBottom: "22px" }}>
+
+              {/* Recent activity */}
+              <div style={panelCard}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                   <div>
-                    <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: "15px" }}>
-                      {cvApplied ? "✅ Profile updated!" : "Apply results to your profile"}
-                    </p>
-                    <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
-                      {cvApplied ? "Your profile has been updated with your CV data." : "Auto-fill your job title, sectors, skills and experience level from this analysis."}
-                    </p>
+                    <h3 style={{ fontSize: "13px", margin: 0, fontWeight: 500 }}>Recent activity</h3>
+                    <p style={{ fontSize: "11px", color: T.dim, margin: "2px 0 0" }}>Your latest application updates</p>
                   </div>
-                  {!cvApplied && (
-                    <button onClick={applyCVToProfile} style={{ ...btn(true), background: "#7C3AED", padding: "10px 20px", whiteSpace: "nowrap" }}>
-                      ✨ Apply to profile
+                  <button onClick={() => setView("tracker")} style={{ fontSize: "11px", color: T.accent, background: T.accentBg, border: "none", padding: "4px 10px", borderRadius: "5px", cursor: "pointer", fontFamily: "inherit" }}>View all →</button>
+                </div>
+                {applications.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "2rem 0", color: T.mute }}>
+                    <p style={{ fontSize: "13px", margin: "0 0 10px" }}>No activity yet</p>
+                    <button onClick={() => setView("tracker")} style={{ ...btnGhost, fontSize: "12px", padding: "7px 14px" }}>+ Track your first application</button>
+                  </div>
+                ) : applications.slice(0, 4).map((a, i) => {
+                  const statusColor = a.status === "Offer" ? T.green : a.status === "Interview" ? T.amber : a.status === "Rejected" ? T.red : T.accent;
+                  const timeAgo = a.created_at ? timeSince(new Date(a.created_at)) : "";
+                  return (
+                    <div key={a.id || i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 0", borderTop: i === 0 ? "none" : `1px solid ${T.line}`, paddingTop: i === 0 ? "4px" : "10px" }}>
+                      <div style={{ width: "32px", height: "32px", borderRadius: "6px", background: statusColor, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "13px", fontWeight: 600, flexShrink: 0 }}>{(a.company || "?")[0].toUpperCase()}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: "13px", fontWeight: 500, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</p>
+                        <p style={{ fontSize: "11px", color: T.mute, margin: 0 }}>{a.company}{a.location ? " · " + a.location : ""} · <span style={{ color: statusColor, fontWeight: 500 }}>{a.status}</span></p>
+                      </div>
+                      {timeAgo && <div style={{ fontSize: "11px", color: T.dim, flexShrink: 0 }}>{timeAgo}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Quick actions */}
+              <div style={panelCard}>
+                <h3 style={{ fontSize: "13px", margin: "0 0 12px", fontWeight: 500 }}>Quick actions</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  {[
+                    { icon: ICONS.doc,       t: "Update CV",   d: cvAnalysis ? "CV on file" : "Get matches", v: "cv" },
+                    { icon: ICONS.search,    t: "Find jobs",   d: `${stats.matches} matches`, v: "matches" },
+                    { icon: ICONS.clipboard, t: "Track app",   d: "Add new", v: "tracker" },
+                    { icon: ICONS.calendar,  t: "Deadlines",   d: applications.filter(a => a.deadline).length + " upcoming", v: "tracker" },
+                  ].map(q => (
+                    <button key={q.t} onClick={() => setView(q.v)} style={{ padding: "12px", background: T.bg, border: `1px solid ${T.line}`, borderRadius: "8px", cursor: "pointer", textAlign: "left", fontFamily: "inherit", color: T.text, transition: "all 0.15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.background = T.surf2; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = T.line; e.currentTarget.style.background = T.bg; }}>
+                      <div style={{ width: "24px", height: "24px", borderRadius: "5px", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "8px", color: T.accent }}>
+                        <Icon path={q.icon} size={14} />
+                      </div>
+                      <p style={{ fontSize: "12px", fontWeight: 500, margin: "0 0 2px" }}>{q.t}</p>
+                      <p style={{ fontSize: "10px", color: T.mute, margin: 0, lineHeight: 1.4 }}>{q.d}</p>
                     </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Top matches preview */}
+            {matchedJobs.length > 0 && (
+              <div style={panelCard}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                  <div>
+                    <h3 style={{ fontSize: "13px", margin: 0, fontWeight: 500 }}>Top matches for you</h3>
+                    <p style={{ fontSize: "11px", color: T.dim, margin: "2px 0 0" }}>Based on your sectors and location</p>
+                  </div>
+                  <button onClick={() => setView("matches")} style={{ fontSize: "11px", color: T.accent, background: T.accentBg, border: "none", padding: "4px 10px", borderRadius: "5px", cursor: "pointer", fontFamily: "inherit" }}>View all {matchedJobs.length} →</button>
+                </div>
+                {matchedJobs.slice(0, 4).map((j, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 0", borderTop: i === 0 ? "none" : `1px solid ${T.line}` }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "13px", fontWeight: 500, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.title}</p>
+                      <p style={{ fontSize: "11px", color: T.mute, margin: 0 }}>{j.company} · {j.location}{j.salary ? " · " + j.salary : ""}</p>
+                    </div>
+                    {j.sponsorship && <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.12)", color: T.green, flexShrink: 0 }}>✓ Visa</span>}
+                    {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", textDecoration: "none", fontWeight: 500, flexShrink: 0 }}>Apply ↗</a>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════ PROFILE ═══════════════ */}
+        {view === "profile" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px", gap: "16px", flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: T.dim, fontWeight: 500 }}>Profile</div>
+                <h1 style={{ fontSize: "26px", fontWeight: 500, margin: "6px 0 4px", letterSpacing: "-0.01em" }}>Tell us about you</h1>
+                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>The more we know, the better we match.</p>
+              </div>
+              {/* Completion ring */}
+              <div style={{ position: "relative", width: "72px", height: "72px", flexShrink: 0 }}>
+                <svg width="72" height="72" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="36" cy="36" r="32" fill="none" stroke={T.line} strokeWidth="4" />
+                  <circle cx="36" cy="36" r="32" fill="none" stroke={T.accent} strokeWidth="4" strokeLinecap="round"
+                    strokeDasharray={`${(completionPct / 100) * 201} 201`}
+                    style={{ transition: "stroke-dasharray 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)" }} />
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ fontSize: "17px", fontWeight: 500 }}>{completionPct}%</div>
+                  <div style={{ fontSize: "9px", color: T.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>complete</div>
+                </div>
+              </div>
+            </div>
+
+            {cvApplied && (
+              <div style={{ padding: "10px 14px", background: "rgba(167,139,250,0.1)", border: `1px solid ${T.purple}33`, borderRadius: "8px", fontSize: "12px", color: T.purple, fontWeight: 500, marginBottom: "16px" }}>
+                ✨ Profile auto-filled from your CV. Review and save below.
+              </div>
+            )}
+
+            <div className="mg-profile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: "28px" }}>
+
+              {/* Form sections */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+
+                {/* Section 1: Basics */}
+                <ProfileSection num={1} done={!!(fullName && jobTitle)} title="The basics">
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                    <div><label style={lbl}>Full name</label><input style={fullName ? inpFilled : inpEmpty} value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" /></div>
+                    <div><label style={lbl}>Target role</label><input style={jobTitle ? inpFilled : inpEmpty} value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder="e.g. Software Engineer" /></div>
+                  </div>
+                  <div style={{ marginTop: "10px" }}>
+                    <label style={lbl}>About me</label>
+                    <textarea style={{ ...(bio ? inpFilled : inpEmpty), minHeight: "70px", resize: "vertical" }} value={bio} onChange={e => setBio(e.target.value)} placeholder="Brief background about yourself..." />
+                  </div>
+                </ProfileSection>
+
+                {/* Section 2: Where and how */}
+                <ProfileSection num={2} done={!!(location && salary && salary !== "Any")} title="Where and how">
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "12px" }}>
+                    <div><label style={lbl}>Preferred city</label><input style={location ? inpFilled : inpEmpty} value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. London" /></div>
+                    <div><label style={lbl}>Min salary</label>
+                      <select style={(salary && salary !== "Any") ? inpFilled : inpEmpty} value={salary} onChange={e => setSalary(e.target.value)}>
+                        {SALARY_RANGES.map(s => <option key={s}>{s}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </ProfileSection>
+
+                {/* Section 3: Sectors */}
+                <ProfileSection num={3} done={sectors.length > 0} title="Your sectors" meta={sectors.length > 0 ? `${sectors.length} selected` : "Pick any"}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {SECTORS.map(s => <button key={s} style={chip(sectors.includes(s))} onClick={() => setSectors(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s])}>{s}</button>)}
+                  </div>
+                </ProfileSection>
+
+                {/* Section 4: Experience */}
+                <ProfileSection num={4} done={!!experience} title="Experience level" meta="Pick one">
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {EXPERIENCE_LEVELS.map(lv => <button key={lv} style={chip(experience === lv)} onClick={() => setExperience(experience === lv ? "" : lv)}>{lv}</button>)}
+                  </div>
+                </ProfileSection>
+
+                {/* Section 5: Skills */}
+                <ProfileSection num={5} done={!!skills} title="Skills">
+                  <input style={skills ? inpFilled : inpEmpty} value={skills} onChange={e => setSkills(e.target.value)} placeholder="e.g. Python, React, Project Management, NHS, IELTS 7.0" />
+                </ProfileSection>
+
+                {/* Section 6: Visa */}
+                <ProfileSection num={6} done={!!visaStatus} title="Visa preference">
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {VISA_OPTIONS.map(v => <button key={v} style={chip(visaStatus === v)} onClick={() => setVisaStatus(v)}>{v}</button>)}
+                  </div>
+                </ProfileSection>
+
+                {/* Telegram */}
+                <div style={panelCard}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
+                    <div style={{ width: "32px", height: "32px", borderRadius: "7px", background: "rgba(34,158,217,0.12)", color: "#229ED9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon path={ICONS.telegram} size={18} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontSize: "13px", margin: "0 0 3px", fontWeight: 500 }}>Weekly job alerts via Telegram</h3>
+                      <p style={{ fontSize: "12px", color: T.mute, margin: 0, lineHeight: 1.5 }}>Get 5 personalised visa sponsorship jobs every Friday.</p>
+                    </div>
+                  </div>
+                  {telegramConnected ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: "rgba(34,197,94,0.08)", border: `1px solid ${T.green}33`, borderRadius: "7px" }}>
+                      <span style={{ fontSize: "16px" }}>✓</span>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontWeight: 500, fontSize: "12px", color: T.green }}>Telegram connected</p>
+                        <p style={{ margin: 0, fontSize: "11px", color: T.mute }}>Alerts sent every Friday afternoon</p>
+                      </div>
+                      <button onClick={async () => { await supaFetch("/profiles?user_id=eq." + user.id, { method: "PATCH", body: JSON.stringify({ telegram_chat_id: null }) }); setTelegramConnected(false); }}
+                        style={{ fontSize: "11px", color: T.red, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>Disconnect</button>
+                    </div>
+                  ) : (
+                    <a href={"https://t.me/MentorgramAIBot?start=" + user.id} target="_blank" rel="noopener noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "9px 16px", borderRadius: "7px", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "12px", fontWeight: 500 }}>
+                      <Icon path={ICONS.telegram} size={14} /> Connect Telegram
+                    </a>
                   )}
                 </div>
-              </div>
 
-              <div style={card}>
-                <p style={{ fontWeight: 600, margin: "0 0 10px", fontSize: "15px" }}>👤 Your Profile Summary</p>
-                <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", lineHeight: 1.7, margin: "0 0 12px" }}>{cvResult.summary}</p>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "12px" }}>
-                  {(cvResult.profile?.keySkills || []).map(s => (
-                    <span key={s} style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, background: "rgba(124,58,237,0.12)", color: "#7C3AED" }}>{s}</span>
-                  ))}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "8px" }}>
-                  {[["📚", "Level", cvResult.profile?.level], ["💼", "Field", cvResult.profile?.currentField], ["⭐", "Experience", cvResult.profile?.experience]].map(([icon, label, val]) => val ? (
-                    <div key={label} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "8px 12px" }}>
-                      <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.04em" }}>{icon} {label}</p>
-                      <p style={{ fontSize: "13px", fontWeight: 500, margin: 0, textTransform: "capitalize" }}>{val}</p>
-                    </div>
-                  ) : null)}
-                </div>
-              </div>
-
-              <div style={card}>
-                <p style={{ fontWeight: 600, margin: "0 0 12px", fontSize: "15px" }}>🚀 Recommended Career Paths</p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "10px" }}>
-                  {(cvResult.careerPaths || []).map((cp, i) => (
-                    <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "1rem" }}>
-                      <p style={{ fontWeight: 600, margin: "0 0 6px", fontSize: "14px" }}>{cp.title}</p>
-                      <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 8px", lineHeight: 1.5 }}>{cp.description}</p>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
-                        <span style={{ color: "var(--color-text-secondary)" }}>Salary</span>
-                        <span style={{ fontWeight: 500, color: "#16A34A" }}>{cp.salaryRange}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {(cvResult.universities || cvResult.ukUniversities || []).length > 0 && (
-                <div style={card}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                    <p style={{ fontWeight: 600, margin: 0, fontSize: "15px" }}>🎓 Recommended Programmes</p>
-                    <button onClick={() => onNavigate("Universities")} style={{ ...btn(false), fontSize: "12px", padding: "5px 12px" }}>Browse more →</button>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {(cvResult.universities || cvResult.ukUniversities || []).slice(0, 5).map((u, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", gap: "10px", flexWrap: "wrap" }}>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 2px" }}>{u.course}</p>
-                          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{u.name} · {u.country === "Germany" ? "🇩🇪" : "🇬🇧"} {u.degreeType}</p>
-                        </div>
-                        <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 500, background: u.country === "Germany" ? "rgba(22,163,74,0.12)" : "rgba(26,63,168,0.12)", color: u.country === "Germany" ? "#16A34A" : "#1A3FA8", whiteSpace: "nowrap" }}>
-                          {u.country === "Germany" ? "🇩🇪 Germany" : "🇬🇧 UK"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {cvResult.gaps?.length > 0 && (
-                <div style={{ ...card, background: "rgba(245,158,11,0.04)", borderColor: "rgba(245,158,11,0.2)" }}>
-                  <p style={{ fontWeight: 600, margin: "0 0 10px", fontSize: "14px" }}>⚡ Skills to Develop</p>
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                    {cvResult.gaps.map((g, i) => (
-                      <span key={i} style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "13px", background: "rgba(245,158,11,0.12)", color: "#D97706", fontWeight: 500 }}>{g}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {matchedJobs.length > 0 && (
-                <div style={card}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                    <p style={{ fontWeight: 600, margin: 0, fontSize: "15px" }}>💼 Jobs Matching Your CV</p>
-                    <button onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }} style={{ ...btn(true), fontSize: "12px", padding: "5px 12px" }}>View all {matchedJobs.length} →</button>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {matchedJobs.slice(0, 4).map((j, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", gap: "10px", flexWrap: "wrap" }}>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontWeight: 500, fontSize: "14px", margin: "0 0 2px" }}>{j.title}</p>
-                          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{j.company} · {j.location}</p>
-                        </div>
-                        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                          {j.sponsorship && <span style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 500, background: "rgba(22,163,74,0.12)", color: "#16A34A" }}>✓ Visa</span>}
-                          {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "5px 12px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── PROFILE ── */}
-      {tab === "profile" && (
-        <div style={{ display: "grid", gap: "1rem" }}>
-          {cvApplied && (
-            <div style={{ padding: "12px 16px", background: "rgba(124,58,237,0.08)", border: "0.5px solid rgba(124,58,237,0.2)", borderRadius: "var(--border-radius-md)", fontSize: "13px", color: "#7C3AED", fontWeight: 500 }}>
-              ✨ Profile fields have been auto-filled from your CV. Review and save below.
-            </div>
-          )}
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>👤 Basic Information</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
-              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Full Name</label><input style={inp} value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" /></div>
-              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Current / Target Job Title</label><input style={inp} value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder="e.g. Software Engineer" /></div>
-              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Preferred Location</label><input style={inp} value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. London" /></div>
-            </div>
-            <div style={{ marginTop: "12px" }}><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>About Me</label><textarea style={{ ...inp, height: "80px", resize: "vertical" }} value={bio} onChange={e => setBio(e.target.value)} placeholder="Brief background about yourself..." /></div>
-          </div>
-
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>💼 Experience Level</h3>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              {EXPERIENCE_LEVELS.map(lvl => <button key={lvl} style={pill(experience === lvl)} onClick={() => setExperience(experience === lvl ? "" : lvl)}>{lvl}</button>)}
-            </div>
-          </div>
-
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.4rem" }}>🏢 Preferred Sectors</h3>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>We'll filter jobs based on these sectors</p>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              {SECTORS.map(s => <button key={s} style={pill(sectors.includes(s))} onClick={() => setSectors(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s])}>{s}</button>)}
-            </div>
-          </div>
-
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.4rem" }}>⚡ Skills</h3>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem" }}>Add skills to match against job listings</p>
-            <input style={inp} value={skills} onChange={e => setSkills(e.target.value)} placeholder="e.g. Python, React, Project Management, NHS, IELTS 7.0" />
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" }}>
-            <div style={card}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>💰 Minimum Salary</h3>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                {SALARY_RANGES.map(s => <button key={s} style={pill(salary === s)} onClick={() => setSalary(s)}>{s}</button>)}
-              </div>
-            </div>
-            <div style={card}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>🛂 Visa Status</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {VISA_OPTIONS.map(v => <button key={v} style={{ ...pill(visaStatus === v), textAlign: "left", borderRadius: "var(--border-radius-md)", padding: "8px 14px" }} onClick={() => setVisaStatus(v)}>{v}</button>)}
-              </div>
-            </div>
-          </div>
-
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>📲 Weekly Job Alerts via Telegram</h3>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>
-              Get 5 personalised visa sponsorship jobs delivered to your Telegram every Friday — matched to your sectors and location.
-            </p>
-            {telegramConnected ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "rgba(22,163,74,0.08)", border: "0.5px solid rgba(22,163,74,0.25)", borderRadius: "var(--border-radius-md)" }}>
-                <span style={{ fontSize: "20px" }}>✅</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontWeight: 600, fontSize: "13px", color: "#16A34A" }}>Telegram connected</p>
-                  <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>You'll receive job alerts every Friday afternoon</p>
-                </div>
-                <button
-                  onClick={async () => {
-                    await supaFetch("/profiles?user_id=eq." + user.id, { method: "PATCH", body: JSON.stringify({ telegram_chat_id: null }) });
-                    setTelegramConnected(false);
-                  }}
-                  style={{ fontSize: "12px", color: "#E24B4A", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-                  Disconnect
+                {/* Save button */}
+                <button style={{ ...btnPrimary, padding: "13px", fontSize: "14px", background: saved ? T.green : T.accent, opacity: saving ? 0.7 : 1 }} onClick={saveProfile} disabled={saving}>
+                  {saving ? "Saving..." : saved ? "✓ Profile saved" : "Save profile"}
                 </button>
               </div>
-            ) : (
-              <a
-                href={"https://t.me/MentorgramAIBot?start=" + user.id}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "var(--border-radius-md)", background: "#229ED9", color: "#fff", textDecoration: "none", fontSize: "14px", fontWeight: 600, fontFamily: "inherit" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.038 9.589c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.593l-2.95-.924c-.642-.204-.654-.642.135-.953l11.49-4.428c.537-.194 1.006.131.407.96z"/></svg>
-                Connect Telegram
-              </a>
+
+              {/* Live preview */}
+              <div className="mg-hide-mobile" style={{ position: "sticky", top: "20px", alignSelf: "flex-start" }}>
+                <div style={panelCard}>
+                  <div style={{ fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: T.dim, marginBottom: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: T.green, animation: "mgPulse 2s ease-in-out infinite" }} /> Live preview
+                  </div>
+                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: T.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "17px", fontWeight: 500, marginBottom: "12px" }}>{initials}</div>
+                  <div style={{ fontSize: "14px", fontWeight: 500, marginBottom: "2px" }}>{fullName || "Your name"}</div>
+                  <div style={{ fontSize: "12px", color: T.mute, marginBottom: "14px" }}>{jobTitle || "Your role"}{location ? ` · ${location}` : ""}</div>
+                  {[
+                    { l: "Sectors", v: sectors.length > 0 ? `${sectors.length} selected` : "Not set" },
+                    { l: "Experience", v: experience || "Not set" },
+                    { l: "Min salary", v: salary !== "Any" ? salary : "Any" },
+                    { l: "Visa", v: visaStatus ? (visaStatus.includes("sponsor") ? "Needs sponsor" : visaStatus.includes("right") ? "Right to work" : "Either") : "Not set" },
+                  ].map(s => (
+                    <div key={s.l} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderTop: `1px solid ${T.line}`, fontSize: "12px" }}>
+                      <span style={{ color: T.dim }}>{s.l}</span>
+                      <span style={{ color: T.text, fontWeight: 500 }}>{s.v}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderTop: `1px solid ${T.line}`, fontSize: "12px" }}>
+                    <span style={{ color: T.dim }}>Matches</span>
+                    <span style={{ color: T.accent, fontWeight: 500 }}>{matchedJobs.length} jobs</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════ CV ANALYSIS ═══════════════ */}
+        {view === "cv" && (
+          <div>
+            <div style={{ marginBottom: "20px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>CV Analysis</h1>
+              <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Upload your CV and our AI will auto-fill your profile, suggest career paths, and match you with jobs.</p>
+            </div>
+
+            <div style={{ ...panelCard, marginBottom: "16px" }}>
+              <label style={lbl}>What are you looking for?</label>
+              <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
+                {DEGREE_LEVELS.map(l => (
+                  <button key={l.key} onClick={() => setSelectedLevel(l.key)}
+                    style={{ padding: "7px 14px", borderRadius: "16px", fontSize: "12px", fontWeight: selectedLevel === l.key ? 500 : 400, cursor: "pointer", fontFamily: "inherit",
+                      border: `1px solid ${selectedLevel === l.key ? l.color : T.line}`,
+                      background: selectedLevel === l.key ? `${l.color}18` : "transparent",
+                      color: selectedLevel === l.key ? l.color : T.mute }}>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+
+              <div onClick={() => fileRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = T.accent; }}
+                onDragLeave={e => { e.currentTarget.style.borderColor = T.line; }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = T.line; handleCVUpload(e.dataTransfer.files[0]); }}
+                style={{ border: `2px dashed ${T.line2}`, borderRadius: "10px", padding: "28px", textAlign: "center", cursor: "pointer", background: T.bg, transition: "border-color 0.2s" }}>
+                <input ref={fileRef} type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: "none" }} onChange={e => handleCVUpload(e.target.files[0])} />
+                <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", color: T.accent }}>
+                  <Icon path={ICONS.doc} size={22} />
+                </div>
+                {cvFileName ? (
+                  <>
+                    <p style={{ fontSize: "13px", fontWeight: 500, margin: "0 0 4px", color: T.green }}>✓ {cvFileName}</p>
+                    <p style={{ fontSize: "12px", color: T.mute, margin: 0 }}>Click to upload a different file</p>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize: "13px", fontWeight: 500, margin: "0 0 4px" }}>Drop your CV here or click to upload</p>
+                    <p style={{ fontSize: "12px", color: T.mute, margin: 0 }}>PDF, DOCX, TXT · max 5MB</p>
+                  </>
+                )}
+              </div>
+
+              {cvLoading && (
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", padding: "10px 14px", background: T.accentBg, borderRadius: "8px", marginTop: "12px" }}>
+                  <div style={{ width: "14px", height: "14px", border: `2px solid ${T.accentBg}`, borderTopColor: T.accent, borderRadius: "50%", animation: "mgSpin 1s linear infinite" }} />
+                  <p style={{ margin: 0, fontSize: "12px", color: T.accent }}>Analysing your CV with AI...</p>
+                </div>
+              )}
+              {cvError && <p style={{ color: T.red, fontSize: "12px", margin: "12px 0 0" }}>⚠️ {cvError}</p>}
+            </div>
+
+            {cvResult && !cvLoading && (
+              <div style={{ display: "grid", gap: "12px" }}>
+                <div style={{ ...panelCard, borderColor: T.purple + "55" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                    <div>
+                      <p style={{ fontWeight: 500, margin: "0 0 3px", fontSize: "14px" }}>{cvApplied ? "✓ Profile updated" : "Apply results to your profile"}</p>
+                      <p style={{ fontSize: "12px", color: T.mute, margin: 0 }}>{cvApplied ? "Your profile has been updated." : "Auto-fill job title, sectors, skills and experience."}</p>
+                    </div>
+                    {!cvApplied && <button onClick={applyCVToProfile} style={{ ...btnPrimary, background: T.purple }}>Apply to profile</button>}
+                  </div>
+                </div>
+
+                <div style={panelCard}>
+                  <p style={{ fontWeight: 500, margin: "0 0 10px", fontSize: "13px" }}>Profile summary</p>
+                  <p style={{ fontSize: "13px", color: T.mute, lineHeight: 1.6, margin: "0 0 12px" }}>{cvResult.summary}</p>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    {(cvResult.profile?.keySkills || []).map(s => (
+                      <span key={s} style={{ padding: "3px 10px", borderRadius: "16px", fontSize: "11px", fontWeight: 500, background: "rgba(167,139,250,0.12)", color: T.purple }}>{s}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {cvResult.careerPaths?.length > 0 && (
+                  <div style={panelCard}>
+                    <p style={{ fontWeight: 500, margin: "0 0 12px", fontSize: "13px" }}>Recommended career paths</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
+                      {cvResult.careerPaths.map((cp, i) => (
+                        <div key={i} style={{ background: T.bg, borderRadius: "8px", padding: "12px", border: `1px solid ${T.line}` }}>
+                          <p style={{ fontWeight: 500, margin: "0 0 5px", fontSize: "13px" }}>{cp.title}</p>
+                          <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 8px", lineHeight: 1.5 }}>{cp.description}</p>
+                          <div style={{ fontSize: "11px", color: T.green, fontWeight: 500 }}>{cp.salaryRange}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {cvResult.gaps?.length > 0 && (
+                  <div style={{ ...panelCard, background: "rgba(245,158,11,0.04)", borderColor: T.amber + "33" }}>
+                    <p style={{ fontWeight: 500, margin: "0 0 8px", fontSize: "13px" }}>Skills to develop</p>
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                      {cvResult.gaps.map((g, i) => (
+                        <span key={i} style={{ padding: "4px 10px", borderRadius: "16px", fontSize: "12px", background: "rgba(245,158,11,0.12)", color: T.amber, fontWeight: 500 }}>{g}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
+        )}
 
-          <button style={{ ...btn(true), padding: "13px", fontSize: "15px", opacity: saving ? 0.7 : 1, background: saved ? "#16A34A" : "#1A3FA8" }} onClick={saveProfile} disabled={saving}>
-            {saving ? "Saving..." : saved ? "✓ Profile saved!" : "Save profile"}
-          </button>
-        </div>
-      )}
-
-      {/* ── MATCHES ── */}
-      {tab === "matches" && (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
-            <div>
-              <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>🎯 Your Top Job Matches</h3>
-              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
-                <strong>{matchedJobs.length}</strong> visa sponsorship jobs matched to your profile
-                {sectors.length > 0 && " · " + sectors.slice(0, 2).join(", ")}
-                {location && " · " + location}
-              </p>
-            </div>
-            <button style={{ ...btn(true), padding: "8px 16px", fontSize: "13px" }}
-              onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }}>
-              View all on jobs board ↗
-            </button>
-          </div>
-
-          {matchedJobs.length === 0 ? (
-            <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
-              <p style={{ fontSize: "2rem", margin: "0 0 1rem" }}>🔍</p>
-              <p style={{ fontWeight: 500 }}>No matches yet</p>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", marginBottom: "1.25rem" }}>Update your profile with sectors and location to see matching jobs</p>
-              <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
-                <button style={{ ...btn(true), background: "#7C3AED", padding: "9px 20px" }} onClick={() => setTab("cv")}>Analyse my CV</button>
-                <button style={{ ...btn(false), padding: "9px 20px" }} onClick={() => setTab("profile")}>Update profile</button>
+        {/* ═══════════════ JOB MATCHES ═══════════════ */}
+        {view === "matches" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
+              <div>
+                <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Job matches</h1>
+                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>{matchedJobs.length} visa sponsorship jobs matched to your profile</p>
               </div>
+              <button onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }} style={btnPrimary}>
+                View all on jobs board ↗
+              </button>
             </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {matchedJobs.slice(0, 10).map((j, i) => (
-                <div key={i} style={{ ...card, display: "flex", flexDirection: "column", gap: "0", padding: "0", overflow: "hidden", transition: "transform 0.2s, box-shadow 0.2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(26,63,168,0.12)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "1rem 1.25rem 0.75rem", gap: "10px" }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
-                        <span style={{ background: "#1A3FA8", color: "#fff", width: "24px", height: "24px", borderRadius: "6px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
-                        <p style={{ fontWeight: 700, margin: 0, fontSize: "15px", lineHeight: 1.3 }}>{j.title}</p>
-                      </div>
-                      <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0, fontWeight: 500 }}>{j.company}</p>
-                    </div>
-                    {j.sponsorship && (
-                      <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: "rgba(22,163,74,0.12)", color: "#16A34A", whiteSpace: "nowrap", flexShrink: 0, border: "0.5px solid rgba(22,163,74,0.3)" }}>✓ Visa Sponsor</span>
-                    )}
-                  </div>
 
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", padding: "0 1.25rem 0.75rem", alignItems: "center" }}>
-                    <span style={{ padding: "2px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, background: "rgba(26,63,168,0.08)", color: "#1A3FA8" }}>{j.sector}</span>
-                    <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>📍 {j.location}</span>
-                    {j.salary && <span style={{ fontSize: "12px", color: "#16A34A", fontWeight: 600 }}>💰 {j.salary}</span>}
-                    {j.posted && <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>🕐 {j.posted}</span>}
-                  </div>
-
-                  <div style={{ display: "flex", gap: "8px", padding: "10px 1.25rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>
-                    {j.url && (
-                      <a href={j.url} target="_blank" rel="noopener noreferrer"
-                        style={{ flex: 1, padding: "8px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "13px", textDecoration: "none", fontWeight: 600, textAlign: "center" }}>
-                        Apply Now ↗
-                      </a>
-                    )}
-                    <button
-                      onClick={() => saveApplication({ title: j.title, company: j.company, url: j.url, type: "Job", status: "Applied", notes: "", deadline: "", location: j.location })}
-                      style={{ flex: 1, padding: "8px 14px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>
-                      📋 Save & Track
-                    </button>
-                  </div>
+            {matchedJobs.length === 0 ? (
+              <div style={{ ...panelCard, textAlign: "center", padding: "3rem 2rem" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "10px", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: T.accent }}>
+                  <Icon path={ICONS.search} size={22} />
                 </div>
-              ))}
-
-              {matchedJobs.length > 10 && (
-                <button style={{ ...btn(false), width: "100%", padding: "12px", textAlign: "center" }}
-                  onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }}>
-                  View all {matchedJobs.length} matching jobs on jobs board →
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── CV BUILDER ── */}
-      {tab === "cvgen" && (
-        <div>
-          {!cvResult ? (
-            <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
-              <p style={{ fontSize: "2.5rem", margin: "0 0 1rem" }}>✍️</p>
-              <p style={{ fontWeight: 600, margin: "0 0 8px", fontSize: "16px" }}>Generate a tailored CV for any job</p>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "14px", margin: "0 0 1.5rem", lineHeight: 1.6 }}>First analyse your CV in the CV Analysis tab, then come back here to generate ATS-optimised CVs and cover letters for any job in seconds.</p>
-              <button onClick={() => setTab("cv")} style={{ ...btn(true), background: "#7C3AED", padding: "10px 24px" }}>Go to CV Analysis →</button>
-            </div>
-          ) : (
-            <CVBuilderInline cvText={cvTextForGen} />
-          )}
-        </div>
-      )}
-
-      {/* ── APPLICATION TRACKER ── */}
-      {tab === "tracker" && (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
-            <div>
-              <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>📋 Application Tracker</h3>
-              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>{applications.length} applications tracked</p>
-            </div>
-            <button onClick={() => setShowAddApp(true)} style={{ ...btn(true), padding: "8px 16px", fontSize: "13px" }}>+ Add Application</button>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "8px", marginBottom: "1.25rem" }}>
-            {[
-              { status: "Applied", color: "#1A3FA8", bg: "rgba(26,63,168,0.08)" },
-              { status: "Interview", color: "#D97706", bg: "rgba(217,119,6,0.08)" },
-              { status: "Offer", color: "#16A34A", bg: "rgba(22,163,74,0.08)" },
-              { status: "Rejected", color: "#DC2626", bg: "rgba(220,38,38,0.08)" },
-            ].map(s => (
-              <div key={s.status} style={{ background: s.bg, borderRadius: "var(--border-radius-md)", padding: "10px 12px", textAlign: "center" }}>
-                <p style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
-                <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", margin: 0 }}>{s.status}</p>
-              </div>
-            ))}
-          </div>
-
-          {showAddApp && (
-            <div style={{ ...card, marginBottom: "1rem", border: "1.5px solid #1A3FA8" }}>
-              <p style={{ fontWeight: 600, margin: "0 0 1rem", fontSize: "14px" }}>Add new application</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
-                <input style={{ ...inp, fontSize: "13px" }} placeholder="Job title *" value={newApp.title} onChange={e => setNewApp(p => ({ ...p, title: e.target.value }))} />
-                <input style={{ ...inp, fontSize: "13px" }} placeholder="Company *" value={newApp.company} onChange={e => setNewApp(p => ({ ...p, company: e.target.value }))} />
-                <input style={{ ...inp, fontSize: "13px" }} placeholder="Location" value={newApp.location} onChange={e => setNewApp(p => ({ ...p, location: e.target.value }))} />
-                <input style={{ ...inp, fontSize: "13px" }} placeholder="Job URL" value={newApp.url} onChange={e => setNewApp(p => ({ ...p, url: e.target.value }))} />
-                <select style={{ ...inp, fontSize: "13px" }} value={newApp.type} onChange={e => setNewApp(p => ({ ...p, type: e.target.value }))}>
-                  <option>Job</option>
-                  <option>PhD</option>
-                  <option>Masters</option>
-                  <option>Internship</option>
-                </select>
-                <input style={{ ...inp, fontSize: "13px" }} type="date" placeholder="Deadline" value={newApp.deadline} onChange={e => setNewApp(p => ({ ...p, deadline: e.target.value }))} />
-              </div>
-              <textarea style={{ ...inp, fontSize: "13px", minHeight: "60px", resize: "vertical", marginBottom: "10px" }} placeholder="Notes..." value={newApp.notes} onChange={e => setNewApp(p => ({ ...p, notes: e.target.value }))} />
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button style={{ ...btn(true), flex: 1, padding: "9px" }} onClick={() => { if (!newApp.title || !newApp.company) return; saveApplication(newApp); setNewApp({ title: "", company: "", url: "", type: "Job", status: "Applied", notes: "", deadline: "", location: "" }); setShowAddApp(false); }}>Save application</button>
-                <button style={{ ...btn(false), padding: "9px 16px" }} onClick={() => setShowAddApp(false)}>Cancel</button>
-              </div>
-            </div>
-          )}
-
-          {applications.length === 0 ? (
-            <div style={{ ...card, textAlign: "center", padding: "3rem" }}>
-              <p style={{ fontSize: "2rem", margin: "0 0 0.75rem" }}>📋</p>
-              <p style={{ fontWeight: 500, marginBottom: "0.5rem" }}>No applications tracked yet</p>
-              <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>Add your first application to start tracking</p>
-              <button style={{ ...btn(true), padding: "9px 20px" }} onClick={() => setShowAddApp(true)}>+ Add first application</button>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {applications.map(a => (
-                <div key={a.id} style={{ ...card, padding: "0", overflow: "hidden" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "12px 1.25rem" }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
-                        <span style={{ fontSize: "11px", padding: "1px 8px", borderRadius: "20px", background: "rgba(124,58,237,0.1)", color: "#7C3AED", fontWeight: 500 }}>{a.type}</span>
-                        <p style={{ fontWeight: 600, margin: 0, fontSize: "14px" }}>{a.title}</p>
-                      </div>
-                      <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 6px" }}>{a.company}{a.location ? " · " + a.location : ""}</p>
-                      {a.deadline && <p style={{ fontSize: "12px", color: "#D97706", margin: 0 }}>Deadline: {new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>}
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
-                      <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
-                        style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "20px", border: "none", fontFamily: "inherit", cursor: "pointer", fontWeight: 600,
-                          background: a.status === "Applied" ? "rgba(26,63,168,0.1)" : a.status === "Interview" ? "rgba(217,119,6,0.1)" : a.status === "Offer" ? "rgba(22,163,74,0.1)" : "rgba(220,38,38,0.1)",
-                          color: a.status === "Applied" ? "#1A3FA8" : a.status === "Interview" ? "#D97706" : a.status === "Offer" ? "#16A34A" : "#DC2626" }}>
-                        <option>Applied</option>
-                        <option>Interview</option>
-                        <option>Offer</option>
-                        <option>Rejected</option>
-                      </select>
-                      <button onClick={() => deleteApplication(a.id)} style={{ fontSize: "11px", color: "#DC2626", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>Remove</button>
-                    </div>
-                  </div>
-                  {a.notes && <div style={{ padding: "8px 1.25rem 12px", borderTop: "0.5px solid var(--color-border-tertiary)" }}><p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>{a.notes}</p></div>}
-                  {a.url && <div style={{ padding: "8px 1.25rem", background: "var(--color-background-secondary)", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-                    <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#1A3FA8", fontWeight: 500 }}>View job posting ↗</a>
-                  </div>}
+                <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>No matches yet</p>
+                <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px" }}>Update your profile with sectors and location to see matching jobs</p>
+                <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
+                  <button onClick={() => setView("cv")} style={{ ...btnPrimary, background: T.purple }}>Analyse my CV</button>
+                  <button onClick={() => setView("profile")} style={btnGhost}>Update profile</button>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── PhD FINDER ── */}
-      {tab === "phd" && (
-        <div>
-          <div style={{ marginBottom: "1.25rem" }}>
-            <h3 style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 600 }}>🎓 PhD Finder</h3>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Find funded and non-funded PhD positions in UK and Germany</p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "8px", marginBottom: "1rem", alignItems: "center" }}>
-            <input style={{ ...inp, fontSize: "13px" }} placeholder="Search by field, topic, university..." id="phd-search" />
-            <select style={{ ...inp, fontSize: "13px", width: "auto" }} id="phd-country">
-              <option value="all">UK + Germany</option>
-              <option value="uk">UK only</option>
-              <option value="de">Germany only</option>
-            </select>
-            <select style={{ ...inp, fontSize: "13px", width: "auto" }} id="phd-funding">
-              <option value="all">All funding</option>
-              <option value="funded">Funded only</option>
-              <option value="unfunded">Non-funded</option>
-            </select>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {[
-              { title: "PhD in Machine Learning and Computer Vision", uni: "University of Edinburgh", country: "UK", funded: true, deadline: "2025-05-30", field: "Computer Science", stipend: "£19,668/year", url: "https://www.findaphd.com" },
-              { title: "PhD in Computational Neuroscience", uni: "University College London", country: "UK", funded: true, deadline: "2025-06-15", field: "Neuroscience", stipend: "£21,000/year", url: "https://www.findaphd.com" },
-              { title: "PhD in Artificial Intelligence", uni: "Technical University of Munich", country: "Germany", funded: true, deadline: "2025-07-01", field: "AI", stipend: "€2,000/month", url: "https://www.academics.de" },
-              { title: "PhD in Data Science and Analytics", uni: "University of Manchester", country: "UK", funded: false, deadline: "2025-05-01", field: "Data Science", stipend: "Self-funded", url: "https://www.findaphd.com" },
-              { title: "PhD in Robotics and Autonomous Systems", uni: "Imperial College London", country: "UK", funded: true, deadline: "2025-06-30", field: "Engineering", stipend: "£22,000/year", url: "https://www.findaphd.com" },
-              { title: "PhD in Sustainable Energy Systems", uni: "RWTH Aachen University", country: "Germany", funded: true, deadline: "2025-08-01", field: "Engineering", stipend: "€2,200/month", url: "https://www.academics.de" },
-              { title: "PhD in Biomedical Engineering", uni: "University of Cambridge", country: "UK", funded: true, deadline: "2025-05-15", field: "Medicine", stipend: "£20,500/year", url: "https://www.findaphd.com" },
-              { title: "PhD in Climate Science", uni: "Heidelberg University", country: "Germany", funded: false, deadline: "2025-09-01", field: "Environmental Science", stipend: "Self-funded", url: "https://www.academics.de" },
-            ].map((p, i) => (
-              <div key={i} style={{ ...card, padding: "0", overflow: "hidden" }}>
-                <div style={{ padding: "12px 1.25rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "6px" }}>
-                    <p style={{ fontWeight: 600, margin: 0, fontSize: "14px", lineHeight: 1.3 }}>{p.title}</p>
-                    <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0,
-                      background: p.funded ? "rgba(22,163,74,0.1)" : "rgba(220,38,38,0.1)",
-                      color: p.funded ? "#16A34A" : "#DC2626" }}>
-                      {p.funded ? "✓ Funded" : "Self-funded"}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 8px" }}>{p.uni} · {p.country === "UK" ? "🇬🇧" : "🇩🇪"} {p.country}</p>
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                    <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "20px", background: "rgba(26,63,168,0.08)", color: "#1A3FA8" }}>{p.field}</span>
-                    <span style={{ fontSize: "12px", color: "#16A34A", fontWeight: 600 }}>{p.stipend}</span>
-                    <span style={{ fontSize: "12px", color: "#D97706" }}>Deadline: {new Date(p.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: "8px", padding: "10px 1.25rem", borderTop: "0.5px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>
-                  <a href={p.url} target="_blank" rel="noopener noreferrer"
-                    style={{ flex: 1, padding: "7px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", fontWeight: 600, textAlign: "center", textDecoration: "none" }}>
-                    View Position ↗
-                  </a>
-                  <button onClick={() => { saveApplication({ title: p.title, company: p.uni, url: p.url, type: "PhD", status: "Applied", notes: p.funded ? "Funded position · " + p.stipend : "Self-funded", deadline: p.deadline, location: p.country }); }}
-                    style={{ flex: 1, padding: "7px 14px", borderRadius: "var(--border-radius-md)", background: "transparent", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", fontSize: "12px", cursor: "pointer", fontFamily: "inherit" }}>
-                    + Track Application
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", marginBottom: "10px" }}>Find more PhD positions on these platforms:</p>
-            <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
-              {[["FindAPhD.com (UK)", "https://www.findaphd.com"], ["Academics.de (Germany)", "https://www.academics.de"], ["DAAD Portal", "https://www.daad.de/en/study-and-research-in-germany/phd-studies-and-research/"], ["jobs.ac.uk", "https://www.jobs.ac.uk/phd"]].map(([name, url]) => (
-                <a key={name} href={url} target="_blank" rel="noopener noreferrer"
-                  style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", border: "0.5px solid var(--color-border-secondary)", fontSize: "12px", color: "#1A3FA8", textDecoration: "none", fontWeight: 500 }}>
-                  {name} ↗
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── SECURITY ── */}
-      {tab === "security" && (
-        <div style={{ display: "grid", gap: "1rem" }}>
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>📧 Account Information</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {[["Email address", user.email], ["Email verified", "✓ Verified"], ["Account created", new Date(user.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })]].map(([l, v]) => (
-                <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)" }}>
-                  <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>{l}</span>
-                  <span style={{ fontSize: "13px", fontWeight: 500, color: l === "Email verified" ? "#16A34A" : "inherit" }}>{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 1rem" }}>🔑 Change Password</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {passMsg.text && <div style={{ padding: "10px 14px", borderRadius: "var(--border-radius-md)", fontSize: "13px", background: passMsg.type === "ok" ? "rgba(22,163,74,0.1)" : "#FEE8E8", color: passMsg.type === "ok" ? "#16A34A" : "#9B1C1C" }}>{passMsg.text}</div>}
-              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>New password</label><input style={inp} type="password" placeholder="At least 8 characters" value={newPass} onChange={e => setNewPass(e.target.value)} /></div>
-              <div><label style={{ fontSize: "12px", color: "var(--color-text-secondary)", display: "block", marginBottom: "5px" }}>Confirm new password</label><input style={inp} type="password" placeholder="Repeat new password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} /></div>
-              <button style={{ ...btn(true), opacity: passLoading ? 0.7 : 1 }} onClick={changePassword} disabled={passLoading}>{passLoading ? "Updating..." : "Update password"}</button>
-            </div>
-          </div>
-
-          <div style={card}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 500, margin: "0 0 0.5rem" }}>🔒 Your Data & Privacy</h3>
-            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 1rem", lineHeight: 1.6 }}>Under UK GDPR you have rights over your personal data. Contact us at <strong>info@mentorgramai.com</strong>.</p>
-            <a href="mailto:info@mentorgramai.com?subject=Data Request" style={{ ...btn(false), textDecoration: "none", display: "inline-block", fontSize: "13px", padding: "8px 16px" }}>Request my data</a>
-          </div>
-
-          <div style={{ border: "0.5px solid rgba(226,75,74,0.3)", borderRadius: "var(--border-radius-lg)", padding: "1.5rem" }}>
-            <h3 style={{ fontSize: "0.95rem", fontWeight: 500, margin: "0 0 0.5rem", color: "#E24B4A" }}>⚠️ Delete Account</h3>
-            {!deleteOpen ? (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
-                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Permanently delete your account and all data. Cannot be undone.</p>
-                <button onClick={() => setDeleteOpen(true)} style={{ ...btn(false), fontSize: "13px", padding: "8px 16px", color: "#E24B4A", borderColor: "rgba(226,75,74,0.5)" }}>Delete account</button>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>Type <strong>delete</strong> to confirm.</p>
-                <input style={{ ...inp, borderColor: "#E24B4A" }} placeholder='Type "delete" to confirm' value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} />
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button onClick={() => { setDeleteOpen(false); setDeleteConfirm(""); }} style={{ ...btn(false), flex: 1 }}>Cancel</button>
-                  <button onClick={deleteAccount} disabled={deleteLoading || deleteConfirm.toLowerCase() !== "delete"} style={{ ...btn(false, true), flex: 1, opacity: deleteConfirm.toLowerCase() === "delete" ? 1 : 0.4 }}>
-                    {deleteLoading ? "Deleting..." : "Permanently delete"}
-                  </button>
-                </div>
+                {matchedJobs.slice(0, 20).map((j, i) => (
+                  <div key={i} style={{ ...card, transition: "border-color 0.15s", padding: "0", overflow: "hidden" }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = T.line2}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = T.line}>
+                    <div style={{ padding: "14px 18px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "6px" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
+                            <span style={{ width: "20px", height: "20px", borderRadius: "5px", background: T.accentBg, color: T.accent, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 600 }}>{i + 1}</span>
+                            <p style={{ fontWeight: 500, margin: 0, fontSize: "14px" }}>{j.title}</p>
+                          </div>
+                          <p style={{ color: T.mute, fontSize: "12px", margin: 0 }}>{j.company}</p>
+                        </div>
+                        {j.sponsorship && <span style={{ padding: "3px 9px", borderRadius: "14px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.12)", color: T.green, whiteSpace: "nowrap" }}>✓ Visa sponsor</span>}
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", fontSize: "11px", color: T.mute }}>
+                        {j.sector && <span style={{ padding: "2px 9px", borderRadius: "12px", background: T.accentBg, color: T.accent, fontWeight: 500 }}>{j.sector}</span>}
+                        <span>📍 {j.location}</span>
+                        {j.salary && <span style={{ color: T.green, fontWeight: 500 }}>💰 {j.salary}</span>}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px", padding: "10px 18px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
+                      {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: "7px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500, textAlign: "center" }}>Apply Now ↗</a>}
+                      <button onClick={async () => { const r = await saveApplication({ title: j.title, company: j.company, url: j.url, type: "Job", status: "Applied", notes: "", deadline: "", location: j.location, reminder_days: null }); if (r) alert("Saved to Applications tracker ✓"); }}
+                        style={{ flex: 1, padding: "7px 12px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "12px", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>📋 Save & Track</button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+
+        {/* ═══════════════ APPLICATION TRACKER ═══════════════ */}
+        {view === "tracker" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
+              <div>
+                <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Applications</h1>
+                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>{applications.length} applications tracked · Email reminders to {user.email}</p>
+              </div>
+              {!showAddApp && <button onClick={() => setShowAddApp(true)} style={btnPrimary}>+ Add Application</button>}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "8px", marginBottom: "16px" }}>
+              {[
+                { status: "Applied",   color: T.accent, bg: T.accentBg },
+                { status: "Interview", color: T.amber, bg: "rgba(245,158,11,0.08)" },
+                { status: "Offer",     color: T.green, bg: "rgba(34,197,94,0.08)" },
+                { status: "Rejected",  color: T.red, bg: "rgba(226,75,74,0.08)" },
+              ].map(s => (
+                <div key={s.status} style={{ background: s.bg, borderRadius: "8px", padding: "12px", textAlign: "center", border: `1px solid ${T.line}` }}>
+                  <p style={{ fontSize: "22px", fontWeight: 500, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
+                  <p style={{ fontSize: "11px", color: T.mute, margin: 0 }}>{s.status}</p>
+                </div>
+              ))}
+            </div>
+
+            {showAddApp && (
+              <div style={{ ...panelCard, marginBottom: "12px", border: `1.5px solid ${T.accent}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                  <p style={{ fontWeight: 500, margin: 0, fontSize: "13px" }}>Add application — paste URL to auto-fill</p>
+                  <button onClick={() => { resetAddForm(); setShowAddApp(false); }} style={{ fontSize: "13px", color: T.mute, background: "none", border: "none", cursor: "pointer" }}>✕</button>
+                </div>
+
+                <div style={{ background: T.accentBg, border: `1px solid ${T.accent}33`, borderRadius: "7px", padding: "12px", marginBottom: "12px" }}>
+                  <label style={{ ...lbl, fontWeight: 500, color: T.text }}>📎 Paste job URL (optional)</label>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <input style={inp} placeholder="https://example.com/jobs/..." value={urlInput}
+                      onChange={e => setUrlInput(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && !scraping && scrapeUrl()} />
+                    <button onClick={scrapeUrl} disabled={scraping || !urlInput}
+                      style={{ ...btnPrimary, padding: "9px 16px", whiteSpace: "nowrap", opacity: scraping || !urlInput ? 0.5 : 1 }}>
+                      {scraping ? "..." : "Auto-fill"}
+                    </button>
+                  </div>
+                  {scrapeResult?.success && <p style={{ margin: "8px 0 0", fontSize: "11px", color: T.green }}>✓ {scrapeResult.message}</p>}
+                  {scrapeResult?.fallback && <p style={{ margin: "8px 0 0", fontSize: "11px", color: T.amber }}>⚠️ {scrapeResult.message}</p>}
+                  {scrapeResult?.error && <p style={{ margin: "8px 0 0", fontSize: "11px", color: T.red }}>⚠️ {scrapeResult.error}</p>}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+                  <div><label style={lbl}>Job title *</label><input style={inp} placeholder="e.g. Senior Engineer" value={newApp.title} onChange={e => setNewApp(p => ({ ...p, title: e.target.value }))} /></div>
+                  <div><label style={lbl}>Company *</label><input style={inp} placeholder="e.g. Acme Corp" value={newApp.company} onChange={e => setNewApp(p => ({ ...p, company: e.target.value }))} /></div>
+                  <div><label style={lbl}>Location</label><input style={inp} placeholder="e.g. London" value={newApp.location} onChange={e => setNewApp(p => ({ ...p, location: e.target.value }))} /></div>
+                  <div><label style={lbl}>Type</label>
+                    <select style={inp} value={newApp.type} onChange={e => setNewApp(p => ({ ...p, type: e.target.value }))}>
+                      <option>Job</option><option>PhD</option><option>Masters</option><option>Internship</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ background: "rgba(245,158,11,0.05)", border: `1px solid ${T.amber}33`, borderRadius: "7px", padding: "12px", marginBottom: "10px" }}>
+                  <label style={{ ...lbl, fontWeight: 500, color: T.amber }}>📅 Deadline & reminder</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                    <div><label style={{ ...lbl, fontSize: "10px" }}>Deadline</label><input style={inp} type="date" value={newApp.deadline} onChange={e => setNewApp(p => ({ ...p, deadline: e.target.value }))} /></div>
+                    <div><label style={{ ...lbl, fontSize: "10px" }}>Email reminder</label>
+                      <select style={{ ...inp, opacity: newApp.deadline ? 1 : 0.5 }} disabled={!newApp.deadline}
+                        value={newApp.reminder_days || ""}
+                        onChange={e => setNewApp(p => ({ ...p, reminder_days: e.target.value ? parseInt(e.target.value) : null }))}>
+                        <option value="">No reminder</option>
+                        <option value="1">1 day before</option>
+                        <option value="3">3 days before</option>
+                        <option value="7">1 week before</option>
+                        <option value="14">2 weeks before</option>
+                      </select>
+                    </div>
+                  </div>
+                  {newApp.deadline && newApp.reminder_days && (
+                    <p style={{ margin: "8px 0 0", fontSize: "11px", color: T.amber }}>
+                      ✓ We'll email <strong>{user.email}</strong> on <strong>{new Date(new Date(newApp.deadline).getTime() - newApp.reminder_days * 86400000).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</strong>
+                    </p>
+                  )}
+                </div>
+
+                <textarea style={{ ...inp, minHeight: "60px", resize: "vertical", marginBottom: "10px" }} placeholder="Notes..." value={newApp.notes} onChange={e => setNewApp(p => ({ ...p, notes: e.target.value }))} />
+
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button style={{ ...btnPrimary, flex: 1, padding: "10px", opacity: (!newApp.title || !newApp.company) ? 0.5 : 1 }}
+                    disabled={!newApp.title || !newApp.company}
+                    onClick={async () => { if (!newApp.title || !newApp.company) return; const r = await saveApplication(newApp); if (r) { resetAddForm(); setShowAddApp(false); } }}>
+                    Save application
+                  </button>
+                  <button style={btnGhost} onClick={() => { resetAddForm(); setShowAddApp(false); }}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {appsLoading ? (
+              <div style={{ ...panelCard, textAlign: "center", padding: "2rem", color: T.mute }}>Loading applications...</div>
+            ) : applications.length === 0 ? (
+              <div style={{ ...panelCard, textAlign: "center", padding: "3rem 2rem" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "10px", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: T.accent }}>
+                  <Icon path={ICONS.clipboard} size={22} />
+                </div>
+                <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>No applications tracked yet</p>
+                <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px" }}>Add your first application to start tracking deadlines</p>
+                <button onClick={() => setShowAddApp(true)} style={btnPrimary}>+ Add first application</button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {applications.map(a => (
+                  <div key={a.id} style={{ ...card, padding: "0", overflow: "hidden" }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "12px 16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "3px" }}>
+                          <span style={{ fontSize: "10px", padding: "1px 8px", borderRadius: "12px", background: "rgba(167,139,250,0.12)", color: T.purple, fontWeight: 500 }}>{a.type}</span>
+                          <p style={{ fontWeight: 500, margin: 0, fontSize: "13px" }}>{a.title}</p>
+                        </div>
+                        <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 4px" }}>{a.company}{a.location ? " · " + a.location : ""}</p>
+                        {a.deadline && <p style={{ fontSize: "11px", color: T.amber, margin: 0 }}>Deadline: {new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
+                        <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
+                          style={{ fontSize: "11px", padding: "4px 10px", borderRadius: "14px", border: "none", fontFamily: "inherit", cursor: "pointer", fontWeight: 500,
+                            background: a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)",
+                            color: a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red }}>
+                          <option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
+                        </select>
+                        <button onClick={() => deleteApplication(a.id)} style={{ fontSize: "10px", color: T.red, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>Remove</button>
+                      </div>
+                    </div>
+                    {a.notes && <div style={{ padding: "8px 16px 10px", borderTop: `1px solid ${T.line}` }}><p style={{ fontSize: "11px", color: T.mute, margin: 0 }}>{a.notes}</p></div>}
+                    {a.url && <div style={{ padding: "8px 16px", background: T.bg, borderTop: `1px solid ${T.line}` }}>
+                      <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: T.accent, fontWeight: 500 }}>View job posting ↗</a>
+                    </div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════ PhD FINDER ═══════════════ */}
+        {view === "phd" && (
+          <div>
+            <div style={{ marginBottom: "20px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>PhD Finder</h1>
+              <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Find funded and non-funded PhD positions in UK and Germany</p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[
+                { title: "PhD in Machine Learning and Computer Vision", uni: "University of Edinburgh", country: "UK", funded: true, deadline: "2025-05-30", field: "Computer Science", stipend: "£19,668/year", url: "https://www.findaphd.com" },
+                { title: "PhD in Computational Neuroscience", uni: "University College London", country: "UK", funded: true, deadline: "2025-06-15", field: "Neuroscience", stipend: "£21,000/year", url: "https://www.findaphd.com" },
+                { title: "PhD in Artificial Intelligence", uni: "Technical University of Munich", country: "Germany", funded: true, deadline: "2025-07-01", field: "AI", stipend: "€2,000/month", url: "https://www.academics.de" },
+                { title: "PhD in Data Science and Analytics", uni: "University of Manchester", country: "UK", funded: false, deadline: "2025-05-01", field: "Data Science", stipend: "Self-funded", url: "https://www.findaphd.com" },
+                { title: "PhD in Robotics and Autonomous Systems", uni: "Imperial College London", country: "UK", funded: true, deadline: "2025-06-30", field: "Engineering", stipend: "£22,000/year", url: "https://www.findaphd.com" },
+                { title: "PhD in Sustainable Energy Systems", uni: "RWTH Aachen University", country: "Germany", funded: true, deadline: "2025-08-01", field: "Engineering", stipend: "€2,200/month", url: "https://www.academics.de" },
+                { title: "PhD in Biomedical Engineering", uni: "University of Cambridge", country: "UK", funded: true, deadline: "2025-05-15", field: "Medicine", stipend: "£20,500/year", url: "https://www.findaphd.com" },
+                { title: "PhD in Climate Science", uni: "Heidelberg University", country: "Germany", funded: false, deadline: "2025-09-01", field: "Environmental Science", stipend: "Self-funded", url: "https://www.academics.de" },
+              ].map((p, i) => (
+                <div key={i} style={{ ...card, padding: "0", overflow: "hidden" }}>
+                  <div style={{ padding: "12px 16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "4px" }}>
+                      <p style={{ fontWeight: 500, margin: 0, fontSize: "13px" }}>{p.title}</p>
+                      <span style={{ padding: "3px 10px", borderRadius: "14px", fontSize: "10px", fontWeight: 600, whiteSpace: "nowrap",
+                        background: p.funded ? "rgba(34,197,94,0.1)" : "rgba(226,75,74,0.1)", color: p.funded ? T.green : T.red }}>
+                        {p.funded ? "✓ Funded" : "Self-funded"}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 6px" }}>{p.uni} · {p.country === "UK" ? "🇬🇧" : "🇩🇪"} {p.country}</p>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", fontSize: "11px" }}>
+                      <span style={{ padding: "2px 8px", borderRadius: "12px", background: T.accentBg, color: T.accent, fontWeight: 500 }}>{p.field}</span>
+                      <span style={{ color: T.green, fontWeight: 500 }}>{p.stipend}</span>
+                      <span style={{ color: T.amber }}>Deadline: {new Date(p.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", padding: "8px 16px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
+                    <a href={p.url} target="_blank" rel="noopener noreferrer"
+                      style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", fontWeight: 500, textAlign: "center", textDecoration: "none" }}>
+                      View Position ↗
+                    </a>
+                    <button onClick={async () => { const r = await saveApplication({ title: p.title, company: p.uni, url: p.url, type: "PhD", status: "Applied", notes: p.funded ? "Funded · " + p.stipend : "Self-funded", deadline: p.deadline, location: p.country, reminder_days: 7 }); if (r) alert("Saved to Applications ✓"); }}
+                      style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>
+                      + Track
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+              <p style={{ fontSize: "12px", color: T.mute, marginBottom: "10px" }}>Find more PhD positions on these platforms:</p>
+              <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
+                {[["FindAPhD.com (UK)", "https://www.findaphd.com"], ["Academics.de (Germany)", "https://www.academics.de"], ["DAAD Portal", "https://www.daad.de/en/study-and-research-in-germany/phd-studies-and-research/"], ["jobs.ac.uk", "https://www.jobs.ac.uk/phd"]].map(([name, url]) => (
+                  <a key={name} href={url} target="_blank" rel="noopener noreferrer"
+                    style={{ padding: "6px 12px", borderRadius: "6px", border: `1px solid ${T.line}`, fontSize: "11px", color: T.accent, textDecoration: "none" }}>
+                    {name} ↗
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════ SAVED JOBS ═══════════════ */}
+        {view === "saved" && (
+          <div>
+            <div style={{ marginBottom: "20px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Saved jobs</h1>
+              <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Jobs you've bookmarked to apply later</p>
+            </div>
+            {savedJobs.length === 0 ? (
+              <div style={{ ...panelCard, textAlign: "center", padding: "3rem 2rem" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "10px", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: T.accent }}>
+                  <Icon path={ICONS.bookmark} size={22} />
+                </div>
+                <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>No saved jobs yet</p>
+                <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px" }}>Browse jobs and click the bookmark icon to save them here</p>
+                <button onClick={() => setView("matches")} style={btnPrimary}>Browse jobs</button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {savedJobs.map((j, i) => (
+                  <div key={i} style={{ ...card, display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+                    <div>
+                      <p style={{ fontWeight: 500, margin: "0 0 2px", fontSize: "13px" }}>{j.title}</p>
+                      <p style={{ fontSize: "12px", color: T.mute, margin: 0 }}>{j.company} · {j.location}</p>
+                    </div>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", textDecoration: "none", fontWeight: 500 }}>Apply ↗</a>}
+                      <button onClick={() => { const updated = savedJobs.filter((_, idx) => idx !== i); setSavedJobs(updated); localStorage.setItem("mg_saved_jobs", JSON.stringify(updated)); }}
+                        style={{ padding: "6px 10px", borderRadius: "6px", background: "transparent", color: T.red, border: `1px solid ${T.line2}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>Remove</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════ CV BUILDER ═══════════════ */}
+        {view === "cvgen" && (
+          <div>
+            <div style={{ marginBottom: "20px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>CV Builder</h1>
+              <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Generate tailored CVs and cover letters for any job</p>
+            </div>
+            {!cvResult ? (
+              <div style={{ ...panelCard, textAlign: "center", padding: "3rem 2rem" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "10px", background: "rgba(167,139,250,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: T.purple }}>
+                  <Icon path={ICONS.pen} size={22} />
+                </div>
+                <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>Analyse your CV first</p>
+                <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px", lineHeight: 1.6 }}>Upload your CV so we can help you tailor new versions for specific jobs in seconds.</p>
+                <button onClick={() => setView("cv")} style={{ ...btnPrimary, background: T.purple }}>Go to CV Analysis →</button>
+              </div>
+            ) : (
+              <CVBuilderInline cvText="" />
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════ INTERVIEW PREP ═══════════════ */}
+        {view === "interview" && (
+          <div>
+            <div style={{ marginBottom: "20px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Interview Prep</h1>
+              <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Practice common interview questions for visa-sponsored roles</p>
+            </div>
+            <div style={{ ...panelCard, textAlign: "center", padding: "3rem 2rem" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "10px", background: "rgba(167,139,250,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: T.purple }}>
+                <Icon path={ICONS.mic} size={22} />
+              </div>
+              <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>Coming soon</p>
+              <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px", lineHeight: 1.6, maxWidth: "480px", margin: "0 auto 16px" }}>
+                Mock interviews, STAR framework practice, and visa-specific question banks. We're building this now — want to be notified when it launches?
+              </p>
+              <button onClick={() => alert("We'll email you when it's ready!")} style={btnPrimary}>Notify me when ready</button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════ SETTINGS ═══════════════ */}
+        {view === "security" && (
+          <div>
+            <div style={{ marginBottom: "20px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Settings</h1>
+              <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>Manage your account, password, and data preferences</p>
+            </div>
+
+            <div style={{ display: "grid", gap: "12px" }}>
+              <div style={panelCard}>
+                <h3 style={{ fontSize: "13px", margin: "0 0 12px", fontWeight: 500 }}>Account information</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {[["Email", user.email], ["Verified", "✓ Verified"], ["Created", new Date(user.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })]].map(([l, v]) => (
+                    <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "9px 12px", background: T.bg, borderRadius: "7px", border: `1px solid ${T.line}` }}>
+                      <span style={{ fontSize: "12px", color: T.mute }}>{l}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 500, color: l === "Verified" ? T.green : T.text }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={panelCard}>
+                <h3 style={{ fontSize: "13px", margin: "0 0 12px", fontWeight: 500 }}>Change password</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {passMsg.text && <div style={{ padding: "9px 12px", borderRadius: "7px", fontSize: "12px", background: passMsg.type === "ok" ? "rgba(34,197,94,0.1)" : "rgba(226,75,74,0.1)", color: passMsg.type === "ok" ? T.green : T.red }}>{passMsg.text}</div>}
+                  <div><label style={lbl}>New password</label><input style={inp} type="password" placeholder="At least 8 characters" value={newPass} onChange={e => setNewPass(e.target.value)} /></div>
+                  <div><label style={lbl}>Confirm new password</label><input style={inp} type="password" placeholder="Repeat new password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} /></div>
+                  <button style={{ ...btnPrimary, opacity: passLoading ? 0.7 : 1 }} onClick={changePassword} disabled={passLoading}>{passLoading ? "Updating..." : "Update password"}</button>
+                </div>
+              </div>
+
+              <div style={panelCard}>
+                <h3 style={{ fontSize: "13px", margin: "0 0 6px", fontWeight: 500 }}>Your data & privacy</h3>
+                <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 12px", lineHeight: 1.6 }}>Under UK GDPR you have rights over your personal data. Contact <strong style={{ color: T.text }}>info@mentorgramai.com</strong>.</p>
+                <a href="mailto:info@mentorgramai.com?subject=Data Request" style={{ ...btnGhost, textDecoration: "none", display: "inline-block", fontSize: "12px", padding: "7px 14px" }}>Request my data</a>
+              </div>
+
+              <div style={{ ...panelCard, borderColor: T.red + "55" }}>
+                <h3 style={{ fontSize: "13px", margin: "0 0 8px", fontWeight: 500, color: T.red }}>⚠️ Delete account</h3>
+                {!deleteOpen ? (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                    <p style={{ fontSize: "12px", color: T.mute, margin: 0 }}>Permanently delete your account and all data. Cannot be undone.</p>
+                    <button onClick={() => setDeleteOpen(true)} style={{ ...btnGhost, color: T.red, borderColor: T.red + "55", fontSize: "12px", padding: "7px 14px" }}>Delete account</button>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <p style={{ fontSize: "12px", color: T.mute, margin: 0 }}>Type <strong style={{ color: T.text }}>delete</strong> to confirm.</p>
+                    <input style={{ ...inp, borderColor: T.red }} placeholder='Type "delete"' value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} />
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button onClick={() => { setDeleteOpen(false); setDeleteConfirm(""); }} style={{ ...btnGhost, flex: 1 }}>Cancel</button>
+                      <button onClick={deleteAccount} disabled={deleteLoading || deleteConfirm.toLowerCase() !== "delete"}
+                        style={{ ...btnPrimary, flex: 1, background: T.red, opacity: deleteConfirm.toLowerCase() === "delete" ? 1 : 0.4 }}>
+                        {deleteLoading ? "Deleting..." : "Permanently delete"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+      </main>
     </div>
   );
+}
+
+// ═════════════════════════════════════════════════════════════════
+// HELPER COMPONENTS
+// ═════════════════════════════════════════════════════════════════
+function ProfileSection({ num, done, title, meta, children }) {
+  return (
+    <div className="mg-fade" style={{ animationDelay: `${num * 0.05}s` }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+        <div style={{ width: "22px", height: "22px", borderRadius: "50%", border: `1px solid ${done ? T.green : T.line2}`, background: done ? T.green : "transparent", color: done ? "#000" : T.mute, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 500 }}>
+          {done ? "✓" : num}
+        </div>
+        <div style={{ fontSize: "13px", fontWeight: 500 }}>{title}</div>
+        {meta && <div style={{ fontSize: "11px", color: T.dim, marginLeft: "auto" }}>{meta}</div>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function timeSince(date) {
+  const s = Math.floor((new Date() - date) / 1000);
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60); if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24); if (d < 7) return `${d}d ago`;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
