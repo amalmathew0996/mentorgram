@@ -407,7 +407,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   }
 
   // ── Derived data ──
-  const matchedJobs = jobs.filter(j => {
+  // Only calculate matches if the profile has at least one filter set
+  const hasProfileFilters = sectors.length > 0 || location || visaStatus;
+  const matchedJobs = !hasProfileFilters ? [] : jobs.filter(j => {
     const tL = (j.title || "").toLowerCase();
     const sectorByTitle = (() => {
       if (/software|developer|devops|cloud|cyber|network|it.tech|helpdesk|full.stack|backend|frontend|react|python|java|aws|azure|linux|systems.eng|platform.eng/.test(tL)) return "Technology";
@@ -442,7 +444,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   };
 
   const initials = fullName ? fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : (user.email || "?")[0].toUpperCase();
-  const firstName = fullName.split(" ")[0] || "there";
+  const firstName = fullName.split(" ")[0] || (user.email || "").split("@")[0] || "there";
 
   const cvResult = cvAnalysis?.result;
   const cvMapped = cvResult ? mapCVResultToProfile(cvResult) : null;
@@ -589,7 +591,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       </aside>
 
       {/* MAIN */}
-      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "24px 32px 48px", maxWidth: "1280px" }}>
+      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "24px 40px 48px" }}>
 
         {/* Header bar */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
@@ -638,7 +640,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             {/* Stats */}
             <div className="mg-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "22px" }}>
               {[
-                { lbl: "Job Matches",    val: stats.matches,      sub: stats.matches > 0 ? "Matched to your profile" : "Complete profile to see matches", onClick: () => setView("matches") },
+                { lbl: "Job Matches",    val: hasProfileFilters ? stats.matches : "—",      sub: hasProfileFilters ? (stats.matches > 0 ? "Matched to your profile" : "No matches yet") : "Complete profile to see matches", onClick: () => setView(hasProfileFilters ? "matches" : "profile") },
                 { lbl: "Applications",   val: stats.applications, sub: applications.filter(a => a.status === "Applied").length + " awaiting response", onClick: () => setView("tracker") },
                 { lbl: "Interviews",     val: stats.interviews,   sub: stats.interviews > 0 ? "Active interview rounds" : "No interviews yet", onClick: () => setView("tracker") },
                 { lbl: "Offers",         val: stats.offers,       sub: stats.offers > 0 ? "🎉 Well done!" : "Keep going", onClick: () => setView("tracker") },
@@ -997,7 +999,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
               <div>
                 <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Job matches</h1>
-                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>{matchedJobs.length} visa sponsorship jobs matched to your profile</p>
+                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>{hasProfileFilters ? `${matchedJobs.length} visa sponsorship jobs matched to your profile` : "Complete your profile to see personalised matches"}</p>
               </div>
               <button onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }} style={btnPrimary}>
                 View all on jobs board ↗
