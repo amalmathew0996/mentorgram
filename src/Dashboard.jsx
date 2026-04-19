@@ -728,6 +728,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
           .mg-stats { grid-template-columns: 1fr 1fr !important; }
           .mg-split { grid-template-columns: 1fr !important; }
           .mg-profile-grid { grid-template-columns: 1fr !important; }
+          .mg-phd-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -943,8 +944,8 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                     style={{ transition: "stroke-dasharray 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)" }} />
                 </svg>
                 <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ fontSize: "17px", fontWeight: 500 }}>{completionPct}%</div>
-                  <div style={{ fontSize: "9px", color: T.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>complete</div>
+                  <div style={{ fontSize: "14px", fontWeight: 500, lineHeight: 1 }}>{completionPct}%</div>
+                  <div style={{ fontSize: "7px", color: T.dim, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "2px" }}>complete</div>
                 </div>
               </div>
             </div>
@@ -1558,31 +1559,31 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
               )}
 
               {!phdsLoading && phdFiltered.length > 0 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div className="mg-phd-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
                   {phdFiltered.map((p, i) => (
-                    <div key={p.url || i} style={{ ...card, padding: "0", overflow: "hidden" }}>
-                      <div style={{ padding: "12px 16px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", marginBottom: "4px" }}>
+                    <div key={p.url || i} style={{ ...card, padding: "0", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                      <div style={{ padding: "12px 14px", flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "6px" }}>
                           <p style={{ fontWeight: 500, margin: 0, fontSize: "13px", lineHeight: 1.4 }}>{p.title}</p>
-                          <span style={{ padding: "3px 10px", borderRadius: "14px", fontSize: "10px", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0,
+                          <span style={{ padding: "2px 8px", borderRadius: "12px", fontSize: "9px", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0,
                             background: p.funded ? "rgba(34,197,94,0.12)" : "rgba(245,158,11,0.12)",
                             color: p.funded ? T.green : T.amber }}>
                             {p.funded ? "✓ Funded" : "Self-funded"}
                           </span>
                         </div>
-                        <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 6px" }}>
-                          {p.uni}{p.department ? " · " + p.department : ""} · {p.country === "UK" ? "🇬🇧" : p.country === "Germany" ? "🇩🇪" : p.country === "USA" ? "🇺🇸" : p.country === "Netherlands" ? "🇳🇱" : p.country === "China" ? "🇨🇳" : p.country === "France" ? "🇫🇷" : "🌍"} {p.country}
+                        <p style={{ fontSize: "11px", color: T.mute, margin: "0 0 8px", lineHeight: 1.4 }}>
+                          {p.uni}{p.department ? " · " + p.department : ""}
                         </p>
-                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", fontSize: "11px" }}>
-                          {p.field && <span style={{ padding: "2px 8px", borderRadius: "12px", background: T.accentBg, color: T.accent, fontWeight: 500 }}>{p.field}</span>}
-                          {p.stipend && <span style={{ color: T.green, fontWeight: 500 }}>{p.stipend}</span>}
-                          {p.pubDate && <span style={{ color: T.dim }}>Posted: {new Date(p.pubDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>}
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center", fontSize: "10px" }}>
+                          <span style={{ fontSize: "11px" }}>{p.country === "UK" ? "🇬🇧" : p.country === "Germany" ? "🇩🇪" : p.country === "USA" ? "🇺🇸" : p.country === "Netherlands" ? "🇳🇱" : p.country === "China" ? "🇨🇳" : p.country === "France" ? "🇫🇷" : "🌍"}</span>
+                          {p.field && <span style={{ padding: "2px 7px", borderRadius: "10px", background: T.accentBg, color: T.accent, fontWeight: 500 }}>{p.field}</span>}
+                          {p.stipend && p.stipend !== "Contact for details" && <span style={{ color: T.green, fontWeight: 500 }}>{p.stipend}</span>}
                         </div>
                       </div>
-                      <div style={{ display: "flex", gap: "8px", padding: "8px 16px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
+                      <div style={{ display: "flex", gap: "6px", padding: "8px 14px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
                         <a href={p.url} target="_blank" rel="noopener noreferrer"
-                          style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", fontWeight: 500, textAlign: "center", textDecoration: "none" }}>
-                          View Position ↗
+                          style={{ flex: 1, padding: "6px 8px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", fontWeight: 500, textAlign: "center", textDecoration: "none" }}>
+                          View ↗
                         </a>
                         <button onClick={async () => {
                           const r = await saveApplication({
@@ -1598,7 +1599,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                           });
                           if (r) alert("Saved to Applications ✓");
                         }}
-                          style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>
+                          style={{ flex: 1, padding: "6px 8px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>
                           + Track
                         </button>
                       </div>
