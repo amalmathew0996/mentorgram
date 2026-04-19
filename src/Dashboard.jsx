@@ -737,15 +737,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
       {/* SIDEBAR */}
       <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: "60px", left: 0, width: "220px", height: "calc(100vh - 60px)", background: T.sidebar, borderRight: `1px solid ${T.line}`, padding: "18px 0", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
-
-        {/* Logo */}
-        <div style={{ padding: "0 18px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", color: "#fff", fontWeight: 700 }}>M</div>
-          <button onClick={() => setSidebarOpen(false)} className="mg-hide-mobile" style={{ marginLeft: "auto", background: "transparent", border: "none", color: T.mute, cursor: "pointer", display: "none" }}>
-            <Icon path={ICONS.close} />
-          </button>
-        </div>
+        style={{ position: "fixed", top: "60px", left: 0, width: "220px", height: "calc(100vh - 60px)", background: T.sidebar, borderRight: `1px solid ${T.line}`, padding: "12px 0", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
@@ -779,7 +771,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       </aside>
 
       {/* MAIN */}
-      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "24px 40px 48px" }}>
+      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "16px 40px 48px" }}>
 
         {/* Header bar */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
