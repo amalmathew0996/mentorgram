@@ -737,7 +737,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
       {/* SIDEBAR */}
       <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
+        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "70px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
@@ -771,7 +771,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       </aside>
 
       {/* MAIN */}
-      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "16px 40px 48px", minHeight: "calc(100vh - 60px)" }}>
+      <main className="mg-main mg-scrollbar" style={{ marginLeft: "220px", padding: "20px 40px 48px", minHeight: "calc(100vh - 60px)" }}>
 
         {/* Mobile hamburger */}
         <button onClick={() => setSidebarOpen(true)} className="mg-hamburger" style={{ display: "none", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", background: T.surf, border: `1px solid ${T.line}`, borderRadius: "8px", color: T.text, cursor: "pointer", marginBottom: "16px" }}>
@@ -1426,34 +1426,44 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 <button onClick={() => setShowAddApp(true)} style={btnPrimary}>+ Add first application</button>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {applications.map(a => (
-                  <div key={a.id} style={{ ...card, padding: "0", overflow: "hidden" }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "12px 16px" }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "3px" }}>
-                          <span style={{ fontSize: "10px", padding: "1px 8px", borderRadius: "12px", background: "rgba(167,139,250,0.12)", color: T.purple, fontWeight: 500 }}>{a.type}</span>
-                          <p style={{ fontWeight: 500, margin: 0, fontSize: "13px" }}>{a.title}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "12px" }}>
+                {applications.map(a => {
+                  const statusColor = a.status === "Want to apply" ? T.purple : a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red;
+                  const statusBg = a.status === "Want to apply" ? "rgba(167,139,250,0.12)" : a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)";
+                  return (
+                    <div key={a.id} style={{ ...card, padding: "0", overflow: "hidden", display: "flex", flexDirection: "column", transition: "border-color 0.15s, transform 0.15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = T.line2; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = T.line; e.currentTarget.style.transform = "translateY(0)"; }}>
+
+                      {/* Status ribbon */}
+                      <div style={{ height: "3px", background: statusColor }} />
+
+                      <div style={{ padding: "14px 16px", flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "12px", background: "rgba(167,139,250,0.12)", color: T.purple, fontWeight: 600 }}>{a.type}</span>
+                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "12px", background: statusBg, color: statusColor, fontWeight: 600 }}>{a.status}</span>
                         </div>
-                        <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 4px" }}>{a.company}{a.location ? " · " + a.location : ""}</p>
-                        {a.deadline && <p style={{ fontSize: "11px", color: T.amber, margin: 0 }}>Deadline: {new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>}
+                        <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "14px", lineHeight: 1.35, wordBreak: "break-word" }}>{a.title}</p>
+                        <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 8px" }}>{a.company}{a.location ? " · " + a.location : ""}</p>
+                        {a.deadline && <p style={{ fontSize: "11px", color: T.amber, margin: "0 0 6px", display: "flex", alignItems: "center", gap: "4px" }}>
+                          <Icon path={ICONS.calendar} size={12} />
+                          <span>Deadline: {new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                        </p>}
+                        {a.notes && <p style={{ fontSize: "11px", color: T.mute, margin: "6px 0 0", lineHeight: 1.5, fontStyle: "italic", borderLeft: `2px solid ${T.line}`, paddingLeft: "8px" }}>{a.notes.length > 100 ? a.notes.slice(0, 100) + "…" : a.notes}</p>}
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
+
+                      <div style={{ display: "flex", gap: "6px", padding: "10px 16px", borderTop: `1px solid ${T.line}`, background: T.bg, alignItems: "center" }}>
                         <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
-                          style={{ fontSize: "11px", padding: "4px 10px", borderRadius: "14px", border: "none", fontFamily: "inherit", cursor: "pointer", fontWeight: 500,
-                            background: a.status === "Want to apply" ? "rgba(167,139,250,0.12)" : a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)",
-                            color: a.status === "Want to apply" ? T.purple : a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red }}>
+                          style={{ flex: 1, fontSize: "11px", padding: "6px 10px", borderRadius: "6px", border: `1px solid ${T.line}`, fontFamily: "inherit", cursor: "pointer", fontWeight: 500, background: statusBg, color: statusColor }}>
                           <option>Want to apply</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
                         </select>
-                        <button onClick={() => deleteApplication(a.id)} style={{ fontSize: "10px", color: T.red, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>Remove</button>
+                        {a.url && <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", textDecoration: "none", fontWeight: 500 }}>View ↗</a>}
+                        <button onClick={() => deleteApplication(a.id)} title="Remove"
+                          style={{ padding: "6px 10px", borderRadius: "6px", color: T.red, background: "transparent", border: `1px solid ${T.line}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
                       </div>
                     </div>
-                    {a.notes && <div style={{ padding: "8px 16px 10px", borderTop: `1px solid ${T.line}` }}><p style={{ fontSize: "11px", color: T.mute, margin: 0 }}>{a.notes}</p></div>}
-                    {a.url && <div style={{ padding: "8px 16px", background: T.bg, borderTop: `1px solid ${T.line}` }}>
-                      <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: T.accent, fontWeight: 500 }}>View job posting ↗</a>
-                    </div>}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
