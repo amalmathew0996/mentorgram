@@ -742,7 +742,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         {/* Logo */}
         <div style={{ padding: "0 18px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", color: "#fff", fontWeight: 700 }}>M</div>
-          <div style={{ fontWeight: 600, fontSize: "14px" }}>Mentorgram</div>
           <button onClick={() => setSidebarOpen(false)} className="mg-hide-mobile" style={{ marginLeft: "auto", background: "transparent", border: "none", color: T.mute, cursor: "pointer", display: "none" }}>
             <Icon path={ICONS.close} />
           </button>
@@ -791,7 +790,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             <button onClick={() => setView("security")} style={{ background: "transparent", border: "none", cursor: "pointer", color: T.mute, display: "flex", alignItems: "center" }}>
               <Icon path={ICONS.cog} />
             </button>
-            <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: T.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 500, fontSize: "14px" }}>{initials}</div>
           </div>
         </div>
 
