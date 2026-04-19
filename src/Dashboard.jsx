@@ -295,7 +295,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [urlInput, setUrlInput] = useState("");
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState(null);
-  const [newApp, setNewApp] = useState({ title: "", company: "", url: "", type: "Job", status: "Applied", notes: "", deadline: "", location: "", reminder_days: 3 });
+  const [newApp, setNewApp] = useState({ title: "", company: "", url: "", type: "Job", status: "Want to apply", notes: "", deadline: "", location: "", reminder_days: 3 });
 
   // Saved jobs
   const [savedJobs, setSavedJobs] = useState(() => { try { return JSON.parse(localStorage.getItem("mg_saved_jobs") || "[]"); } catch { return []; } });
@@ -446,7 +446,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
   function resetAddForm() {
     setUrlInput(""); setScrapeResult(null);
-    setNewApp({ title: "", company: "", url: "", type: "Job", status: "Applied", notes: "", deadline: "", location: "", reminder_days: 3 });
+    setNewApp({ title: "", company: "", url: "", type: "Job", status: "Want to apply", notes: "", deadline: "", location: "", reminder_days: 3 });
   }
 
   async function loadProfile() {
@@ -833,7 +833,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                     <button onClick={() => setView("tracker")} style={{ ...btnGhost, fontSize: "12px", padding: "7px 14px" }}>+ Track your first application</button>
                   </div>
                 ) : applications.slice(0, 4).map((a, i) => {
-                  const statusColor = a.status === "Offer" ? T.green : a.status === "Interview" ? T.amber : a.status === "Rejected" ? T.red : T.accent;
+                  const statusColor = a.status === "Offer" ? T.green : a.status === "Interview" ? T.amber : a.status === "Rejected" ? T.red : a.status === "Want to apply" ? T.purple : T.accent;
                   const timeAgo = a.created_at ? timeSince(new Date(a.created_at)) : "";
                   return (
                     <div key={a.id || i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 0", borderTop: i === 0 ? "none" : `1px solid ${T.line}`, paddingTop: i === 0 ? "4px" : "10px" }}>
@@ -1256,7 +1256,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                     </div>
                     <div style={{ display: "flex", gap: "8px", padding: "10px 18px", borderTop: `1px solid ${T.line}`, background: T.bg }}>
                       {j.url && <a href={j.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: "7px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500, textAlign: "center" }}>Apply Now ↗</a>}
-                      <button onClick={async () => { const r = await saveApplication({ title: j.title, company: j.company, url: j.url, type: "Job", status: "Applied", notes: "", deadline: "", location: j.location, reminder_days: null }); if (r) alert("Saved to Applications tracker ✓"); }}
+                      <button onClick={async () => { const r = await saveApplication({ title: j.title, company: j.company, url: j.url, type: "Job", status: "Want to apply", notes: "", deadline: "", location: j.location, reminder_days: null }); if (r) alert("Saved to Applications tracker ✓"); }}
                         style={{ flex: 1, padding: "7px 12px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "12px", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>📋 Save & Track</button>
                     </div>
                   </div>
@@ -1279,10 +1279,11 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "8px", marginBottom: "16px" }}>
               {[
-                { status: "Applied",   color: T.accent, bg: T.accentBg },
-                { status: "Interview", color: T.amber, bg: "rgba(245,158,11,0.08)" },
-                { status: "Offer",     color: T.green, bg: "rgba(34,197,94,0.08)" },
-                { status: "Rejected",  color: T.red, bg: "rgba(226,75,74,0.08)" },
+                { status: "Want to apply", color: T.purple, bg: "rgba(167,139,250,0.08)" },
+                { status: "Applied",       color: T.accent, bg: T.accentBg },
+                { status: "Interview",     color: T.amber,  bg: "rgba(245,158,11,0.08)" },
+                { status: "Offer",         color: T.green,  bg: "rgba(34,197,94,0.08)" },
+                { status: "Rejected",      color: T.red,    bg: "rgba(226,75,74,0.08)" },
               ].map(s => (
                 <div key={s.status} style={{ background: s.bg, borderRadius: "8px", padding: "12px", textAlign: "center", border: `1px solid ${T.line}` }}>
                   <p style={{ fontSize: "22px", fontWeight: 500, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
@@ -1336,6 +1337,35 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                   <label style={lbl}>🔗 Job link (auto-filled if you pasted a URL above)</label>
                   <input style={inp} placeholder="https://..." value={newApp.url}
                     onChange={e => setNewApp(p => ({ ...p, url: e.target.value }))} />
+                </div>
+
+                <div style={{ marginBottom: "10px" }}>
+                  <label style={lbl}>Status</label>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    {[
+                      { s: "Want to apply", c: T.purple, bg: "rgba(167,139,250,0.12)" },
+                      { s: "Applied",       c: T.accent, bg: T.accentBg },
+                      { s: "Interview",     c: T.amber,  bg: "rgba(245,158,11,0.12)" },
+                      { s: "Offer",         c: T.green,  bg: "rgba(34,197,94,0.12)" },
+                      { s: "Rejected",      c: T.red,    bg: "rgba(226,75,74,0.12)" },
+                    ].map(opt => {
+                      const active = newApp.status === opt.s;
+                      return (
+                        <button key={opt.s} type="button"
+                          onClick={() => setNewApp(p => ({ ...p, status: opt.s }))}
+                          style={{
+                            padding: "7px 14px", borderRadius: "16px", fontSize: "12px",
+                            fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit",
+                            border: `1px solid ${active ? opt.c : T.line}`,
+                            background: active ? opt.bg : "transparent",
+                            color: active ? opt.c : T.mute,
+                            transition: "all 0.15s",
+                          }}>
+                          {opt.s}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div style={{ background: "rgba(245,158,11,0.05)", border: `1px solid ${T.amber}33`, borderRadius: "7px", padding: "12px", marginBottom: "10px" }}>
@@ -1401,9 +1431,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
                         <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
                           style={{ fontSize: "11px", padding: "4px 10px", borderRadius: "14px", border: "none", fontFamily: "inherit", cursor: "pointer", fontWeight: 500,
-                            background: a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)",
-                            color: a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red }}>
-                          <option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
+                            background: a.status === "Want to apply" ? "rgba(167,139,250,0.12)" : a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)",
+                            color: a.status === "Want to apply" ? T.purple : a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red }}>
+                          <option>Want to apply</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
                         </select>
                         <button onClick={() => deleteApplication(a.id)} style={{ fontSize: "10px", color: T.red, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>Remove</button>
                       </div>
@@ -1459,7 +1489,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                       style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", fontWeight: 500, textAlign: "center", textDecoration: "none" }}>
                       View Position ↗
                     </a>
-                    <button onClick={async () => { const r = await saveApplication({ title: p.title, company: p.uni, url: p.url, type: "PhD", status: "Applied", notes: p.funded ? "Funded · " + p.stipend : "Self-funded", deadline: p.deadline, location: p.country, reminder_days: 7 }); if (r) alert("Saved to Applications ✓"); }}
+                    <button onClick={async () => { const r = await saveApplication({ title: p.title, company: p.uni, url: p.url, type: "PhD", status: "Want to apply", notes: p.funded ? "Funded · " + p.stipend : "Self-funded", deadline: p.deadline, location: p.country, reminder_days: 7 }); if (r) alert("Saved to Applications ✓"); }}
                       style={{ flex: 1, padding: "6px 12px", borderRadius: "6px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>
                       + Track
                     </button>
