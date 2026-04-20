@@ -422,7 +422,50 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
 }
 
 // ─── Jobs Page ─────────────────────────────────────────────────────────────
-function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, profileFilter, onClearProfileFilter }) {
+function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, profileFilter, onClearProfileFilter, user, onNavigate }) {
+  // ── Saved jobs state ──
+  const [savedJobs, setSavedJobs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("mg_saved_jobs") || "[]"); }
+    catch { return []; }
+  });
+  const [ribbonExpanded, setRibbonExpanded] = useState(false);
+  const [justSavedPulse, setJustSavedPulse] = useState(false);
+
+  useEffect(() => {
+    try { localStorage.setItem("mg_saved_jobs", JSON.stringify(savedJobs)); } catch {}
+  }, [savedJobs]);
+
+  function getJobId(j) { return j.url || `${j.title}-${j.company}`; }
+  function isJobSaved(j) { return savedJobs.some(s => getJobId(s) === getJobId(j)); }
+
+  function toggleSaveJob(job, event) {
+    event.stopPropagation();
+    const jid = getJobId(job);
+    const already = savedJobs.some(s => getJobId(s) === jid);
+
+    if (already) {
+      setSavedJobs(prev => prev.filter(s => getJobId(s) !== jid));
+    } else {
+      setSavedJobs(prev => [...prev, { title: job.title, company: job.company, location: job.location, url: job.url, salary: job.salary, savedAt: Date.now() }]);
+      // Pulse the ribbon to draw attention
+      setJustSavedPulse(true);
+      setTimeout(() => setJustSavedPulse(false), 900);
+    }
+  }
+
+  function goToApplications() {
+    if (user && onNavigate) {
+      localStorage.setItem("mg_dashboard_view", "saved");
+      onNavigate("My Profile");
+    } else {
+      alert("Please sign in to view your saved jobs");
+      if (onNavigate) onNavigate("My Profile");
+    }
+  }
+
+  function removeSavedJob(id) {
+    setSavedJobs(prev => prev.filter(s => getJobId(s) !== id));
+  }
   const [sector, setSector] = useState("All");
   const [visaType, setVisaType] = useState("All Jobs");
   const [sourceFilter, setSourceFilter] = useState("All");
@@ -755,6 +798,21 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
                 <div style={{ display: "flex", gap: "6px", flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                   <ShareButton job={j} />
                   <button
+                    onClick={e => toggleSaveJob(j, e)}
+                    title={isJobSaved(j) ? "Remove from saved" : "Save to my list"}
+                    style={{
+                      padding: "6px 10px", borderRadius: "var(--border-radius-md)",
+                      background: isJobSaved(j) ? "rgba(22,163,74,0.15)" : "transparent",
+                      color: isJobSaved(j) ? "#16A34A" : "var(--color-text-secondary)",
+                      fontSize: "13px",
+                      border: "0.5px solid " + (isJobSaved(j) ? "rgba(22,163,74,0.35)" : "var(--color-border-tertiary)"),
+                      cursor: "pointer", fontFamily: "inherit",
+                      display: "flex", alignItems: "center", gap: "4px",
+                      transition: "all 0.2s",
+                    }}>
+                    {isJobSaved(j) ? "✓" : "🔖"}
+                  </button>
+                  <button
                     onClick={e => { e.stopPropagation(); setClickedJob(i); setTimeout(() => { onSelectJob(j); setClickedJob(null); }, 320); }}
                     style={{ padding: "6px 14px", borderRadius: "var(--border-radius-md)", background: "#1A3FA8", color: "#fff", fontSize: "12px", fontWeight: 500, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                     View ↗
@@ -789,6 +847,150 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
             <button style={{ ...S.btnPrimary, padding: "8px 20px", fontSize: "13px", opacity: safePage === totalPages ? 0.4 : 1 }} onClick={() => safePage < totalPages && setPage(p => p + 1)} disabled={safePage === totalPages}>Next →</button>
           </div>
           <p style={{ textAlign: "center", fontSize: "13px", color: "var(--color-text-secondary)", marginTop: "0.75rem" }}>Page {safePage} of {totalPages} · {filtered.length} total</p>
+        </>
+      )}
+
+      {/* ─── Side Ribbon: Saved Jobs ─── */}
+      <style>{`
+        @keyframes mgRibbonPulse {
+          0%, 100% { transform: translateY(-50%) scale(1); }
+          30%      { transform: translateY(-50%) scale(1.08); }
+          60%      { transform: translateY(-50%) scale(1.04); }
+        }
+        @keyframes mgPanelSlide {
+          from { transform: translate(100%, -50%); opacity: 0; }
+          to   { transform: translate(0, -50%); opacity: 1; }
+        }
+        @keyframes mgCountBurst {
+          0%   { transform: scale(1); }
+          40%  { transform: scale(1.45); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
+
+      {/* The ribbon tab on the right edge (always visible when jobs are saved) */}
+      {savedJobs.length > 0 && !ribbonExpanded && (
+        <button
+          onClick={() => setRibbonExpanded(true)}
+          title="View your saved jobs"
+          style={{
+            position: "fixed",
+            top: "50%", right: 0,
+            transform: "translateY(-50%)",
+            zIndex: 999,
+            writingMode: "vertical-rl",
+            textOrientation: "mixed",
+            padding: "16px 10px",
+            background: "linear-gradient(180deg, #1A3FA8 0%, #FF4500 100%)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "10px 0 0 10px",
+            fontSize: "12px",
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            boxShadow: "-4px 0 16px rgba(26,63,168,0.25)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            animation: justSavedPulse ? "mgRibbonPulse 0.9s ease-out" : "none",
+            transition: "padding 0.2s, box-shadow 0.2s",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.padding = "18px 12px"; e.currentTarget.style.boxShadow = "-6px 0 20px rgba(255,69,0,0.4)"; }}
+          onMouseLeave={e => { e.currentTarget.style.padding = "16px 10px"; e.currentTarget.style.boxShadow = "-4px 0 16px rgba(26,63,168,0.25)"; }}>
+          <span style={{
+            writingMode: "horizontal-tb",
+            background: "#fff",
+            color: "#1A3FA8",
+            borderRadius: "50%",
+            minWidth: "20px",
+            height: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "11px",
+            fontWeight: 700,
+            padding: "0 5px",
+            animation: justSavedPulse ? "mgCountBurst 0.9s cubic-bezier(0.2, 0.9, 0.2, 1.2)" : "none",
+          }}>{savedJobs.length}</span>
+          <span>Saved</span>
+        </button>
+      )}
+
+      {/* Expanded side panel */}
+      {ribbonExpanded && (
+        <>
+          {/* Backdrop to close on outside click */}
+          <div
+            onClick={() => setRibbonExpanded(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", zIndex: 998, backdropFilter: "blur(2px)" }} />
+
+          {/* Panel */}
+          <div style={{
+            position: "fixed",
+            top: "50%", right: 0,
+            transform: "translate(0, -50%)",
+            zIndex: 999,
+            width: "320px",
+            maxHeight: "80vh",
+            background: "var(--color-background-primary)",
+            border: "0.5px solid var(--color-border-tertiary)",
+            borderRight: "none",
+            borderRadius: "12px 0 0 12px",
+            boxShadow: "-8px 0 32px rgba(0,0,0,0.15)",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            animation: "mgPanelSlide 0.25s cubic-bezier(0.2, 0.9, 0.2, 1)",
+          }}>
+            {/* Header */}
+            <div style={{ padding: "14px 16px", borderBottom: "0.5px solid var(--color-border-tertiary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <p style={{ margin: 0, fontSize: "14px", fontWeight: 600 }}>🔖 Saved jobs</p>
+                <p style={{ margin: "2px 0 0", fontSize: "11px", color: "var(--color-text-secondary)" }}>{savedJobs.length} saved locally</p>
+              </div>
+              <button onClick={() => setRibbonExpanded(false)}
+                style={{ background: "transparent", border: "none", fontSize: "18px", cursor: "pointer", color: "var(--color-text-secondary)", padding: "4px 8px", fontFamily: "inherit" }}>×</button>
+            </div>
+
+            {/* Saved jobs list */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
+              {savedJobs.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "2rem 1rem", color: "var(--color-text-secondary)", fontSize: "13px" }}>
+                  No saved jobs yet.<br />Click 🔖 on a job to save it.
+                </div>
+              ) : (
+                [...savedJobs].reverse().map((s, i) => (
+                  <div key={getJobId(s)} style={{ padding: "10px 12px", borderRadius: "8px", marginBottom: "4px", background: i === 0 ? "rgba(26,63,168,0.05)" : "transparent", border: "0.5px solid var(--color-border-tertiary)", fontSize: "12px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "3px" }}>
+                      <p style={{ margin: 0, fontWeight: 500, fontSize: "13px", lineHeight: 1.4, flex: 1, wordBreak: "break-word" }}>{s.title}</p>
+                      <button onClick={() => removeSavedJob(getJobId(s))}
+                        title="Remove"
+                        style={{ background: "transparent", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontSize: "14px", padding: 0, lineHeight: 1, flexShrink: 0 }}>×</button>
+                    </div>
+                    <p style={{ margin: "0 0 6px", color: "var(--color-text-secondary)", fontSize: "11px" }}>{s.company}{s.location ? " · " + s.location : ""}</p>
+                    {s.url && (
+                      <a href={s.url} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: "11px", color: "#1A3FA8", textDecoration: "none", fontWeight: 500 }}>
+                        View posting ↗
+                      </a>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer CTA */}
+            {savedJobs.length > 0 && (
+              <div style={{ padding: "10px 16px", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
+                <button onClick={goToApplications}
+                  style={{ width: "100%", padding: "10px", background: "linear-gradient(135deg, #1A3FA8, #FF4500)", color: "#fff", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+                  {user ? "Open in my dashboard →" : "Sign in to sync →"}
+                </button>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
@@ -2538,7 +2740,8 @@ export default function Mentorgram() {
       ) : (
         <JobsPage allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt} onFetchJobs={fetchJobs}
           onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }}
-          profileFilter={profileFilter} onClearProfileFilter={() => setProfileFilter(null)} />
+          profileFilter={profileFilter} onClearProfileFilter={() => setProfileFilter(null)}
+          user={user} onNavigate={navTo} />
       );
 
       case "CV Generator": return (
@@ -2608,7 +2811,7 @@ export default function Mentorgram() {
             );
           })}
           {user ? (
-            <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
+            <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "34px", height: "34px", borderRadius: "50%", background: activePage === "My Profile" ? "#1A3FA8" : "linear-gradient(135deg,#1A3FA8,#FF4500)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit" }}>
               {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
             </button>
           ) : (
