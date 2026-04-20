@@ -280,7 +280,16 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const btnGhost = useMemo(() => ({ padding: "10px 18px", background: "transparent", color: T.text, border: `1px solid ${T.line2}`, borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }), [T]);
   const lbl = useMemo(() => ({ display: "block", fontSize: "11px", color: T.mute, marginBottom: "5px", fontWeight: 400 }), [T]);
 
-  const [view, setView] = useState("dashboard");  // sidebar page: dashboard | profile | cv | matches | phd | tracker | saved | cvgen | interview | security
+  const [view, setView] = useState(() => {
+    try {
+      const hint = localStorage.getItem("mg_dashboard_view");
+      if (hint) {
+        localStorage.removeItem("mg_dashboard_view");
+        return hint;
+      }
+    } catch {}
+    return "dashboard";
+  });  // sidebar page: dashboard | profile | cv | matches | phd | tracker | saved | cvgen | interview | security
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile hamburger
   const [jobsSubOpen, setJobsSubOpen] = useState(true);
   const [profile, setProfile] = useState(null);
