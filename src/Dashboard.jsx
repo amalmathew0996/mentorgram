@@ -83,7 +83,17 @@ function makeTheme(mode, accentKey) {
   };
   const a = accents[accentKey] || accents.blue;
 
-  if (mode === "light") {
+  // If system mode, detect actual preference
+  let resolvedMode = mode;
+  if (mode === "system" || mode === "auto") {
+    try {
+      resolvedMode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    } catch {
+      resolvedMode = "dark";
+    }
+  }
+
+  if (resolvedMode === "light") {
     return {
       mode: "light",
       accentKey,
@@ -263,9 +273,14 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   // Persist theme changes + apply globally to <html data-theme="...">
   useEffect(() => {
     try { localStorage.setItem("mg_theme_mode", themeMode); localStorage.setItem("mg_theme_accent", themeAccent); } catch {}
-    // Also write to mg_theme so App.jsx's data-theme attribute syncs
-    try { localStorage.setItem("mg_theme", themeMode); } catch {}
-    document.documentElement.setAttribute("data-theme", themeMode);
+    if (themeMode === "system") {
+      // Auto-follow system: remove data-theme so prefers-color-scheme media query takes over
+      document.documentElement.removeAttribute("data-theme");
+      try { localStorage.removeItem("mg_theme"); } catch {}
+    } else {
+      document.documentElement.setAttribute("data-theme", themeMode);
+      try { localStorage.setItem("mg_theme", themeMode); } catch {}
+    }
   }, [themeMode, themeAccent]);
 
   // ── Reusable styles (recomputed when T changes) ──
@@ -1948,65 +1963,71 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 <h3 style={{ fontSize: "13px", margin: "0 0 4px", fontWeight: 500 }}>🎨 Appearance</h3>
                 <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 14px" }}>Customise your dashboard theme. Changes apply instantly.</p>
 
-                {/* Mode toggle */}
-                <div style={{ marginBottom: "16px" }}>
-                  <div style={{ fontSize: "11px", color: T.mute, marginBottom: "8px", fontWeight: 500, letterSpacing: "0.04em" }}>Mode</div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    {[
-                      { k: "dark",  label: "Dark",  icon: "🌙" },
-                      { k: "light", label: "Light", icon: "☀️" },
-                    ].map(m => (
-                      <button key={m.k} onClick={() => setThemeMode(m.k)}
-                        style={{
-                          flex: 1, padding: "11px 14px", borderRadius: "8px",
-                          border: `1.5px solid ${themeMode === m.k ? T.accent : T.line}`,
-                          background: themeMode === m.k ? T.accentBg : "transparent",
-                          color: themeMode === m.k ? T.accent : T.text,
-                          fontSize: "13px", fontWeight: themeMode === m.k ? 500 : 400,
-                          cursor: "pointer", fontFamily: "inherit",
-                          display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                          transition: "all 0.15s",
-                        }}>
-                        <span style={{ fontSize: "15px" }}>{m.icon}</span> {m.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Compact row: Mode | Accent (side-by-side on desktop) */}
+                <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "20px", alignItems: "start", marginBottom: "12px" }}>
 
-                {/* Accent color */}
-                <div>
-                  <div style={{ fontSize: "11px", color: T.mute, marginBottom: "8px", fontWeight: 500, letterSpacing: "0.04em" }}>Accent colour</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
-                    {[
-                      { k: "blue",   label: "Blue",   color: "#3B82F6" },
-                      { k: "purple", label: "Purple", color: "#A78BFA" },
-                      { k: "green",  label: "Green",  color: "#22C55E" },
-                      { k: "coral",  label: "Coral",  color: "#F97866" },
-                    ].map(a => (
-                      <button key={a.k} onClick={() => setThemeAccent(a.k)}
-                        style={{
-                          padding: "10px 8px", borderRadius: "8px",
-                          border: `1.5px solid ${themeAccent === a.k ? a.color : T.line}`,
-                          background: themeAccent === a.k ? `${a.color}15` : "transparent",
-                          color: T.text,
-                          fontSize: "12px", fontWeight: themeAccent === a.k ? 500 : 400,
-                          cursor: "pointer", fontFamily: "inherit",
-                          display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
-                          transition: "all 0.15s",
-                        }}>
-                        <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: a.color, display: "block", boxShadow: themeAccent === a.k ? `0 0 0 3px ${T.bg}, 0 0 0 4px ${a.color}` : "none", transition: "box-shadow 0.15s" }} />
-                        <span>{a.label}</span>
-                      </button>
-                    ))}
+                  {/* Color Mode — 3 compact buttons */}
+                  <div>
+                    <div style={{ fontSize: "11px", color: T.mute, marginBottom: "8px", fontWeight: 500, letterSpacing: "0.04em" }}>Color Mode</div>
+                    <div style={{ display: "inline-flex", gap: "6px", padding: "4px", background: T.bg, borderRadius: "10px", border: `1px solid ${T.line}` }}>
+                      {[
+                        { k: "system", label: "System", icon: "🖥️" },
+                        { k: "light",  label: "Light",  icon: "☀️" },
+                        { k: "dark",   label: "Dark",   icon: "🌙" },
+                      ].map(m => (
+                        <button key={m.k} onClick={() => setThemeMode(m.k)}
+                          style={{
+                            padding: "8px 14px", borderRadius: "7px",
+                            border: `1.5px solid ${themeMode === m.k ? T.accent : "transparent"}`,
+                            background: themeMode === m.k ? T.accentBg : "transparent",
+                            color: themeMode === m.k ? T.accent : T.text,
+                            fontSize: "12px", fontWeight: themeMode === m.k ? 500 : 400,
+                            cursor: "pointer", fontFamily: "inherit",
+                            display: "flex", alignItems: "center", gap: "6px",
+                            transition: "all 0.15s",
+                          }}>
+                          <span style={{ fontSize: "13px" }}>{m.icon}</span> {m.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Accent color — compact dot row */}
+                  <div>
+                    <div style={{ fontSize: "11px", color: T.mute, marginBottom: "8px", fontWeight: 500, letterSpacing: "0.04em" }}>Accent colour</div>
+                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                      {[
+                        { k: "blue",   label: "Blue",   color: "#3B82F6" },
+                        { k: "purple", label: "Purple", color: "#A78BFA" },
+                        { k: "green",  label: "Green",  color: "#22C55E" },
+                        { k: "coral",  label: "Coral",  color: "#F97866" },
+                      ].map(a => (
+                        <button key={a.k} onClick={() => setThemeAccent(a.k)}
+                          title={a.label}
+                          style={{
+                            padding: "6px 10px 6px 8px", borderRadius: "999px",
+                            border: `1.5px solid ${themeAccent === a.k ? a.color : T.line}`,
+                            background: themeAccent === a.k ? `${a.color}15` : "transparent",
+                            color: T.text,
+                            fontSize: "12px", fontWeight: themeAccent === a.k ? 500 : 400,
+                            cursor: "pointer", fontFamily: "inherit",
+                            display: "flex", alignItems: "center", gap: "6px",
+                            transition: "all 0.15s",
+                          }}>
+                          <span style={{ width: "16px", height: "16px", borderRadius: "50%", background: a.color, display: "block", boxShadow: themeAccent === a.k ? `0 0 0 2px ${T.surf}, 0 0 0 3px ${a.color}` : "none", transition: "box-shadow 0.15s" }} />
+                          <span>{a.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 {/* Preview */}
-                <div style={{ marginTop: "16px", padding: "12px 14px", background: T.bg, borderRadius: "8px", border: `1px solid ${T.line}`, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                <div style={{ padding: "10px 14px", background: T.bg, borderRadius: "8px", border: `1px solid ${T.line}`, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                   <span style={{ fontSize: "11px", color: T.dim, textTransform: "uppercase", letterSpacing: "0.08em" }}>Preview:</span>
-                  <button style={{ padding: "6px 14px", background: T.accent, color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 500, fontFamily: "inherit" }}>Primary button</button>
+                  <button style={{ padding: "5px 12px", background: T.accent, color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 500, fontFamily: "inherit" }}>Primary button</button>
                   <span style={{ padding: "3px 10px", borderRadius: "14px", fontSize: "11px", fontWeight: 500, background: T.accentBg, color: T.accent }}>Tag style</span>
-                  <span style={{ fontSize: "11px", color: T.mute }}>Currently: {themeMode} + {themeAccent}</span>
+                  <span style={{ fontSize: "11px", color: T.mute, marginLeft: "auto" }}>Currently: {themeMode} + {themeAccent}</span>
                 </div>
               </div>
 
