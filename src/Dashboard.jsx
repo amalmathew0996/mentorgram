@@ -1305,13 +1305,27 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 { status: "Interview",     color: T.amber,  bg: "rgba(245,158,11,0.08)" },
                 { status: "Offer",         color: T.green,  bg: "rgba(34,197,94,0.08)" },
                 { status: "Rejected",      color: T.red,    bg: "rgba(226,75,74,0.08)" },
-              ].map(s => (
-                <button key={s.status} onClick={() => setAppStatusFilter(appStatusFilter === s.status ? "All" : s.status)}
-                  style={{ background: s.bg, borderRadius: "8px", padding: "12px", textAlign: "center", border: `1px solid ${appStatusFilter === s.status ? s.color : T.line}`, cursor: "pointer", fontFamily: "inherit", transition: "border-color 0.15s" }}>
-                  <p style={{ fontSize: "22px", fontWeight: 500, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
-                  <p style={{ fontSize: "11px", color: T.mute, margin: 0 }}>{s.status}</p>
-                </button>
-              ))}
+              ].map(s => {
+                const isActive = appStatusFilter === s.status;
+                return (
+                  <button key={s.status} onClick={() => setAppStatusFilter(isActive ? "All" : s.status)}
+                    style={{
+                      background: isActive ? s.bg : "transparent",
+                      borderRadius: "10px",
+                      padding: "12px",
+                      textAlign: "center",
+                      border: `1.5px solid ${isActive ? s.color : T.line}`,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      transition: "all 0.18s ease",
+                      transform: isActive ? "translateY(-1px)" : "translateY(0)",
+                      boxShadow: isActive ? `0 4px 12px ${s.bg}` : "none",
+                    }}>
+                    <p style={{ fontSize: "22px", fontWeight: 500, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
+                    <p style={{ fontSize: "11px", color: isActive ? s.color : T.mute, margin: 0, fontWeight: isActive ? 500 : 400 }}>{s.status}</p>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Search bar + filter info */}
@@ -1502,41 +1516,99 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                   Showing <strong style={{ color: T.text }}>{filteredApps.length}</strong> of <strong style={{ color: T.text }}>{applications.length}</strong> applications
                 </p>
               )}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "12px" }}>
-                {filteredApps.map(a => {
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", borderRadius: "10px", border: `1px solid ${T.line}`, overflow: "hidden", background: T.surf }}>
+                {filteredApps.map((a, idx) => {
                   const statusColor = a.status === "Want to apply" ? T.purple : a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red;
                   const statusBg = a.status === "Want to apply" ? "rgba(167,139,250,0.12)" : a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)";
+                  const isLast = idx === filteredApps.length - 1;
                   return (
-                    <div key={a.id} style={{ ...card, padding: "0", overflow: "hidden", display: "flex", flexDirection: "column", transition: "border-color 0.15s, transform 0.15s" }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = T.line2; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = T.line; e.currentTarget.style.transform = "translateY(0)"; }}>
+                    <div key={a.id} style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "10px 14px",
+                      borderBottom: isLast ? "none" : `1px solid ${T.line}`,
+                      transition: "background 0.15s",
+                      cursor: "default",
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.background = T.surf2; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
 
-                      {/* Status ribbon */}
-                      <div style={{ height: "3px", background: statusColor }} />
+                      {/* Status indicator pill (left) */}
+                      <div style={{ width: "4px", height: "32px", background: statusColor, borderRadius: "2px", flexShrink: 0 }} />
 
-                      <div style={{ padding: "14px 16px", flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "6px" }}>
-                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "12px", background: "rgba(167,139,250,0.12)", color: T.purple, fontWeight: 600 }}>{a.type}</span>
-                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "12px", background: statusBg, color: statusColor, fontWeight: 600 }}>{a.status}</span>
+                      {/* Title + company (main info, takes available space) */}
+                      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
+                        <p style={{ fontWeight: 500, margin: 0, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</p>
+                        <p style={{ fontSize: "11px", color: T.mute, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {a.company}{a.location ? " · " + a.location : ""}
+                        </p>
+                      </div>
+
+                      {/* Deadline (if exists) */}
+                      {a.deadline && (
+                        <div style={{ fontSize: "11px", color: T.amber, display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, whiteSpace: "nowrap" }}>
+                          <Icon path={ICONS.calendar} size={11} />
+                          <span>{new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
                         </div>
-                        <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "14px", lineHeight: 1.35, wordBreak: "break-word" }}>{a.title}</p>
-                        <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 8px" }}>{a.company}{a.location ? " · " + a.location : ""}</p>
-                        {a.deadline && <p style={{ fontSize: "11px", color: T.amber, margin: "0 0 6px", display: "flex", alignItems: "center", gap: "4px" }}>
-                          <Icon path={ICONS.calendar} size={12} />
-                          <span>Deadline: {new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-                        </p>}
-                        {a.notes && <p style={{ fontSize: "11px", color: T.mute, margin: "6px 0 0", lineHeight: 1.5, fontStyle: "italic", borderLeft: `2px solid ${T.line}`, paddingLeft: "8px" }}>{a.notes.length > 100 ? a.notes.slice(0, 100) + "…" : a.notes}</p>}
-                      </div>
+                      )}
 
-                      <div style={{ display: "flex", gap: "6px", padding: "10px 16px", borderTop: `1px solid ${T.line}`, background: T.bg, alignItems: "center" }}>
-                        <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
-                          style={{ flex: 1, fontSize: "11px", padding: "6px 10px", borderRadius: "6px", border: `1px solid ${T.line}`, fontFamily: "inherit", cursor: "pointer", fontWeight: 500, background: statusBg, color: statusColor }}>
-                          <option>Want to apply</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
-                        </select>
-                        {a.url && <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", textDecoration: "none", fontWeight: 500 }}>View ↗</a>}
-                        <button onClick={() => deleteApplication(a.id)} title="Remove"
-                          style={{ padding: "6px 10px", borderRadius: "6px", color: T.red, background: "transparent", border: `1px solid ${T.line}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
-                      </div>
+                      {/* Status dropdown */}
+                      <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
+                        style={{
+                          fontSize: "11px",
+                          padding: "5px 8px",
+                          borderRadius: "999px",
+                          border: `1px solid ${statusColor}`,
+                          fontFamily: "inherit",
+                          cursor: "pointer",
+                          fontWeight: 500,
+                          background: statusBg,
+                          color: statusColor,
+                          minWidth: "110px",
+                          flexShrink: 0,
+                        }}>
+                        <option>Want to apply</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
+                      </select>
+
+                      {/* View link */}
+                      {a.url ? (
+                        <a href={a.url} target="_blank" rel="noopener noreferrer" style={{
+                          padding: "5px 12px",
+                          borderRadius: "6px",
+                          background: T.accent,
+                          color: "#fff",
+                          fontSize: "11px",
+                          textDecoration: "none",
+                          fontWeight: 500,
+                          flexShrink: 0,
+                          whiteSpace: "nowrap",
+                        }}>View ↗</a>
+                      ) : (
+                        <span style={{ width: "60px", flexShrink: 0 }} />
+                      )}
+
+                      {/* Delete button */}
+                      <button onClick={() => deleteApplication(a.id)} title="Remove"
+                        style={{
+                          width: "26px",
+                          height: "26px",
+                          padding: 0,
+                          borderRadius: "6px",
+                          color: T.dim,
+                          background: "transparent",
+                          border: "none",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                          flexShrink: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "color 0.15s, background 0.15s",
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.color = T.red; e.currentTarget.style.background = "rgba(226,75,74,0.1)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = T.dim; e.currentTarget.style.background = "transparent"; }}>×</button>
                     </div>
                   );
                 })}
