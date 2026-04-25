@@ -694,12 +694,12 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         style={{
           display: "flex", alignItems: "center", gap: "10px",
           padding: isChild ? "6px 14px 6px 38px" : "8px 14px",
-          margin: "1px 8px", borderRadius: "6px",
+          margin: "1px 4px", borderRadius: "8px",
           fontSize: isChild ? "12px" : "13px",
           color: isActive ? T.accent : T.mute,
           background: isActive ? T.accentBg : "transparent",
           cursor: "pointer", fontFamily: "inherit", border: "none",
-          width: "calc(100% - 16px)", textAlign: "left",
+          width: "calc(100% - 8px)", textAlign: "left",
           transition: "all 0.15s", fontWeight: isActive ? 500 : 400,
         }}
         onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = T.surf; e.currentTarget.style.color = T.text; } }}
@@ -748,13 +748,13 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
       {/* SIDEBAR */}
       <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
+        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 6px 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50, borderRight: `1px solid ${T.line}` }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
           {navItems.map((grp, gi) => (
             <div key={grp.group}>
-              {gi > 0 && <div style={{ padding: "12px 14px 4px", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: T.dim, fontWeight: 500 }}>{grp.group}</div>}
+              {gi > 0 && <div style={{ padding: "16px 14px 4px 16px", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: T.dim, fontWeight: 500 }}>{grp.group}</div>}
               {grp.items.map(item => (
                 <div key={item.id}>
                   <NavButton item={item} />
@@ -768,13 +768,13 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         </div>
 
         {/* Bottom */}
-        <div style={{ padding: "8px", borderTop: `1px solid ${T.line}` }}>
-          <button style={{ width: "calc(100% - 16px)", margin: "6px 8px 4px", padding: "9px 12px", background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, border: "none", borderRadius: "7px", color: "#fff", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+        <div style={{ padding: "8px 0", borderTop: `1px solid ${T.line}` }}>
+          <button style={{ width: "calc(100% - 8px)", margin: "6px 4px 4px", padding: "9px 12px", background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, border: "none", borderRadius: "8px", color: "#fff", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
             onClick={() => onNavigate("Premium")}>
             <Icon path={ICONS.bolt} size={14} /> Upgrade to Premium
           </button>
           <button onClick={() => { localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user"); onLogout(); }}
-            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px", margin: "1px 8px", borderRadius: "6px", fontSize: "13px", color: T.red, background: "transparent", cursor: "pointer", fontFamily: "inherit", border: "none", width: "calc(100% - 16px)", textAlign: "left" }}>
+            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px", margin: "1px 4px", borderRadius: "8px", fontSize: "13px", color: T.red, background: "transparent", cursor: "pointer", fontFamily: "inherit", border: "none", width: "calc(100% - 8px)", textAlign: "left" }}>
             <Icon path={ICONS.logout} />
             <span>Sign out</span>
           </button>
