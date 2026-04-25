@@ -490,7 +490,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   useEffect(() => {
     if (isFirstPageRender.current) {
       isFirstPageRender.current = false;
-      return; // skip initial mount — only scroll on subsequent pagination
+      return;
     }
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [page]);
@@ -1019,7 +1019,7 @@ function ContactPage() {
     }
     setStatus("sending");
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/email?action=contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, subject, message })
@@ -1121,7 +1121,7 @@ function GuidePage({ navTo }) {
   function handleSubmit() {
     if (!emailVal.trim() || !emailVal.includes("@")) { setErr(true); return; }
     setErr(false);
-    fetch("/api/send-guide", {
+    fetch("/api/email?action=send-guide", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: emailVal, consent: true, source: "guide-page" }),
@@ -2362,6 +2362,17 @@ export default function Mentorgram() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // Read saved theme on mount and apply globally (set by Dashboard Settings page)
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem("mg_theme") || localStorage.getItem("mg_theme_mode");
+      if (savedTheme === "light" || savedTheme === "dark") {
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      }
+    } catch {}
+  }, []);
+
+  // Smooth scroll detection — animates navbar to floating-pill mode
   useEffect(() => {
     let ticking = false;
     const onScroll = () => {
@@ -2479,18 +2490,14 @@ export default function Mentorgram() {
       }
     } catch { /* continue */ }
 
-    // ── Step 2: Load RSS + Indeed in background (slower) ──────────────────
+    // ── Step 2: Load live jobs in background (RSS + Indeed/Adzuna/Reed) ─
     try {
-      const [rssRes, indeedRes] = await Promise.allSettled([
-        fetch("/api/jobsacuk?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
-        fetch("/api/jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
-      ]);
-      const rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
-      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
+      const liveData = await fetch("/api/live-jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] }));
+      const liveJobs = liveData.jobs || [];
 
-      if (rssJobs.length > 0 || indeedJobs.length > 0) {
+      if (liveJobs.length > 0) {
         setAllJobs(prev => {
-          const combined = dedupe([...prev, ...rssJobs, ...indeedJobs]);
+          const combined = dedupe([...prev, ...liveJobs]);
           const result = applyFilter(combined, q, loc);
           try { sessionStorage.setItem("mg_jobs_cache", JSON.stringify({ jobs: result, ts: Date.now() })); } catch {}
           return result;
@@ -2535,7 +2542,6 @@ export default function Mentorgram() {
       setSelectedJob(null);
       setPageTransition(false);
       window.scrollTo({ top: 0, behavior: "instant" });
-      // Force navbar back to top state after navigation
       setScrolled(false);
       const slug = PAGE_SLUGS[page] || "";
       window.history.pushState(null, "", slug ? `/${slug}` : "/");
@@ -2834,7 +2840,7 @@ export default function Mentorgram() {
         transition: "background 0.5s ease, border-bottom-color 0.5s ease",
         pointerEvents: "none",
       }}>
-        {/* Left flex spacer — grows on scroll to push pill toward center */}
+        {/* Left flex spacer */}
         <div style={{
           flex: scrolled ? "1 1 auto" : "0 0 0px",
           transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -2861,7 +2867,7 @@ export default function Mentorgram() {
             <span style={{ fontSize: "16px", fontWeight: 600, color: scrolled ? "#fff" : "var(--color-text-primary)", letterSpacing: "-0.01em", whiteSpace: "nowrap", transition: "color 0.5s ease" }}>Mentorgram</span>
           </div>
 
-          {/* Middle spacer — pushes menu to right at top, collapses when scrolled */}
+          {/* Middle spacer */}
           <div style={{
             flex: scrolled ? "0 0 12px" : "1 1 auto",
             minWidth: scrolled ? "12px" : "0",
@@ -2900,6 +2906,7 @@ export default function Mentorgram() {
                 </button>
               );
             })}
+
             {user ? (
               <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "32px", height: "32px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit", marginLeft: "6px", flexShrink: 0 }}>
                 {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
@@ -2916,7 +2923,7 @@ export default function Mentorgram() {
           </button>
         </div>
 
-        {/* Right flex spacer — grows on scroll to push pill toward center */}
+        {/* Right flex spacer */}
         <div style={{
           flex: scrolled ? "1 1 auto" : "0 0 0px",
           transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
