@@ -766,6 +766,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
           .mg-split { grid-template-columns: 1fr !important; }
           .mg-profile-grid { grid-template-columns: 1fr !important; }
           .mg-phd-grid { grid-template-columns: 1fr !important; }
+          .mg-settings-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -2043,6 +2044,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 </div>
               </div>
 
+              {/* ─── 2-COLUMN GRID FOR REMAINING SETTINGS ─── */}
+              <div className="mg-settings-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+
               <div style={panelCard}>
                 <h3 style={{ fontSize: "13px", margin: "0 0 12px", fontWeight: 500 }}>Change password</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -2059,7 +2063,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 <a href="mailto:info@mentorgramai.com?subject=Data Request" style={{ ...btnGhost, textDecoration: "none", display: "inline-block", fontSize: "12px", padding: "7px 14px" }}>Request my data</a>
               </div>
 
-              <div style={{ ...panelCard, borderColor: T.red + "55" }}>
+              <div style={{ ...panelCard, borderColor: T.red + "55", gridColumn: "1 / -1" }}>
                 <h3 style={{ fontSize: "13px", margin: "0 0 8px", fontWeight: 500, color: T.red }}>⚠️ Delete account</h3>
                 {!deleteOpen ? (
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
@@ -2079,6 +2083,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                     </div>
                   </div>
                 )}
+              </div>
               </div>
             </div>
           </div>
