@@ -260,9 +260,12 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   // eslint-disable-next-line no-shadow
   const T = useMemo(() => makeTheme(themeMode, themeAccent), [themeMode, themeAccent]);
 
-  // Persist theme changes
+  // Persist theme changes + apply globally to <html data-theme="...">
   useEffect(() => {
     try { localStorage.setItem("mg_theme_mode", themeMode); localStorage.setItem("mg_theme_accent", themeAccent); } catch {}
+    // Also write to mg_theme so App.jsx's data-theme attribute syncs
+    try { localStorage.setItem("mg_theme", themeMode); } catch {}
+    document.documentElement.setAttribute("data-theme", themeMode);
   }, [themeMode, themeAccent]);
 
   // ── Reusable styles (recomputed when T changes) ──
