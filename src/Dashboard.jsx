@@ -750,8 +750,28 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 99 }} />}
 
       {/* SIDEBAR */}
-      <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: 0, left: 0, bottom: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 6px 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50, borderRight: `1px solid ${T.line}` }}>
+      <aside className={`mg-sidebar${sidebarOpen ? " open" : ""}`}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: "220px",
+          background: T.sidebar,
+          display: "flex",
+          flexDirection: "column",
+          zIndex: 50,
+          borderRight: `1px solid ${T.line}`,
+          overflow: "hidden",
+        }}>
+        {/* Inner scrollable content */}
+        <div className="mg-scrollbar" style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "30px 6px 12px",
+          display: "flex",
+          flexDirection: "column",
+        }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
@@ -781,6 +801,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             <Icon path={ICONS.logout} />
             <span>Sign out</span>
           </button>
+        </div>
         </div>
       </aside>
 
