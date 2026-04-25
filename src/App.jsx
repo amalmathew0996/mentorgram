@@ -1012,7 +1012,7 @@ function ContactPage() {
     }
     setStatus("sending");
     try {
-      const res = await fetch("/api/email?action=contact", {
+      const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, subject, message })
@@ -1114,7 +1114,7 @@ function GuidePage({ navTo }) {
   function handleSubmit() {
     if (!emailVal.trim() || !emailVal.includes("@")) { setErr(true); return; }
     setErr(false);
-    fetch("/api/email?action=send-guide", {
+    fetch("/api/send-guide", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: emailVal, consent: true, source: "guide-page" }),
@@ -2355,17 +2355,22 @@ export default function Mentorgram() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Scroll listener — switches navbar to floating-pill mode when user scrolls
+  // Smooth scroll detection — animates navbar to floating glass pill
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll(); // initial check
+    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  // On non-home pages, force the pill style always (since they may not scroll)
-  // Combined with scroll detection: pills appears on home only after scroll, on other pages always
-  const showPill = scrolled || (typeof activePage !== "undefined" && activePage !== "Home");
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mg_user") || "null"); } catch { return null; }
   });
@@ -2468,14 +2473,18 @@ export default function Mentorgram() {
       }
     } catch { /* continue */ }
 
-    // ── Step 2: Load live jobs in background (RSS + Indeed/Adzuna/Reed) ─
+    // ── Step 2: Load RSS + Indeed in background (slower) ──────────────────
     try {
-      const liveData = await fetch("/api/live-jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] }));
-      const liveJobs = liveData.jobs || [];
+      const [rssRes, indeedRes] = await Promise.allSettled([
+        fetch("/api/jobsacuk?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
+        fetch("/api/jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
+      ]);
+      const rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
+      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
 
-      if (liveJobs.length > 0) {
+      if (rssJobs.length > 0 || indeedJobs.length > 0) {
         setAllJobs(prev => {
-          const combined = dedupe([...prev, ...liveJobs]);
+          const combined = dedupe([...prev, ...rssJobs, ...indeedJobs]);
           const result = applyFilter(combined, q, loc);
           try { sessionStorage.setItem("mg_jobs_cache", JSON.stringify({ jobs: result, ts: Date.now() })); } catch {}
           return result;
@@ -2802,68 +2811,67 @@ export default function Mentorgram() {
         @media (min-width: 769px) { .mobile-menu { display:none !important; } .hamburger-btn { display:none !important; } .desktop-nav { display:flex !important; } }
       `}</style>
       <nav style={{
-        background: showPill ? "transparent" : "var(--color-background-primary)",
-        borderBottom: showPill ? "none" : "0.5px solid var(--color-border-tertiary)",
-        padding: showPill ? "12px 1.5rem 0" : "0 1.5rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: showPill ? "center" : "space-between",
-        height: showPill ? "auto" : "60px",
         position: "fixed",
         top: 0,
         left: 0,
         right: 0,
+        height: "60px",
         zIndex: 100,
-        transition: "background 0.4s ease, border-color 0.4s ease",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: scrolled ? "8px 1.5rem" : "0 1.5rem",
+        background: scrolled ? "transparent" : "var(--color-background-primary)",
+        borderBottom: scrolled ? "0.5px solid transparent" : "0.5px solid var(--color-border-tertiary)",
+        transition: "padding 0.45s cubic-bezier(0.4, 0, 0.2, 1), background 0.45s ease, border-bottom-color 0.45s ease",
         pointerEvents: "none",
-        willChange: "background",
       }}>
         <div style={{
+          width: "100%",
+          maxWidth: scrolled ? "fit-content" : "100%",
           display: "flex",
           alignItems: "center",
-          justifyContent: showPill ? "flex-start" : "space-between",
-          gap: showPill ? "16px" : "0",
-          width: showPill ? "auto" : "100%",
-          maxWidth: showPill ? "fit-content" : "none",
-          padding: showPill ? "8px 16px 8px 14px" : "0",
-          background: showPill ? "rgba(20, 20, 30, 0.65)" : "transparent",
-          backdropFilter: showPill ? "blur(20px) saturate(180%)" : "none",
-          WebkitBackdropFilter: showPill ? "blur(20px) saturate(180%)" : "none",
-          border: showPill ? "0.5px solid rgba(255,255,255,0.12)" : "none",
-          borderRadius: showPill ? "999px" : "0",
-          boxShadow: showPill ? "0 8px 32px rgba(0,0,0,0.18)" : "none",
-          transition: "padding 0.45s cubic-bezier(0.4, 0, 0.2, 1), gap 0.45s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease, border-color 0.4s ease, border-radius 0.4s ease, box-shadow 0.4s ease, max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+          justifyContent: "space-between",
+          gap: scrolled ? "12px" : "0",
+          padding: scrolled ? "6px 14px" : "0",
+          background: scrolled ? "rgba(20, 20, 30, 0.55)" : "transparent",
+          backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
+          border: scrolled ? "0.5px solid rgba(255,255,255,0.10)" : "0.5px solid transparent",
+          borderRadius: scrolled ? "999px" : "0",
+          boxShadow: scrolled ? "0 8px 28px rgba(0,0,0,0.18)" : "0 0 0 rgba(0,0,0,0)",
+          transition: "max-width 0.55s cubic-bezier(0.4, 0, 0.2, 1), gap 0.55s cubic-bezier(0.4, 0, 0.2, 1), padding 0.55s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease, border-color 0.4s ease, border-radius 0.4s ease, box-shadow 0.4s ease",
           pointerEvents: "auto",
-          willChange: "padding, max-width, background",
+          willChange: "max-width, padding, background",
         }}>
-        <div style={{ display: "flex", alignItems: "center", gap: showPill ? "8px" : "9px", cursor: "pointer", marginRight: showPill ? "4px" : "0" }} onClick={() => navTo("Home")}>
-          <img src="/logo.png" alt="Mentorgram" style={{ width: showPill ? "26px" : "40px", height: showPill ? "26px" : "40px", objectFit: "cover", borderRadius: "22%", display: "block", transition: "width 0.45s cubic-bezier(0.4, 0, 0.2, 1), height 0.45s cubic-bezier(0.4, 0, 0.2, 1)" }} />
-          <span style={{ fontSize: showPill ? "13px" : "17px", fontWeight: 600, color: showPill ? "#fff" : "var(--color-text-primary)", letterSpacing: "-0.01em", transition: "font-size 0.45s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease", whiteSpace: "nowrap" }}>Mentorgram</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer", flexShrink: 0 }} onClick={() => navTo("Home")}>
+          <img src="/logo.png" alt="Mentorgram" style={{ width: "36px", height: "36px", objectFit: "cover", borderRadius: "22%", display: "block" }} />
+          <span style={{ fontSize: "16px", fontWeight: 600, color: scrolled ? "#fff" : "var(--color-text-primary)", letterSpacing: "-0.01em", whiteSpace: "nowrap", transition: "color 0.4s ease" }}>Mentorgram</span>
         </div>
-        <div className="desktop-nav" style={{ display: "flex", gap: showPill ? "2px" : "4px", alignItems: "center" }}>
+        <div className="desktop-nav" style={{ display: "flex", gap: "2px", alignItems: "center" }}>
           {NAV_LINKS.filter(l => l !== "My Profile").map(l => {
             const isDisabled = false;
             const isActive = activePage === l;
             return (
               <button key={l} className="nav-btn"
                 style={{
-                  padding: showPill ? "5px 11px" : "6px 12px",
+                  padding: "6px 12px",
                   borderRadius: "999px",
                   cursor: isDisabled ? "default" : "pointer",
-                  fontSize: showPill ? "13px" : "14px",
+                  fontSize: "14px",
                   background: isActive
-                    ? (showPill ? "rgba(255,255,255,0.14)" : "var(--color-background-secondary)")
+                    ? (scrolled ? "rgba(255,255,255,0.14)" : "var(--color-background-secondary)")
                     : "transparent",
                   color: isDisabled
                     ? "var(--color-border-secondary)"
-                    : showPill
-                      ? (isActive ? "#fff" : "rgba(255,255,255,0.78)")
+                    : scrolled
+                      ? (isActive ? "#fff" : "rgba(255,255,255,0.82)")
                       : (isActive ? "var(--color-text-primary)" : "var(--color-text-secondary)"),
                   border: "none",
                   fontFamily: "inherit",
                   opacity: isDisabled ? 0.45 : 1,
                   whiteSpace: "nowrap",
-                  transition: "all 0.2s",
+                  transition: "background 0.3s ease, color 0.4s ease",
                 }}
                 onClick={() => !isDisabled && navTo(l)}
                 title={isDisabled ? "Coming soon" : ""}
@@ -2873,21 +2881,21 @@ export default function Mentorgram() {
             );
           })}
           {user ? (
-            <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: showPill ? "30px" : "34px", height: showPill ? "30px" : "34px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit", marginLeft: "4px", transition: "width 0.45s cubic-bezier(0.4, 0, 0.2, 1), height 0.45s cubic-bezier(0.4, 0, 0.2, 1)" }}>
+            <button onClick={() => navTo("My Profile")} title="My Dashboard" style={{ width: "32px", height: "32px", borderRadius: "50%", background: "linear-gradient(135deg,#1A3FA8,#FF4500)", border: "none", cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: "13px", fontFamily: "inherit", marginLeft: "6px", flexShrink: 0 }}>
               {(user.user_metadata?.full_name || user.email || "?")[0].toUpperCase()}
             </button>
           ) : (
-            <button onClick={() => navTo("My Profile")} style={{ padding: showPill ? "5px 14px" : "6px 16px", borderRadius: "999px", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", marginLeft: "4px", whiteSpace: "nowrap", transition: "padding 0.45s cubic-bezier(0.4, 0, 0.2, 1)" }}>Sign in</button>
+            <button onClick={() => navTo("My Profile")} style={{ padding: "6px 16px", borderRadius: "999px", background: "#1A3FA8", color: "#fff", border: "none", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", marginLeft: "6px", whiteSpace: "nowrap", flexShrink: 0 }}>Sign in</button>
           )}
         </div>
         <button className="hamburger-btn" style={{ display: "none", flexDirection: "column", gap: "5px", cursor: "pointer", padding: "8px", border: "none", background: "transparent" }} onClick={() => setMobileMenu(m => !m)}>
-          <span style={{ width: "22px", height: "2px", background: showPill ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s, background 0.35s", transform: mobileMenu ? "rotate(45deg) translate(5px,5px)" : "none" }} />
-          <span style={{ width: "22px", height: "2px", background: showPill ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", opacity: mobileMenu ? 0 : 1, transition: "opacity 0.2s, background 0.35s" }} />
-          <span style={{ width: "22px", height: "2px", background: showPill ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s, background 0.35s", transform: mobileMenu ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
+          <span style={{ width: "22px", height: "2px", background: scrolled ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s, background 0.4s", transform: mobileMenu ? "rotate(45deg) translate(5px,5px)" : "none" }} />
+          <span style={{ width: "22px", height: "2px", background: scrolled ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", opacity: mobileMenu ? 0 : 1, transition: "opacity 0.2s, background 0.4s" }} />
+          <span style={{ width: "22px", height: "2px", background: scrolled ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s, background 0.4s", transform: mobileMenu ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
         </button>
         </div>
       </nav>
-      {/* Spacer so content sits below the fixed navbar (60px = navbar height) */}
+      {/* Spacer for fixed navbar */}
       <div style={{ height: "60px" }} aria-hidden="true" />
       <div className="mobile-menu" style={{ display: mobileMenu ? "flex" : "none", flexDirection: "column", position: "fixed", top: "60px", left: 0, right: 0, background: "var(--color-background-primary)", borderBottom: "0.5px solid var(--color-border-tertiary)", padding: "0.75rem 1rem", gap: "4px", zIndex: 99 }}>
         {NAV_LINKS.filter(l => l !== "My Profile").map(l => {
