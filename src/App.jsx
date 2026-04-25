@@ -2825,16 +2825,17 @@ export default function Mentorgram() {
         transition: "background 0.5s ease, border-bottom-color 0.5s ease",
         pointerEvents: "none",
       }}>
-        {/* Left flex spacer - grows when scrolled to push content to center */}
+        {/* Left flex spacer — grows on scroll to push pill toward center */}
         <div style={{
           flex: scrolled ? "1 1 auto" : "0 0 0px",
-          transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
         }} />
 
         <div style={{
           display: "flex",
           alignItems: "center",
           gap: "0",
+          flex: scrolled ? "0 1 auto" : "1 1 auto",
           padding: scrolled ? "6px 14px" : "0",
           background: scrolled ? "rgba(20, 20, 30, 0.55)" : "transparent",
           backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
@@ -2842,20 +2843,20 @@ export default function Mentorgram() {
           border: scrolled ? "0.5px solid rgba(255,255,255,0.12)" : "0.5px solid transparent",
           borderRadius: "999px",
           boxShadow: scrolled ? "0 8px 28px rgba(0,0,0,0.18)" : "none",
-          transition: "padding 0.7s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, backdrop-filter 0.5s ease",
+          transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1), padding 0.7s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, backdrop-filter 0.5s ease",
           pointerEvents: "auto",
-          flexShrink: 0,
+          minWidth: 0,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer", flexShrink: 0 }} onClick={() => navTo("Home")}>
             <img src="/logo.png" alt="Mentorgram" style={{ width: "36px", height: "36px", objectFit: "cover", borderRadius: "22%", display: "block" }} />
             <span style={{ fontSize: "16px", fontWeight: 600, color: scrolled ? "#fff" : "var(--color-text-primary)", letterSpacing: "-0.01em", whiteSpace: "nowrap", transition: "color 0.5s ease" }}>Mentorgram</span>
           </div>
 
-          {/* Middle flex spacer - shrinks to 0 when scrolled */}
+          {/* Middle spacer — pushes menu to right at top, collapses when scrolled */}
           <div style={{
             flex: scrolled ? "0 0 12px" : "1 1 auto",
-            minWidth: scrolled ? "12px" : "20px",
-            transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
+            minWidth: scrolled ? "12px" : "0",
+            transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.7s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
           }} />
 
           <div className="desktop-nav" style={{ display: "flex", gap: "2px", alignItems: "center", flexShrink: 0 }}>
@@ -2906,10 +2907,10 @@ export default function Mentorgram() {
           </button>
         </div>
 
-        {/* Right flex spacer - grows when scrolled to push content to center */}
+        {/* Right flex spacer — grows on scroll to push pill toward center */}
         <div style={{
           flex: scrolled ? "1 1 auto" : "0 0 0px",
-          transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "flex-grow 0.7s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
         }} />
       </nav>
       {/* Spacer for fixed navbar */}
