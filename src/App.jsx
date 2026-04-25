@@ -2528,6 +2528,8 @@ export default function Mentorgram() {
       setSelectedJob(null);
       setPageTransition(false);
       window.scrollTo({ top: 0, behavior: "instant" });
+      // Force navbar back to top state after navigation
+      setScrolled(false);
       const slug = PAGE_SLUGS[page] || "";
       window.history.pushState(null, "", slug ? `/${slug}` : "/");
       if (window.va) window.va("pageview", { path: slug ? `/${slug}` : "/" });
