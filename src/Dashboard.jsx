@@ -88,7 +88,7 @@ function makeTheme(mode, accentKey) {
       mode: "light",
       accentKey,
       bg:      "var(--color-background-tertiary)",
-      sidebar: "var(--color-background-primary)",
+      sidebar: "var(--color-background-secondary)",
       surf:    "var(--color-background-primary)",
       surf2:   "var(--color-background-secondary)",
       line:    "var(--color-border-tertiary)",
@@ -110,7 +110,7 @@ function makeTheme(mode, accentKey) {
     mode: "dark",
     accentKey,
     bg:      "var(--color-background-tertiary)",
-    sidebar: "var(--color-background-primary)",
+    sidebar: "var(--color-background-secondary)",
     surf:    "var(--color-background-primary)",
     surf2:   "var(--color-background-secondary)",
     line:    "var(--color-border-tertiary)",
@@ -730,6 +730,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         .mg-scrollbar::-webkit-scrollbar { width: 6px; }
         .mg-scrollbar::-webkit-scrollbar-thumb { background: ${T.line2}; border-radius: 3px; }
         .mg-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        @media (max-width: 1100px) {
+          .mg-app-deadline { display: none !important; }
+        }
         @media (max-width: 860px) {
           .mg-sidebar { transform: translateX(-100%); transition: transform 0.25s; z-index: 100; }
           .mg-sidebar.open { transform: translateX(0); }
@@ -1516,29 +1519,30 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                   Showing <strong style={{ color: T.text }}>{filteredApps.length}</strong> of <strong style={{ color: T.text }}>{applications.length}</strong> applications
                 </p>
               )}
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px", borderRadius: "10px", border: `1px solid ${T.line}`, overflow: "hidden", background: T.surf }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", borderRadius: "10px", border: `1px solid ${T.line}`, overflow: "hidden", background: T.surf, width: "100%" }}>
                 {filteredApps.map((a, idx) => {
                   const statusColor = a.status === "Want to apply" ? T.purple : a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red;
                   const statusBg = a.status === "Want to apply" ? "rgba(167,139,250,0.12)" : a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)";
                   const isLast = idx === filteredApps.length - 1;
                   return (
-                    <div key={a.id} style={{
+                    <div key={a.id} className="mg-app-row" style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "12px",
+                      gap: "10px",
                       padding: "10px 14px",
                       borderBottom: isLast ? "none" : `1px solid ${T.line}`,
                       transition: "background 0.15s",
                       cursor: "default",
+                      minWidth: 0,
                     }}
                       onMouseEnter={e => { e.currentTarget.style.background = T.surf2; }}
                       onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
 
                       {/* Status indicator pill (left) */}
-                      <div style={{ width: "4px", height: "32px", background: statusColor, borderRadius: "2px", flexShrink: 0 }} />
+                      <div style={{ width: "3px", height: "28px", background: statusColor, borderRadius: "2px", flexShrink: 0 }} />
 
                       {/* Title + company (main info, takes available space) */}
-                      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <div style={{ flex: "1 1 auto", minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
                         <p style={{ fontWeight: 500, margin: 0, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</p>
                         <p style={{ fontSize: "11px", color: T.mute, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {a.company}{a.location ? " · " + a.location : ""}
@@ -1547,7 +1551,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
                       {/* Deadline (if exists) */}
                       {a.deadline && (
-                        <div style={{ fontSize: "11px", color: T.amber, display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, whiteSpace: "nowrap" }}>
+                        <div className="mg-app-deadline" style={{ fontSize: "11px", color: T.amber, display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, whiteSpace: "nowrap" }}>
                           <Icon path={ICONS.calendar} size={11} />
                           <span>{new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
                         </div>
@@ -1565,16 +1569,16 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                           fontWeight: 500,
                           background: statusBg,
                           color: statusColor,
-                          minWidth: "110px",
+                          width: "110px",
                           flexShrink: 0,
                         }}>
                         <option>Want to apply</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
                       </select>
 
                       {/* View link */}
-                      {a.url ? (
+                      {a.url && (
                         <a href={a.url} target="_blank" rel="noopener noreferrer" style={{
-                          padding: "5px 12px",
+                          padding: "5px 10px",
                           borderRadius: "6px",
                           background: T.accent,
                           color: "#fff",
@@ -1584,8 +1588,6 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                           flexShrink: 0,
                           whiteSpace: "nowrap",
                         }}>View ↗</a>
-                      ) : (
-                        <span style={{ width: "60px", flexShrink: 0 }} />
                       )}
 
                       {/* Delete button */}
