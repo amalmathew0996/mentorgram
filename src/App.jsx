@@ -2355,7 +2355,6 @@ export default function Mentorgram() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Smooth scroll detection — animates navbar to floating glass pill
   useEffect(() => {
     let ticking = false;
     const onScroll = () => {
@@ -2820,33 +2819,31 @@ export default function Mentorgram() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: scrolled ? "8px 1.5rem" : "0 1.5rem",
-        background: scrolled ? "transparent" : "var(--color-background-primary)",
-        borderBottom: scrolled ? "0.5px solid transparent" : "0.5px solid var(--color-border-tertiary)",
-        transition: "padding 0.45s cubic-bezier(0.4, 0, 0.2, 1), background 0.45s ease, border-bottom-color 0.45s ease",
+        padding: "0 1.5rem",
+        background: "transparent",
         pointerEvents: "none",
       }}>
         <div style={{
           width: "100%",
-          maxWidth: scrolled ? "fit-content" : "100%",
+          maxWidth: scrolled ? "fit-content" : "1400px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: scrolled ? "12px" : "0",
-          padding: scrolled ? "6px 14px" : "0",
+          padding: scrolled ? "6px 16px 6px 14px" : "10px 0",
           background: scrolled ? "rgba(20, 20, 30, 0.55)" : "transparent",
-          backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
-          WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
-          border: scrolled ? "0.5px solid rgba(255,255,255,0.10)" : "0.5px solid transparent",
-          borderRadius: scrolled ? "999px" : "0",
+          backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "blur(0px)",
+          WebkitBackdropFilter: scrolled ? "blur(24px) saturate(180%)" : "blur(0px)",
+          border: scrolled ? "0.5px solid rgba(255,255,255,0.12)" : "0.5px solid rgba(255,255,255,0)",
+          borderRadius: "999px",
           boxShadow: scrolled ? "0 8px 28px rgba(0,0,0,0.18)" : "0 0 0 rgba(0,0,0,0)",
-          transition: "max-width 0.55s cubic-bezier(0.4, 0, 0.2, 1), gap 0.55s cubic-bezier(0.4, 0, 0.2, 1), padding 0.55s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease, border-color 0.4s ease, border-radius 0.4s ease, box-shadow 0.4s ease",
+          transition: "max-width 0.6s cubic-bezier(0.4, 0, 0.2, 1), gap 0.6s cubic-bezier(0.4, 0, 0.2, 1), padding 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, backdrop-filter 0.5s ease",
           pointerEvents: "auto",
           willChange: "max-width, padding, background",
         }}>
         <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer", flexShrink: 0 }} onClick={() => navTo("Home")}>
           <img src="/logo.png" alt="Mentorgram" style={{ width: "36px", height: "36px", objectFit: "cover", borderRadius: "22%", display: "block" }} />
-          <span style={{ fontSize: "16px", fontWeight: 600, color: scrolled ? "#fff" : "var(--color-text-primary)", letterSpacing: "-0.01em", whiteSpace: "nowrap", transition: "color 0.4s ease" }}>Mentorgram</span>
+          <span style={{ fontSize: "16px", fontWeight: 600, color: "#fff", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>Mentorgram</span>
         </div>
         <div className="desktop-nav" style={{ display: "flex", gap: "2px", alignItems: "center" }}>
           {NAV_LINKS.filter(l => l !== "My Profile").map(l => {
@@ -2859,19 +2856,13 @@ export default function Mentorgram() {
                   borderRadius: "999px",
                   cursor: isDisabled ? "default" : "pointer",
                   fontSize: "14px",
-                  background: isActive
-                    ? (scrolled ? "rgba(255,255,255,0.14)" : "var(--color-background-secondary)")
-                    : "transparent",
-                  color: isDisabled
-                    ? "var(--color-border-secondary)"
-                    : scrolled
-                      ? (isActive ? "#fff" : "rgba(255,255,255,0.82)")
-                      : (isActive ? "var(--color-text-primary)" : "var(--color-text-secondary)"),
+                  background: isActive ? "rgba(255,255,255,0.14)" : "transparent",
+                  color: isDisabled ? "rgba(255,255,255,0.35)" : isActive ? "#fff" : "rgba(255,255,255,0.82)",
                   border: "none",
                   fontFamily: "inherit",
                   opacity: isDisabled ? 0.45 : 1,
                   whiteSpace: "nowrap",
-                  transition: "background 0.3s ease, color 0.4s ease",
+                  transition: "background 0.3s ease, color 0.3s ease",
                 }}
                 onClick={() => !isDisabled && navTo(l)}
                 title={isDisabled ? "Coming soon" : ""}
@@ -2889,9 +2880,9 @@ export default function Mentorgram() {
           )}
         </div>
         <button className="hamburger-btn" style={{ display: "none", flexDirection: "column", gap: "5px", cursor: "pointer", padding: "8px", border: "none", background: "transparent" }} onClick={() => setMobileMenu(m => !m)}>
-          <span style={{ width: "22px", height: "2px", background: scrolled ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s, background 0.4s", transform: mobileMenu ? "rotate(45deg) translate(5px,5px)" : "none" }} />
-          <span style={{ width: "22px", height: "2px", background: scrolled ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", opacity: mobileMenu ? 0 : 1, transition: "opacity 0.2s, background 0.4s" }} />
-          <span style={{ width: "22px", height: "2px", background: scrolled ? "#fff" : "var(--color-text-primary)", borderRadius: "2px", display: "block", transition: "transform 0.2s, background 0.4s", transform: mobileMenu ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
+          <span style={{ width: "22px", height: "2px", background: "#fff", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(45deg) translate(5px,5px)" : "none" }} />
+          <span style={{ width: "22px", height: "2px", background: "#fff", borderRadius: "2px", display: "block", opacity: mobileMenu ? 0 : 1, transition: "opacity 0.2s" }} />
+          <span style={{ width: "22px", height: "2px", background: "#fff", borderRadius: "2px", display: "block", transition: "transform 0.2s", transform: mobileMenu ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
         </button>
         </div>
       </nav>
