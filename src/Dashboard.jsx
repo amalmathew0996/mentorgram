@@ -599,7 +599,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     setDeleteLoading(true);
     try {
       await supaFetch(`/profiles?user_id=eq.${user.id}`, { method: "DELETE" });
-      const res = await fetch("/api/delete-account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: user.id, token: getToken() }) });
+      const res = await fetch("/api/auth?action=delete-account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: user.id, token: getToken() }) });
       if (!res.ok) throw new Error("Deletion failed");
       localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user"); onLogout();
     } catch (e) { alert(e.message); setDeleteLoading(false); }
