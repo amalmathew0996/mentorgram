@@ -1012,7 +1012,7 @@ function ContactPage() {
     }
     setStatus("sending");
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/email?action=contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, subject, message })
@@ -1114,7 +1114,7 @@ function GuidePage({ navTo }) {
   function handleSubmit() {
     if (!emailVal.trim() || !emailVal.includes("@")) { setErr(true); return; }
     setErr(false);
-    fetch("/api/send-guide", {
+    fetch("/api/email?action=send-guide", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: emailVal, consent: true, source: "guide-page" }),
@@ -2455,18 +2455,14 @@ export default function Mentorgram() {
       }
     } catch { /* continue */ }
 
-    // ── Step 2: Load RSS + Indeed in background (slower) ──────────────────
+    // ── Step 2: Load live jobs in background (RSS + Indeed/Adzuna/Reed) ─
     try {
-      const [rssRes, indeedRes] = await Promise.allSettled([
-        fetch("/api/jobsacuk?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
-        fetch("/api/jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] })),
-      ]);
-      const rssJobs    = rssRes.status    === "fulfilled" ? (rssRes.value?.jobs    || []) : [];
-      const indeedJobs = indeedRes.status === "fulfilled" ? (indeedRes.value?.jobs || []) : [];
+      const liveData = await fetch("/api/live-jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] }));
+      const liveJobs = liveData.jobs || [];
 
-      if (rssJobs.length > 0 || indeedJobs.length > 0) {
+      if (liveJobs.length > 0) {
         setAllJobs(prev => {
-          const combined = dedupe([...prev, ...rssJobs, ...indeedJobs]);
+          const combined = dedupe([...prev, ...liveJobs]);
           const result = applyFilter(combined, q, loc);
           try { sessionStorage.setItem("mg_jobs_cache", JSON.stringify({ jobs: result, ts: Date.now() })); } catch {}
           return result;
