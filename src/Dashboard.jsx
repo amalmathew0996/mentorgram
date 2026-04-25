@@ -302,7 +302,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [appsLoading, setAppsLoading] = useState(true);
   const [showAddApp, setShowAddApp] = useState(false);
   const [appSearch, setAppSearch] = useState("");
-  const [appStatusFilter, setAppStatusFilter] = useState("All");
+  const [appStatusFilter, setAppStatusFilter] = useState("Want to apply");
+  const [appPage, setAppPage] = useState(1);
+  const APPS_PER_PAGE = 10;
   const [urlInput, setUrlInput] = useState("");
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState(null);
@@ -362,6 +364,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => { loadProfile(); loadApplications(); }, [user]);
+
+  // Reset application pagination when filter or search changes
+  useEffect(() => { setAppPage(1); }, [appStatusFilter, appSearch]);
 
   // Fetch jobs if not loaded by parent
   const [localJobs, setLocalJobs] = useState([]);
@@ -1540,11 +1545,19 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                   Showing <strong style={{ color: T.text }}>{filteredApps.length}</strong> of <strong style={{ color: T.text }}>{applications.length}</strong> applications
                 </p>
               )}
+              {(() => {
+                // Paginate the filtered list
+                const totalPages = Math.max(1, Math.ceil(filteredApps.length / APPS_PER_PAGE));
+                const safePage = Math.min(appPage, totalPages);
+                const startIdx = (safePage - 1) * APPS_PER_PAGE;
+                const pageApps = filteredApps.slice(startIdx, startIdx + APPS_PER_PAGE);
+                return (
+              <>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px", borderRadius: "10px", border: `1px solid ${T.line}`, overflow: "hidden", background: T.surf, width: "100%" }}>
-                {filteredApps.map((a, idx) => {
+                {pageApps.map((a, idx) => {
                   const statusColor = a.status === "Want to apply" ? T.purple : a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red;
                   const statusBg = a.status === "Want to apply" ? "rgba(167,139,250,0.12)" : a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)";
-                  const isLast = idx === filteredApps.length - 1;
+                  const isLast = idx === pageApps.length - 1;
                   return (
                     <div key={a.id} className="mg-app-row" style={{
                       display: "flex",
@@ -1636,6 +1649,56 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                   );
                 })}
               </div>
+
+              {/* Pagination controls */}
+              {totalPages > 1 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "6px", marginTop: "16px", flexWrap: "wrap" }}>
+                  <button onClick={() => setAppPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+                    style={{ padding: "7px 14px", borderRadius: "8px", border: `1px solid ${T.line}`, background: T.surf, color: safePage === 1 ? T.dim : T.text, cursor: safePage === 1 ? "default" : "pointer", fontSize: "12px", fontFamily: "inherit", opacity: safePage === 1 ? 0.5 : 1 }}>
+                    ← Prev
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => {
+                    // Show: first, last, current, and 1 either side of current (ellipsis for gaps)
+                    const showNum = n === 1 || n === totalPages || Math.abs(n - safePage) <= 1;
+                    const showEllipsisBefore = n === safePage - 2 && safePage > 3;
+                    const showEllipsisAfter = n === safePage + 2 && safePage < totalPages - 2;
+                    if (showEllipsisBefore || showEllipsisAfter) return <span key={n} style={{ color: T.dim, padding: "0 4px" }}>…</span>;
+                    if (!showNum) return null;
+                    const isActive = n === safePage;
+                    return (
+                      <button key={n} onClick={() => setAppPage(n)}
+                        style={{
+                          minWidth: "34px",
+                          height: "34px",
+                          padding: "0 10px",
+                          borderRadius: "8px",
+                          border: `1px solid ${isActive ? T.accent : T.line}`,
+                          background: isActive ? T.accent : T.surf,
+                          color: isActive ? "#fff" : T.text,
+                          cursor: isActive ? "default" : "pointer",
+                          fontSize: "12px",
+                          fontFamily: "inherit",
+                          fontWeight: isActive ? 500 : 400,
+                        }}>
+                        {n}
+                      </button>
+                    );
+                  })}
+                  <button onClick={() => setAppPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
+                    style={{ padding: "7px 14px", borderRadius: "8px", border: `1px solid ${T.line}`, background: T.surf, color: safePage === totalPages ? T.dim : T.text, cursor: safePage === totalPages ? "default" : "pointer", fontSize: "12px", fontFamily: "inherit", opacity: safePage === totalPages ? 0.5 : 1 }}>
+                    Next →
+                  </button>
+                </div>
+              )}
+
+              {totalPages > 1 && (
+                <p style={{ fontSize: "11px", color: T.dim, textAlign: "center", marginTop: "10px" }}>
+                  Page {safePage} of {totalPages} · {filteredApps.length} {filteredApps.length === 1 ? "application" : "applications"}
+                </p>
+              )}
+              </>
+              );
+              })()}
               </>
               );
             })()}
