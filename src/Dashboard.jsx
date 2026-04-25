@@ -751,7 +751,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
 
       {/* SIDEBAR */}
       <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 6px 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50, borderRight: `1px solid ${T.line}` }}>
+        style={{ position: "fixed", top: 0, left: 0, bottom: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 6px 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50, borderRight: `1px solid ${T.line}` }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
