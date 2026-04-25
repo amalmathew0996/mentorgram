@@ -87,15 +87,15 @@ function makeTheme(mode, accentKey) {
     return {
       mode: "light",
       accentKey,
-      bg:      "#F7F8FA",
-      sidebar: "#FFFFFF",
-      surf:    "#FFFFFF",
-      surf2:   "#F3F4F8",
-      line:    "#E0E3EA",
-      line2:   "#C5CAD4",
-      text:    "#0F1419",
-      mute:    "#4A5266",
-      dim:     "#7A8498",
+      bg:      "var(--color-background-tertiary)",
+      sidebar: "var(--color-background-secondary)",
+      surf:    "var(--color-background-primary)",
+      surf2:   "var(--color-background-secondary)",
+      line:    "var(--color-border-tertiary)",
+      line2:   "var(--color-border-secondary)",
+      text:    "var(--color-text-primary)",
+      mute:    "var(--color-text-secondary)",
+      dim:     "var(--color-text-secondary)",
       accent:  a.c,
       accentBg:`rgba(${a.rgb},0.10)`,
       accentHi:`rgba(${a.rgb},0.22)`,
@@ -105,19 +105,19 @@ function makeTheme(mode, accentKey) {
       red:     "#B91C1C",
     };
   }
-  // dark (default)
+  // dark (default) — uses CSS vars so it auto-syncs with system theme too
   return {
     mode: "dark",
     accentKey,
-    bg:      "#0A0A12",
-    sidebar: "#0F0F1A",
-    surf:    "#14141E",
-    surf2:   "#1B1B28",
-    line:    "#2E2E42",
-    line2:   "#3F3F58",
-    text:    "#F5F5F7",
-    mute:    "#B0B0C4",
-    dim:     "#7E7E95",
+    bg:      "var(--color-background-tertiary)",
+    sidebar: "var(--color-background-secondary)",
+    surf:    "var(--color-background-primary)",
+    surf2:   "var(--color-background-secondary)",
+    line:    "var(--color-border-tertiary)",
+    line2:   "var(--color-border-secondary)",
+    text:    "var(--color-text-primary)",
+    mute:    "var(--color-text-secondary)",
+    dim:     "var(--color-text-secondary)",
     accent:  a.c,
     accentBg:`rgba(${a.rgb},0.10)`,
     accentHi:`rgba(${a.rgb},0.22)`,
@@ -302,7 +302,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [appsLoading, setAppsLoading] = useState(true);
   const [showAddApp, setShowAddApp] = useState(false);
   const [appSearch, setAppSearch] = useState("");
-  const [appStatusFilter, setAppStatusFilter] = useState("All");
+  const [appStatusFilter, setAppStatusFilter] = useState("Want to apply");
+  const [appPage, setAppPage] = useState(1);
+  const APPS_PER_PAGE = 10;
   const [urlInput, setUrlInput] = useState("");
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState(null);
@@ -362,6 +364,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => { loadProfile(); loadApplications(); }, [user]);
+
+  // Reset application pagination when filter or search changes
+  useEffect(() => { setAppPage(1); }, [appStatusFilter, appSearch]);
 
   // Fetch jobs if not loaded by parent
   const [localJobs, setLocalJobs] = useState([]);
@@ -599,7 +604,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     setDeleteLoading(true);
     try {
       await supaFetch(`/profiles?user_id=eq.${user.id}`, { method: "DELETE" });
-      const res = await fetch("/api/delete-account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: user.id, token: getToken() }) });
+      const res = await fetch("/api/auth?action=delete-account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: user.id, token: getToken() }) });
       if (!res.ok) throw new Error("Deletion failed");
       localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user"); onLogout();
     } catch (e) { alert(e.message); setDeleteLoading(false); }
@@ -694,12 +699,12 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         style={{
           display: "flex", alignItems: "center", gap: "10px",
           padding: isChild ? "6px 14px 6px 38px" : "8px 14px",
-          margin: "1px 8px", borderRadius: "6px",
+          margin: "1px 4px", borderRadius: "8px",
           fontSize: isChild ? "12px" : "13px",
           color: isActive ? T.accent : T.mute,
           background: isActive ? T.accentBg : "transparent",
           cursor: "pointer", fontFamily: "inherit", border: "none",
-          width: "calc(100% - 16px)", textAlign: "left",
+          width: "calc(100% - 8px)", textAlign: "left",
           transition: "all 0.15s", fontWeight: isActive ? 500 : 400,
         }}
         onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = T.surf; e.currentTarget.style.color = T.text; } }}
@@ -730,6 +735,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         .mg-scrollbar::-webkit-scrollbar { width: 6px; }
         .mg-scrollbar::-webkit-scrollbar-thumb { background: ${T.line2}; border-radius: 3px; }
         .mg-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        @media (max-width: 1100px) {
+          .mg-app-deadline { display: none !important; }
+        }
         @media (max-width: 860px) {
           .mg-sidebar { transform: translateX(-100%); transition: transform 0.25s; z-index: 100; }
           .mg-sidebar.open { transform: translateX(0); }
@@ -747,14 +755,34 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
       {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 99 }} />}
 
       {/* SIDEBAR */}
-      <aside className={`mg-sidebar mg-scrollbar${sidebarOpen ? " open" : ""}`}
-        style={{ position: "fixed", top: 0, left: 0, width: "220px", height: "100vh", background: T.sidebar, padding: "30px 0 12px", display: "flex", flexDirection: "column", overflowY: "auto", zIndex: 50 }}>
+      <aside className={`mg-sidebar${sidebarOpen ? " open" : ""}`}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: "220px",
+          background: T.sidebar,
+          display: "flex",
+          flexDirection: "column",
+          zIndex: 50,
+          borderRight: `1px solid ${T.line}`,
+          overflow: "hidden",
+        }}>
+        {/* Inner scrollable content */}
+        <div className="mg-scrollbar" style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "30px 6px 12px",
+          display: "flex",
+          flexDirection: "column",
+        }}>
 
         {/* Nav groups */}
         <div style={{ flex: 1 }}>
           {navItems.map((grp, gi) => (
             <div key={grp.group}>
-              {gi > 0 && <div style={{ padding: "12px 14px 4px", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: T.dim, fontWeight: 500 }}>{grp.group}</div>}
+              {gi > 0 && <div style={{ padding: "16px 14px 4px 16px", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: T.dim, fontWeight: 500 }}>{grp.group}</div>}
               {grp.items.map(item => (
                 <div key={item.id}>
                   <NavButton item={item} />
@@ -768,16 +796,17 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
         </div>
 
         {/* Bottom */}
-        <div style={{ padding: "8px", borderTop: `1px solid ${T.line}` }}>
-          <button style={{ width: "calc(100% - 16px)", margin: "6px 8px 4px", padding: "9px 12px", background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, border: "none", borderRadius: "7px", color: "#fff", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+        <div style={{ padding: "8px 0", borderTop: `1px solid ${T.line}` }}>
+          <button style={{ width: "calc(100% - 8px)", margin: "6px 4px 4px", padding: "9px 12px", background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, border: "none", borderRadius: "8px", color: "#fff", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
             onClick={() => onNavigate("Premium")}>
             <Icon path={ICONS.bolt} size={14} /> Upgrade to Premium
           </button>
           <button onClick={() => { localStorage.removeItem("mg_session"); localStorage.removeItem("mg_user"); onLogout(); }}
-            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px", margin: "1px 8px", borderRadius: "6px", fontSize: "13px", color: T.red, background: "transparent", cursor: "pointer", fontFamily: "inherit", border: "none", width: "calc(100% - 16px)", textAlign: "left" }}>
+            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px", margin: "1px 4px", borderRadius: "8px", fontSize: "13px", color: T.red, background: "transparent", cursor: "pointer", fontFamily: "inherit", border: "none", width: "calc(100% - 8px)", textAlign: "left" }}>
             <Icon path={ICONS.logout} />
             <span>Sign out</span>
           </button>
+        </div>
         </div>
       </aside>
 
@@ -1305,13 +1334,27 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 { status: "Interview",     color: T.amber,  bg: "rgba(245,158,11,0.08)" },
                 { status: "Offer",         color: T.green,  bg: "rgba(34,197,94,0.08)" },
                 { status: "Rejected",      color: T.red,    bg: "rgba(226,75,74,0.08)" },
-              ].map(s => (
-                <button key={s.status} onClick={() => setAppStatusFilter(appStatusFilter === s.status ? "All" : s.status)}
-                  style={{ background: s.bg, borderRadius: "8px", padding: "12px", textAlign: "center", border: `1px solid ${appStatusFilter === s.status ? s.color : T.line}`, cursor: "pointer", fontFamily: "inherit", transition: "border-color 0.15s" }}>
-                  <p style={{ fontSize: "22px", fontWeight: 500, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
-                  <p style={{ fontSize: "11px", color: T.mute, margin: 0 }}>{s.status}</p>
-                </button>
-              ))}
+              ].map(s => {
+                const isActive = appStatusFilter === s.status;
+                return (
+                  <button key={s.status} onClick={() => setAppStatusFilter(isActive ? "All" : s.status)}
+                    style={{
+                      background: isActive ? s.bg : "transparent",
+                      borderRadius: "10px",
+                      padding: "12px",
+                      textAlign: "center",
+                      border: `1.5px solid ${isActive ? s.color : T.line}`,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      transition: "all 0.18s ease",
+                      transform: isActive ? "translateY(-1px)" : "translateY(0)",
+                      boxShadow: isActive ? `0 4px 12px ${s.bg}` : "none",
+                    }}>
+                    <p style={{ fontSize: "22px", fontWeight: 500, margin: "0 0 2px", color: s.color }}>{applications.filter(a => a.status === s.status).length}</p>
+                    <p style={{ fontSize: "11px", color: isActive ? s.color : T.mute, margin: 0, fontWeight: isActive ? 500 : 400 }}>{s.status}</p>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Search bar + filter info */}
@@ -1502,45 +1545,160 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                   Showing <strong style={{ color: T.text }}>{filteredApps.length}</strong> of <strong style={{ color: T.text }}>{applications.length}</strong> applications
                 </p>
               )}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "12px" }}>
-                {filteredApps.map(a => {
+              {(() => {
+                // Paginate the filtered list
+                const totalPages = Math.max(1, Math.ceil(filteredApps.length / APPS_PER_PAGE));
+                const safePage = Math.min(appPage, totalPages);
+                const startIdx = (safePage - 1) * APPS_PER_PAGE;
+                const pageApps = filteredApps.slice(startIdx, startIdx + APPS_PER_PAGE);
+                return (
+              <>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", borderRadius: "10px", border: `1px solid ${T.line}`, overflow: "hidden", background: T.surf, width: "100%" }}>
+                {pageApps.map((a, idx) => {
                   const statusColor = a.status === "Want to apply" ? T.purple : a.status === "Applied" ? T.accent : a.status === "Interview" ? T.amber : a.status === "Offer" ? T.green : T.red;
                   const statusBg = a.status === "Want to apply" ? "rgba(167,139,250,0.12)" : a.status === "Applied" ? T.accentBg : a.status === "Interview" ? "rgba(245,158,11,0.12)" : a.status === "Offer" ? "rgba(34,197,94,0.12)" : "rgba(226,75,74,0.12)";
+                  const isLast = idx === pageApps.length - 1;
                   return (
-                    <div key={a.id} style={{ ...card, padding: "0", overflow: "hidden", display: "flex", flexDirection: "column", transition: "border-color 0.15s, transform 0.15s" }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = T.line2; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = T.line; e.currentTarget.style.transform = "translateY(0)"; }}>
+                    <div key={a.id} className="mg-app-row" style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "10px 14px",
+                      borderBottom: isLast ? "none" : `1px solid ${T.line}`,
+                      transition: "background 0.15s",
+                      cursor: "default",
+                      minWidth: 0,
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.background = T.surf2; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
 
-                      {/* Status ribbon */}
-                      <div style={{ height: "3px", background: statusColor }} />
+                      {/* Status indicator pill (left) */}
+                      <div style={{ width: "3px", height: "28px", background: statusColor, borderRadius: "2px", flexShrink: 0 }} />
 
-                      <div style={{ padding: "14px 16px", flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "6px" }}>
-                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "12px", background: "rgba(167,139,250,0.12)", color: T.purple, fontWeight: 600 }}>{a.type}</span>
-                          <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "12px", background: statusBg, color: statusColor, fontWeight: 600 }}>{a.status}</span>
+                      {/* Title + company (main info, takes available space) */}
+                      <div style={{ flex: "1 1 auto", minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
+                        <p style={{ fontWeight: 500, margin: 0, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</p>
+                        <p style={{ fontSize: "11px", color: T.mute, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {a.company}{a.location ? " · " + a.location : ""}
+                        </p>
+                      </div>
+
+                      {/* Deadline (if exists) */}
+                      {a.deadline && (
+                        <div className="mg-app-deadline" style={{ fontSize: "11px", color: T.amber, display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, whiteSpace: "nowrap" }}>
+                          <Icon path={ICONS.calendar} size={11} />
+                          <span>{new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
                         </div>
-                        <p style={{ fontWeight: 500, margin: "0 0 4px", fontSize: "14px", lineHeight: 1.35, wordBreak: "break-word" }}>{a.title}</p>
-                        <p style={{ fontSize: "12px", color: T.mute, margin: "0 0 8px" }}>{a.company}{a.location ? " · " + a.location : ""}</p>
-                        {a.deadline && <p style={{ fontSize: "11px", color: T.amber, margin: "0 0 6px", display: "flex", alignItems: "center", gap: "4px" }}>
-                          <Icon path={ICONS.calendar} size={12} />
-                          <span>Deadline: {new Date(a.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-                        </p>}
-                        {a.notes && <p style={{ fontSize: "11px", color: T.mute, margin: "6px 0 0", lineHeight: 1.5, fontStyle: "italic", borderLeft: `2px solid ${T.line}`, paddingLeft: "8px" }}>{a.notes.length > 100 ? a.notes.slice(0, 100) + "…" : a.notes}</p>}
-                      </div>
+                      )}
 
-                      <div style={{ display: "flex", gap: "6px", padding: "10px 16px", borderTop: `1px solid ${T.line}`, background: T.bg, alignItems: "center" }}>
-                        <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
-                          style={{ flex: 1, fontSize: "11px", padding: "6px 10px", borderRadius: "6px", border: `1px solid ${T.line}`, fontFamily: "inherit", cursor: "pointer", fontWeight: 500, background: statusBg, color: statusColor }}>
-                          <option>Want to apply</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
-                        </select>
-                        {a.url && <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ padding: "6px 12px", borderRadius: "6px", background: T.accent, color: "#fff", fontSize: "11px", textDecoration: "none", fontWeight: 500 }}>View ↗</a>}
-                        <button onClick={() => deleteApplication(a.id)} title="Remove"
-                          style={{ padding: "6px 10px", borderRadius: "6px", color: T.red, background: "transparent", border: `1px solid ${T.line}`, fontSize: "11px", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
-                      </div>
+                      {/* Status dropdown */}
+                      <select value={a.status} onChange={e => updateApplicationStatus(a.id, e.target.value)}
+                        style={{
+                          fontSize: "11px",
+                          padding: "5px 8px",
+                          borderRadius: "999px",
+                          border: `1px solid ${statusColor}`,
+                          fontFamily: "inherit",
+                          cursor: "pointer",
+                          fontWeight: 500,
+                          background: statusBg,
+                          color: statusColor,
+                          width: "110px",
+                          flexShrink: 0,
+                        }}>
+                        <option>Want to apply</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
+                      </select>
+
+                      {/* View link */}
+                      {a.url && (
+                        <a href={a.url} target="_blank" rel="noopener noreferrer" style={{
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: T.accent,
+                          color: "#fff",
+                          fontSize: "11px",
+                          textDecoration: "none",
+                          fontWeight: 500,
+                          flexShrink: 0,
+                          whiteSpace: "nowrap",
+                        }}>View ↗</a>
+                      )}
+
+                      {/* Delete button */}
+                      <button onClick={() => deleteApplication(a.id)} title="Remove"
+                        style={{
+                          width: "26px",
+                          height: "26px",
+                          padding: 0,
+                          borderRadius: "6px",
+                          color: T.dim,
+                          background: "transparent",
+                          border: "none",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                          flexShrink: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "color 0.15s, background 0.15s",
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.color = T.red; e.currentTarget.style.background = "rgba(226,75,74,0.1)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = T.dim; e.currentTarget.style.background = "transparent"; }}>×</button>
                     </div>
                   );
                 })}
               </div>
+
+              {/* Pagination controls */}
+              {totalPages > 1 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "6px", marginTop: "16px", flexWrap: "wrap" }}>
+                  <button onClick={() => setAppPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+                    style={{ padding: "7px 14px", borderRadius: "8px", border: `1px solid ${T.line}`, background: T.surf, color: safePage === 1 ? T.dim : T.text, cursor: safePage === 1 ? "default" : "pointer", fontSize: "12px", fontFamily: "inherit", opacity: safePage === 1 ? 0.5 : 1 }}>
+                    ← Prev
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => {
+                    // Show: first, last, current, and 1 either side of current (ellipsis for gaps)
+                    const showNum = n === 1 || n === totalPages || Math.abs(n - safePage) <= 1;
+                    const showEllipsisBefore = n === safePage - 2 && safePage > 3;
+                    const showEllipsisAfter = n === safePage + 2 && safePage < totalPages - 2;
+                    if (showEllipsisBefore || showEllipsisAfter) return <span key={n} style={{ color: T.dim, padding: "0 4px" }}>…</span>;
+                    if (!showNum) return null;
+                    const isActive = n === safePage;
+                    return (
+                      <button key={n} onClick={() => setAppPage(n)}
+                        style={{
+                          minWidth: "34px",
+                          height: "34px",
+                          padding: "0 10px",
+                          borderRadius: "8px",
+                          border: `1px solid ${isActive ? T.accent : T.line}`,
+                          background: isActive ? T.accent : T.surf,
+                          color: isActive ? "#fff" : T.text,
+                          cursor: isActive ? "default" : "pointer",
+                          fontSize: "12px",
+                          fontFamily: "inherit",
+                          fontWeight: isActive ? 500 : 400,
+                        }}>
+                        {n}
+                      </button>
+                    );
+                  })}
+                  <button onClick={() => setAppPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
+                    style={{ padding: "7px 14px", borderRadius: "8px", border: `1px solid ${T.line}`, background: T.surf, color: safePage === totalPages ? T.dim : T.text, cursor: safePage === totalPages ? "default" : "pointer", fontSize: "12px", fontFamily: "inherit", opacity: safePage === totalPages ? 0.5 : 1 }}>
+                    Next →
+                  </button>
+                </div>
+              )}
+
+              {totalPages > 1 && (
+                <p style={{ fontSize: "11px", color: T.dim, textAlign: "center", marginTop: "10px" }}>
+                  Page {safePage} of {totalPages} · {filteredApps.length} {filteredApps.length === 1 ? "application" : "applications"}
+                </p>
+              )}
+              </>
+              );
+              })()}
               </>
               );
             })()}
