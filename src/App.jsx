@@ -486,7 +486,14 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   const searchTimer = useRef(null);
 
   useEffect(() => { setPage(1); }, [sector, visaType, titleQuery, locationQuery]);
-  useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [page]);
+  const isFirstPageRender = useRef(true);
+  useEffect(() => {
+    if (isFirstPageRender.current) {
+      isFirstPageRender.current = false;
+      return; // skip initial mount — only scroll on subsequent pagination
+    }
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [page]);
 
   function handleTitleChange(val) {
     setTitleQuery(val);
@@ -2758,7 +2765,7 @@ export default function Mentorgram() {
         <JobDetailPage job={selectedJob} onBack={() => { setSelectedJob(null); window.location.hash = ""; }} onAskMentor={(msg) => { setChatInput(msg); setSelectedJob(null); navTo("AI Mentor"); }} />
       ) : (
         <JobsPage allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt} onFetchJobs={fetchJobs}
-          onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); }}
+          onSelectJob={(job) => { setSelectedJob(job); window.scrollTo(0, 0); setScrolled(false); }}
           profileFilter={profileFilter} onClearProfileFilter={() => setProfileFilter(null)}
           user={user} onNavigate={navTo} />
       );
