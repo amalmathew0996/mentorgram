@@ -153,6 +153,113 @@ async function fetchRSSJobs(q, loc) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// COUNCIL RSS FEEDS (jobsgopublic, myjobscotland, wmjobs, lg-jobs)
+// ═══════════════════════════════════════════════════════════════
+const COUNCIL_FEEDS = [
+  // jobsgopublic.com — RSS feed covers ~150 English councils
+  // Their RSS: https://www.jobsgopublic.com/rss/latest_jobs
+  { url: "https://www.jobsgopublic.com/rss/latest_jobs",      source: "jobsgopublic" },
+  // myjobscotland.gov.uk — Scottish councils
+  { url: "https://www.myjobscotland.gov.uk/rss.xml",           source: "myjobscotland" },
+  // wmjobs.co.uk — West Midlands councils (Birmingham, Coventry, Solihull, etc.)
+  { url: "https://www.wmjobs.co.uk/rss/latest",                source: "wmjobs" },
+  // lg-jobs.co.uk — Local Government Jobs aggregator
+  { url: "https://www.lg-jobs.co.uk/rss/jobs",                 source: "lg-jobs" },
+];
+
+function parseCouncilRSS(xml, source) {
+  const jobs = [];
+  const items = xml.match(/<item[\s>][\s\S]*?<\/item>/g) || [];
+  for (const item of items) {
+    const get = (tag) => {
+      const m = item.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([^<]*)<\\/${tag}>`));
+      return m ? (m[1] ?? m[2] ?? "").trim() : "";
+    };
+    const title   = clean(get("title")).substring(0, 140);
+    const link    = clean(get("link") || get("guid"));
+    const pubDate = get("pubDate");
+    const desc    = get("description") || "";
+    if (!title || !link) continue;
+
+    // Try to extract council name from description patterns
+    // jobsgopublic often uses "Employer: <Council>" or the title contains the council
+    const employerMatch = desc.match(/(?:Employer|Organisation|Company|Council):\s*([^\n<]+)/i);
+    let council = employerMatch ? clean(employerMatch[1]).substring(0, 80) : "UK Council";
+
+    // If no employer found, try to detect from title (common pattern: "Job Title - Council Name")
+    if (council === "UK Council") {
+      const titleParts = title.split(" - ");
+      if (titleParts.length >= 2) {
+        const lastPart = titleParts[titleParts.length - 1].trim();
+        // Check if last part looks like a council name (contains "council", "borough", "city", "county")
+        if (/council|borough|city|county|authority|district/i.test(lastPart)) {
+          council = lastPart;
+        }
+      }
+    }
+
+    const loc = desc.match(/(?:Location|Place of [Ww]ork|Based in):\s*([^\n<,]+)/i);
+    const sal = desc.match(/(?:Salary|Grade|Pay):\s*([^\n<]+)/i);
+    let posted = "";
+    if (pubDate) { try { posted = new Date(pubDate).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); } catch {} }
+
+    jobs.push({
+      title,
+      company:     council,
+      location:    loc ? clean(loc[1]).substring(0,80) : "United Kingdom",
+      salary:      sal ? clean(sal[1]).substring(0,70) : "See listing",
+      sector:      "Public Sector",
+      posted,
+      url:         link,
+      source,
+      sponsorship: null, // Councils don't typically sponsor visas
+      isCouncil:   true,
+    });
+  }
+  return jobs;
+}
+
+async function fetchCouncilJobs(councilName) {
+  const settled = await Promise.allSettled(
+    COUNCIL_FEEDS.map(({ url: feedUrl, source }) =>
+      fetch(feedUrl, {
+        headers: { "User-Agent": "Mentorgram AI (+https://mentorgramai.com)" },
+        signal: AbortSignal.timeout(10000)
+      })
+        .then(r => r.ok ? r.text() : "")
+        .then(xml => xml ? parseCouncilRSS(xml, source) : [])
+        .catch(() => [])
+    )
+  );
+  let jobs = settled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
+
+  // Dedupe
+  const seen = new Set();
+  jobs = jobs.filter(j => { const k = j.url.split("?")[0]; if (seen.has(k)) return false; seen.add(k); return true; });
+
+  // Filter by specific council name if provided
+  if (councilName) {
+    const cn = councilName.toLowerCase().trim();
+    jobs = jobs.filter(j =>
+      j.company.toLowerCase().includes(cn) ||
+      j.location.toLowerCase().includes(cn) ||
+      j.title.toLowerCase().includes(cn)
+    );
+  }
+
+  // Sort by most recent
+  jobs.sort((a, b) => {
+    try {
+      if (!a.posted) return 1;
+      if (!b.posted) return -1;
+      return new Date(b.posted) - new Date(a.posted);
+    } catch { return 0; }
+  });
+
+  return jobs;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // API JOBS (Indeed via MCP, Adzuna, Reed)
 // ═══════════════════════════════════════════════════════════════
 async function searchIndeed(apiKey, q, loc) {
@@ -289,8 +396,21 @@ export default async function handler(req, res) {
   const q   = (url.searchParams.get("q") || "").toLowerCase().trim();
   const loc = (url.searchParams.get("location") || "").toLowerCase().trim();
   const source = (url.searchParams.get("source") || "all").toLowerCase();
+  const council = (url.searchParams.get("council") || "").trim();
 
   try {
+    // Council jobs route
+    if (source === "councils") {
+      const councilJobs = await fetchCouncilJobs(council);
+      return res.status(200).json({
+        jobs: councilJobs,
+        count: councilJobs.length,
+        source: "councils",
+        council: council || "all",
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
     let rssJobs = [];
     let apiJobs = [];
 
