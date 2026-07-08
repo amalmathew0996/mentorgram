@@ -5,10 +5,11 @@ import SponsorsPage from "./Sponsors.jsx";
 import Dashboard from "./Dashboard.jsx";
 import { PrivacyPage, TermsPage, CookieBanner } from "./Legal.jsx";
 import CVGenerator from "./CVGenerator.jsx";
+import CouncilsPage from "./CouncilsPage.jsx";
 
 inject();
 
-const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "CV Generator", "Visa Sponsors", "Premium", "Contact", "My Profile"];
+const NAV_LINKS = ["Home", "AI Mentor", "Education Paths", "Universities", "Sponsorship Jobs", "UK Councils", "CV Generator", "Visa Sponsors", "Premium", "Contact", "My Profile"];
 const SECTORS = ["All", "Technology", "AI & Data", "Healthcare", "Finance", "Engineering", "Business", "Education", "Hospitality", "Public Sector"];
 const VISA_TYPES = ["All Jobs", "✓ Visa Sponsorship"];
 const JOBS_PER_PAGE = 20;
@@ -2318,6 +2319,7 @@ const PAGE_SLUGS = {
   "Education Paths": "education",
   "Universities": "universities",
   "Sponsorship Jobs": "jobs",
+  "UK Councils": "councils",
   "Visa Sponsors": "visa-sponsors",
   "CV Generator": "cv-generator",
   "Premium": "premium",
@@ -2793,6 +2795,7 @@ export default function Mentorgram() {
       case "Premium Success": return <PremiumSuccessPage navTo={navTo} user={user} />;
       case "Contact": return <ContactPage />;
       case "Visa Sponsors": return <SponsorsPage />;
+      case "UK Councils": return <CouncilsPage />;
       case "Privacy Policy": return <PrivacyPage />;
       case "Terms & Conditions": return <TermsPage />;
       case "Guide": return <GuidePage navTo={navTo} />;
