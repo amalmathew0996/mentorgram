@@ -343,6 +343,159 @@ async function searchReed(reedKey, q) {
   } catch { return []; }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// GERMANY JOB SEARCH (Adzuna DE + English-only filter)
+// ═══════════════════════════════════════════════════════════════
+
+const GERMAN_ENGLISH_KW = [
+  "english speaking", "english-speaking", "in english", "english required",
+  "english language", "no german required", "no german needed",
+  "english fluent", "international team", "international company",
+  "english as working language", "english communication",
+];
+
+const GERMAN_NO_ENGLISH = [
+  "deutsch fließend", "deutschkenntnisse erforderlich", "muttersprache deutsch",
+  "sehr gute deutschkenntnisse", "verhandlungssicher deutsch",
+];
+
+function isEnglishSpeaking(title = "", desc = "") {
+  const t = `${title} ${desc}`.toLowerCase();
+  // If description explicitly requires strong German → exclude
+  if (GERMAN_NO_ENGLISH.some(k => t.includes(k))) return false;
+  // If English is mentioned as working language → include
+  if (GERMAN_ENGLISH_KW.some(k => t.includes(k))) return true;
+  // Default: check if title is in English (heuristic)
+  const englishOnlyTitle = /^[a-zA-Z0-9\s\-\/&\(\)\+,\.]+$/.test(title);
+  return englishOnlyTitle;
+}
+
+const GERMAN_VISA_KW = [
+  "blue card", "blaue karte", "visa sponsorship", "visum",
+  "work permit", "arbeitserlaubnis", "relocation", "relocate to germany",
+  "international candidates welcome", "we sponsor visas",
+];
+
+function isGermanVisaSponsored(title = "", desc = "") {
+  const t = `${title} ${desc}`.toLowerCase();
+  return GERMAN_VISA_KW.some(k => t.includes(k));
+}
+
+async function searchAdzunaGermany(appId, appKey, q, page = 1) {
+  if (!appId || !appKey) return [];
+  try {
+    const params = new URLSearchParams({
+      app_id: appId,
+      app_key: appKey,
+      results_per_page: "50",
+      what: q || "english",
+      content_type: "application/json",
+    });
+    const r = await fetch(`https://api.adzuna.com/v1/api/jobs/de/search/${page}?${params}`);
+    if (!r.ok) return [];
+    const d = await r.json();
+    return (d.results || [])
+      .map(j => ({
+        title:       j.title || "",
+        company:     j.company?.display_name || "Unknown Company",
+        location:    j.location?.display_name || "Germany",
+        salary:      j.salary_min ? `€${Math.round(j.salary_min).toLocaleString()}–€${Math.round(j.salary_max || j.salary_min).toLocaleString()}/yr` : "Competitive",
+        posted:      j.created ? new Date(j.created).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "",
+        url:         j.redirect_url || "",
+        sponsorship: isGermanVisaSponsored(j.title, j.description || ""),
+        source:      "adzuna-de",
+        country:     "DE",
+        description: j.description || "",
+      }))
+      // Filter to English-friendly roles only
+      .filter(j => isEnglishSpeaking(j.title, j.description));
+  } catch { return []; }
+}
+
+// German RSS feeds (English-friendly companies)
+const GERMAN_ENGLISH_FEEDS = [
+  // AngelList Berlin / Berlin Startup Jobs
+  { url: "https://berlinstartupjobs.com/feed/",              sector: "Technology" },
+  // JobsInBerlin — English jobs in Berlin
+  { url: "https://www.jobsinberlin.eu/rss/jobs",             sector: "Technology" },
+];
+
+async function fetchGermanRSSJobs() {
+  const settled = await Promise.allSettled(
+    GERMAN_ENGLISH_FEEDS.map(({ url: feedUrl, sector }) =>
+      fetch(feedUrl, {
+        headers: { "User-Agent": "Mentorgram AI (+https://mentorgramai.com)" },
+        signal: AbortSignal.timeout(10000),
+      })
+        .then(r => r.ok ? r.text() : "")
+        .then(xml => {
+          if (!xml) return [];
+          const items = xml.match(/<item[\s>][\s\S]*?<\/item>/g) || [];
+          return items.map(item => {
+            const get = (tag) => {
+              const m = item.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([^<]*)<\\/${tag}>`));
+              return m ? (m[1] ?? m[2] ?? "").trim() : "";
+            };
+            const title = clean(get("title")).substring(0, 140);
+            const link  = clean(get("link") || get("guid"));
+            const desc  = get("description") || "";
+            const pubDate = get("pubDate");
+            if (!title || !link) return null;
+            let posted = "";
+            if (pubDate) { try { posted = new Date(pubDate).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); } catch {} }
+            return {
+              title,
+              company: "Berlin Startup",
+              location: "Berlin, Germany",
+              salary: "Competitive",
+              sector,
+              posted,
+              url: link,
+              source: "berlinstartupjobs",
+              sponsorship: isGermanVisaSponsored(title, desc),
+              country: "DE",
+            };
+          }).filter(Boolean);
+        })
+        .catch(() => [])
+    )
+  );
+  return settled.filter(r => r.status === "fulfilled").flatMap(r => r.value);
+}
+
+async function fetchGermanyJobs(q) {
+  const adzunaId  = process.env.ADZUNA_APP_ID;
+  const adzunaKey = process.env.ADZUNA_APP_KEY;
+
+  const [adzunaResults, rssResults] = await Promise.allSettled([
+    q
+      ? searchAdzunaGermany(adzunaId, adzunaKey, q)
+      : Promise.all([
+          searchAdzunaGermany(adzunaId, adzunaKey, "english"),
+          searchAdzunaGermany(adzunaId, adzunaKey, "software engineer english"),
+          searchAdzunaGermany(adzunaId, adzunaKey, "blue card visa"),
+        ]).then(r => r.flat()),
+    fetchGermanRSSJobs(),
+  ]);
+
+  const adzunaJobs = adzunaResults.status === "fulfilled" ? adzunaResults.value : [];
+  const rssJobs    = rssResults.status    === "fulfilled" ? rssResults.value    : [];
+
+  const all = [...adzunaJobs, ...rssJobs];
+
+  const seen = new Set();
+  return all.filter(j => {
+    if (!j.title || !j.company) return false;
+    const key = `${j.title}||${j.company}`.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    j.sector = j.sector || getSector(j.title);
+    j.salary = j.salary || "Competitive";
+    j.country = "DE";
+    return true;
+  });
+}
+
 async function fetchAPIJobs(q, loc) {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const adzunaId     = process.env.ADZUNA_APP_ID;
@@ -397,6 +550,7 @@ export default async function handler(req, res) {
   const loc = (url.searchParams.get("location") || "").toLowerCase().trim();
   const source = (url.searchParams.get("source") || "all").toLowerCase();
   const council = (url.searchParams.get("council") || "").trim();
+  const country = (url.searchParams.get("country") || "UK").toUpperCase();
 
   try {
     // Council jobs route
@@ -411,6 +565,27 @@ export default async function handler(req, res) {
       });
     }
 
+    // Germany route
+    if (country === "DE" || country === "GERMANY") {
+      const germanyJobs = await fetchGermanyJobs(q);
+      germanyJobs.sort((a, b) => {
+        if (a.sponsorship && !b.sponsorship) return -1;
+        if (!a.sponsorship && b.sponsorship) return 1;
+        try {
+          if (!a.posted) return 1;
+          if (!b.posted) return -1;
+          return new Date(b.posted) - new Date(a.posted);
+        } catch { return 0; }
+      });
+      return res.status(200).json({
+        jobs: germanyJobs,
+        count: germanyJobs.length,
+        country: "DE",
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    // Default: UK jobs
     let rssJobs = [];
     let apiJobs = [];
 
@@ -422,7 +597,7 @@ export default async function handler(req, res) {
     }
 
     // Merge + sort: sponsored first, then most recent
-    const all = [...apiJobs, ...rssJobs];
+    const all = [...apiJobs, ...rssJobs].map(j => ({ ...j, country: "UK" }));
     all.sort((a, b) => {
       if (a.sponsorship && !b.sponsorship) return -1;
       if (!a.sponsorship && b.sponsorship) return 1;
@@ -436,6 +611,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       jobs: all,
       count: all.length,
+      country: "UK",
       sources: { rss: rssJobs.length, api: apiJobs.length },
       updatedAt: new Date().toISOString(),
     });
