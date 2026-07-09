@@ -125,6 +125,7 @@ export default function SponsorsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
+  const [country, setCountry] = useState("UK"); // "UK" or "DE"
 
   // Filters
   const [search, setSearch] = useState("");
@@ -206,6 +207,47 @@ export default function SponsorsPage() {
 
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "2rem 1.5rem" }}>
+
+      {/* Country toggle */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
+        <div style={{ display: "inline-flex", background: "var(--color-background-secondary)", borderRadius: "999px", padding: "4px", border: "0.5px solid var(--color-border-tertiary)" }}>
+          <button
+            onClick={() => setCountry("UK")}
+            style={{
+              padding: "8px 20px",
+              borderRadius: "999px",
+              border: "none",
+              background: country === "UK" ? "#1A3FA8" : "transparent",
+              color: country === "UK" ? "#fff" : "var(--color-text-secondary)",
+              fontWeight: country === "UK" ? 500 : 400,
+              fontSize: "14px",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "background 0.2s, color 0.2s",
+            }}>
+            🇬🇧 UK Sponsors
+          </button>
+          <button
+            onClick={() => setCountry("DE")}
+            style={{
+              padding: "8px 20px",
+              borderRadius: "999px",
+              border: "none",
+              background: country === "DE" ? "#1A3FA8" : "transparent",
+              color: country === "DE" ? "#fff" : "var(--color-text-secondary)",
+              fontWeight: country === "DE" ? 500 : 400,
+              fontSize: "14px",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "background 0.2s, color 0.2s",
+            }}>
+            🇩🇪 Germany Blue Card
+          </button>
+        </div>
+      </div>
+
+      {country === "DE" && <GermanyBlueCardSection />}
+      {country === "UK" && (<>
       <div ref={topRef}>
         {/* Header */}
         <div style={{ marginBottom: "1.5rem" }}>
@@ -332,6 +374,154 @@ export default function SponsorsPage() {
           </p>
         </>
       )}
+      </>)}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GERMANY BLUE CARD SECTION
+// ═══════════════════════════════════════════════════════════════
+function GermanyBlueCardSection() {
+  const GERMAN_TOP_EMPLOYERS = [
+    { name: "SAP", sector: "Technology", location: "Walldorf", desc: "German multinational software company. English-first working culture. Blue Card sponsor." },
+    { name: "Siemens", sector: "Engineering", location: "Munich", desc: "Industrial giant. Global mobility program supports international candidates." },
+    { name: "Delivery Hero", sector: "Technology", location: "Berlin", desc: "Food delivery tech. English is main language. Employs 40+ nationalities." },
+    { name: "Zalando", sector: "Technology", location: "Berlin", desc: "Europe's largest fashion e-commerce. Strong international team." },
+    { name: "N26", sector: "Finance", location: "Berlin", desc: "Digital bank. Fully English-speaking workplace. Popular among tech visa applicants." },
+    { name: "Trivago", sector: "Technology", location: "Düsseldorf", desc: "Hotel comparison platform. English-first. Sponsors Blue Cards for engineers." },
+    { name: "HelloFresh", sector: "Technology", location: "Berlin", desc: "Meal kit company. Diverse international team." },
+    { name: "GetYourGuide", sector: "Technology", location: "Berlin", desc: "Travel tech unicorn. English working language." },
+    { name: "Volocopter", sector: "Engineering", location: "Bruchsal", desc: "Air taxi startup. Actively recruits international engineers." },
+    { name: "BMW Group", sector: "Engineering", location: "Munich", desc: "Major auto manufacturer. Global talent programs." },
+    { name: "Mercedes-Benz Group", sector: "Engineering", location: "Stuttgart", desc: "Premium car maker with international recruiting." },
+    { name: "Bosch", sector: "Engineering", location: "Gerlingen", desc: "Global engineering giant. Sponsors highly-skilled workers." },
+    { name: "Deutsche Bank", sector: "Finance", location: "Frankfurt", desc: "International banking hub. English-speaking finance roles." },
+    { name: "Allianz", sector: "Finance", location: "Munich", desc: "Global insurance & asset management." },
+    { name: "Rocket Internet", sector: "Technology", location: "Berlin", desc: "Startup incubator. English is dominant language." },
+  ];
+
+  const cardStyle = {
+    background: "var(--color-background-primary)",
+    border: "0.5px solid var(--color-border-tertiary)",
+    borderRadius: "12px",
+    padding: "1.25rem",
+    marginBottom: "1rem",
+  };
+
+  return (
+    <div>
+      {/* Hero explainer */}
+      <div style={{ ...cardStyle, background: "linear-gradient(135deg, rgba(26,63,168,0.06), rgba(26,63,168,0.02))" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px", flexWrap: "wrap" }}>
+          <h2 style={{ fontSize: "1.6rem", fontWeight: 500, margin: 0 }}>🇩🇪 Germany EU Blue Card</h2>
+          <span style={{ padding: "3px 10px", borderRadius: "999px", fontSize: "11px", fontWeight: 500, background: "rgba(29,158,117,0.15)", color: "#0f7554" }}>Highly Skilled Route</span>
+        </div>
+        <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: "14px", lineHeight: 1.6 }}>
+          The EU Blue Card is Germany's fast-track visa for non-EU professionals. Fewer restrictions than typical work permits, path to permanent residency in 21-33 months, and allows family reunification.
+        </p>
+      </div>
+
+      {/* Key facts grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px", marginBottom: "1.5rem" }}>
+        <div style={cardStyle}>
+          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px" }}>Min. Salary (2026)</p>
+          <p style={{ fontSize: "20px", fontWeight: 500, margin: 0 }}>€48,300/year</p>
+          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>€43,760 for shortage occupations</p>
+        </div>
+        <div style={cardStyle}>
+          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px" }}>Duration</p>
+          <p style={{ fontSize: "20px", fontWeight: 500, margin: 0 }}>Up to 4 years</p>
+          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>Renewable, tied to job contract</p>
+        </div>
+        <div style={cardStyle}>
+          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px" }}>Permanent Residency</p>
+          <p style={{ fontSize: "20px", fontWeight: 500, margin: 0 }}>21-33 months</p>
+          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>Fastest PR path in Germany</p>
+        </div>
+        <div style={cardStyle}>
+          <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px" }}>English OK?</p>
+          <p style={{ fontSize: "20px", fontWeight: 500, margin: 0, color: "#0f7554" }}>Yes ✓</p>
+          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "4px 0 0" }}>A1 German helps but not required</p>
+        </div>
+      </div>
+
+      {/* Requirements */}
+      <div style={cardStyle}>
+        <h3 style={{ fontSize: "16px", fontWeight: 500, margin: "0 0 12px" }}>Blue Card Requirements</h3>
+        <ul style={{ margin: 0, padding: "0 0 0 20px", fontSize: "14px", lineHeight: 1.8, color: "var(--color-text-primary)" }}>
+          <li>Recognised university degree (or equivalent qualification)</li>
+          <li>Signed job contract or binding offer in Germany</li>
+          <li>Salary at or above €48,300/year (2026) — lower threshold for shortage occupations like IT, engineering, healthcare</li>
+          <li>Position must match your qualification field</li>
+          <li>Valid passport and health insurance</li>
+        </ul>
+      </div>
+
+      {/* Top employers */}
+      <div style={{ marginTop: "1.5rem", marginBottom: "1rem" }}>
+        <h3 style={{ fontSize: "18px", fontWeight: 500, margin: "0 0 4px" }}>Top German Employers Sponsoring Blue Cards</h3>
+        <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: 0 }}>
+          Curated list of companies with English-speaking workplaces that regularly sponsor EU Blue Cards.
+        </p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px", marginBottom: "1.5rem" }}>
+        {GERMAN_TOP_EMPLOYERS.map(emp => (
+          <a
+            key={emp.name}
+            href={`https://www.google.com/search?q=${encodeURIComponent(emp.name + " careers jobs english")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              textDecoration: "none",
+              color: "inherit",
+              background: "var(--color-background-primary)",
+              border: "0.5px solid var(--color-border-tertiary)",
+              borderRadius: "10px",
+              padding: "14px 16px",
+              transition: "border-color 0.15s, transform 0.15s",
+              cursor: "pointer",
+              display: "block",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-border-secondary)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border-tertiary)"; e.currentTarget.style.transform = "translateY(0)"; }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
+              <p style={{ fontSize: "14px", fontWeight: 500, margin: 0 }}>{emp.name}</p>
+              <span style={{ fontSize: "11px", color: "#1A3FA8", whiteSpace: "nowrap" }}>Careers ↗</span>
+            </div>
+            <div style={{ display: "flex", gap: "6px", marginBottom: "8px", flexWrap: "wrap" }}>
+              <span style={{ padding: "2px 8px", borderRadius: "999px", fontSize: "10px", background: "rgba(26,63,168,0.1)", color: "#1A3FA8", fontWeight: 500 }}>{emp.sector}</span>
+              <span style={{ padding: "2px 8px", borderRadius: "999px", fontSize: "10px", background: "var(--color-background-secondary)", color: "var(--color-text-secondary)" }}>{emp.location}</span>
+            </div>
+            <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.5 }}>{emp.desc}</p>
+          </a>
+        ))}
+      </div>
+
+      {/* Official links */}
+      <div style={{ ...cardStyle, background: "rgba(255,193,7,0.06)", borderColor: "rgba(255,193,7,0.3)" }}>
+        <h3 style={{ fontSize: "14px", fontWeight: 500, margin: "0 0 8px" }}>📖 Official Resources</h3>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <a href="https://www.make-it-in-germany.com/en/visa-residence/eu-blue-card" target="_blank" rel="noopener noreferrer"
+            style={{ padding: "6px 12px", borderRadius: "6px", background: "#1A3FA8", color: "#fff", fontSize: "12px", textDecoration: "none", fontWeight: 500 }}>
+            Make It In Germany (Official) ↗
+          </a>
+          <a href="https://www.bamf.de/EN/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/BlaueKarteEU/blauekarteeu-node.html" target="_blank" rel="noopener noreferrer"
+            style={{ padding: "6px 12px", borderRadius: "6px", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "12px", textDecoration: "none", fontWeight: 500 }}>
+            BAMF Blue Card Info ↗
+          </a>
+          <a href="https://www.bundesagentur.de/en/eures" target="_blank" rel="noopener noreferrer"
+            style={{ padding: "6px 12px", borderRadius: "6px", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", fontSize: "12px", textDecoration: "none", fontWeight: 500 }}>
+            EURES Jobs Portal ↗
+          </a>
+        </div>
+      </div>
+
+      <p style={{ marginTop: "16px", fontSize: "11px", color: "var(--color-text-secondary)", textAlign: "center", lineHeight: 1.6 }}>
+        Salary thresholds and requirements are updated annually. Verify current details on the official Make It In Germany portal.
+      </p>
     </div>
   );
 }
