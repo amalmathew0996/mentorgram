@@ -471,6 +471,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   const [visaType, setVisaType] = useState("All Jobs");
   const [sourceFilter, setSourceFilter] = useState("All");
   const [employerType, setEmployerType] = useState("All");
+  const [country, setCountry] = useState("UK"); // "UK" or "DE"
   const [titleQuery, setTitleQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -569,7 +570,59 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
     <div style={S.section}>
       <div ref={topRef}>
         <h2 style={{ ...S.sectionTitle, textAlign: "center" }}>Sponsorship jobs</h2>
-        <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "1.5rem" }}>Search UK jobs with visa sponsorship — updated live.</p>
+        <p style={{ ...S.sectionSub, textAlign: "center", marginBottom: "1.25rem" }}>
+          Search {country === "UK" ? "UK jobs with visa sponsorship" : "English-speaking jobs in Germany with Blue Card sponsorship"} — updated live.
+        </p>
+      </div>
+
+      {/* Country toggle */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "0", marginBottom: "1.5rem" }}>
+        <div style={{ display: "inline-flex", background: "var(--color-background-secondary)", borderRadius: "999px", padding: "4px", border: "0.5px solid var(--color-border-tertiary)" }}>
+          <button
+            onClick={() => {
+              setCountry("UK");
+              onFetchJobs(titleQuery, locationQuery, "UK");
+            }}
+            style={{
+              padding: "8px 20px",
+              borderRadius: "999px",
+              border: "none",
+              background: country === "UK" ? "#1A3FA8" : "transparent",
+              color: country === "UK" ? "#fff" : "var(--color-text-secondary)",
+              fontWeight: country === "UK" ? 500 : 400,
+              fontSize: "14px",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "background 0.2s, color 0.2s",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}>
+            🇬🇧 UK
+          </button>
+          <button
+            onClick={() => {
+              setCountry("DE");
+              onFetchJobs(titleQuery, locationQuery, "DE");
+            }}
+            style={{
+              padding: "8px 20px",
+              borderRadius: "999px",
+              border: "none",
+              background: country === "DE" ? "#1A3FA8" : "transparent",
+              color: country === "DE" ? "#fff" : "var(--color-text-secondary)",
+              fontWeight: country === "DE" ? 500 : 400,
+              fontSize: "14px",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "background 0.2s, color 0.2s",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}>
+            🇩🇪 Germany
+          </button>
+        </div>
       </div>
 
       {/* Search box */}
@@ -2471,12 +2524,26 @@ export default function Mentorgram() {
     });
   }
 
-  async function fetchJobs(q, loc) {
+  async function fetchJobs(q, loc, country = "UK") {
     setJobsLoading(true);
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (loc) params.set("location", loc);
+    if (country) params.set("country", country);
 
+    // For Germany: skip DB (it's UK-only), go straight to live API
+    if (country === "DE") {
+      try {
+        const liveData = await fetch("/api/live-jobs?" + params).then(r => r.json()).catch(() => ({ jobs: [] }));
+        const liveJobs = liveData.jobs || [];
+        setAllJobs(applyFilter(dedupe(liveJobs), q, loc));
+        setUpdatedAt(new Date().toISOString());
+      } catch { /* fail silently */ }
+      setJobsLoading(false);
+      return;
+    }
+
+    // UK: existing 2-step approach
     // ── Step 1: Load DB jobs first (fast — Supabase) ──────────────────────
     try {
       const dbParams = new URLSearchParams(params);
