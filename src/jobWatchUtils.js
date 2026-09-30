@@ -11,13 +11,13 @@ export function jobSource(job) {
   return null;
 }
 
-export function matchJobs(jobs, { titles, locations, sources, sponsorshipRequired }, now = Date.now()) {
+export function matchJobs(jobs, { titles, locations, sources, sponsorshipRequired, customSites = [] }, now = Date.now()) {
   const seen = new Set();
   return jobs.filter(job => {
     if (!job || typeof job.title !== "string") return false;
     let url;
     try { url = new URL(job.url); } catch { return false; }
-    if (!["https:", "http:"].includes(url.protocol) || !sources.includes(jobSource(job))) return false;
+    if (!["https:", "http:"].includes(url.protocol) || !(sources.includes(jobSource(job)) || customSites.includes(job.custom_site))) return false;
     const expiry = job.closing_date || job.expires_at;
     let cutoff = /^\d{4}-\d{2}-\d{2}$/.test(expiry || "") ? `${expiry}T23:59:59.999Z` : expiry;
     if (job.closing_date && !/T\d{2}:/.test(job.closing_date) && Number.isFinite(Date.parse(job.closing_date))) {
