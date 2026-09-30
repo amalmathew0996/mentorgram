@@ -1,3 +1,4 @@
+import { fetchCustomSites, siteURL } from "../lib/jobWatchSites.js";
 // /api/live-jobs.js — Consolidated live job sources
 // Replaces: jobsacuk.js + jobs.js
 // Returns BOTH RSS feeds AND Indeed/Adzuna/Reed in a single call (parallel)
@@ -606,6 +607,21 @@ export default async function handler(req, res) {
     // Job Watch uses only the selected direct feeds, without paid search APIs.
     if (source === "job-watch") {
       res.setHeader("Cache-Control", "no-store");
+      let customSites;
+      try {
+        customSites = JSON.parse(url.searchParams.get("sites") || "[]");
+        if (!Array.isArray(customSites) || customSites.length > 5 || customSites.some(site => typeof site !== "string")) throw new Error("Invalid sites");
+        customSites = [...new Set(customSites.map(site => siteURL(site).href))];
+      } catch { return res.status(400).json({ error: "Add up to five public HTTPS site URLs.", jobs: [] }); }
+      if (customSites.length) {
+        const token = req.headers?.authorization;
+        const supabaseUrl = process.env.VITE_SUPABASE_URL;
+        const key = process.env.VITE_SUPABASE_ANON_KEY;
+        if (!token?.startsWith("Bearer ") || !supabaseUrl || !key) return res.status(401).json({ error: "Sign in again to search your added sites.", jobs: [] });
+        const auth = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: key, Authorization: token }, signal: AbortSignal.timeout(5000) });
+        if (!auth.ok) return res.status(401).json({ error: "Sign in again to search your added sites.", jobs: [] });
+      }
+      const customSearch = fetchCustomSites(customSites);
       const selected = (url.searchParams.get("sources") || "").split(",");
       const feeds = [];
       if (selected.includes("jobs_ac_uk")) {
@@ -629,7 +645,8 @@ export default async function handler(req, res) {
         }
       }));
       const nhs = await nhsSearch;
-      const warnings = [...nhs.warnings];
+      const custom = await customSearch;
+      const warnings = [...nhs.warnings, ...custom.map(result => result.warning).filter(Boolean)];
       for (const name of [...new Set(feeds.map(f => f.name))]) {
         const group = results.filter(r => r.name === name);
         const failed = group.filter(r => !r.ok).length;
@@ -638,7 +655,7 @@ export default async function handler(req, res) {
       if (selected.includes("trac") || selected.includes("nhs_scotland")) {
         warnings.push("Trac and NHS Scotland currently use stored listings only; direct live feeds are not connected.");
       }
-      return res.status(200).json({ jobs: [...nhs.jobs, ...results.flatMap(r => r.jobs)], warnings, updatedAt: new Date().toISOString() });
+      return res.status(200).json({ jobs: [...custom.flatMap(r => r.jobs), ...nhs.jobs, ...results.flatMap(r => r.jobs)], warnings, updatedAt: new Date().toISOString() });
     }
 
     // Council jobs route
