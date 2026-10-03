@@ -14,27 +14,42 @@ function getToken() {
   }
 }
 
+let refreshPromise;
+async function refreshSession(failedToken) {
+  if (getToken() && getToken() !== failedToken) return;
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      let session;
+      try { session = JSON.parse(localStorage.getItem("mg_session") || "{}"); } catch { session = {}; }
+      if (!session.refresh_token) throw new Error("Your session expired. Please sign out and sign in again, then retry.");
+      const response = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
+        method: "POST", headers: { apikey: SUPA_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: session.refresh_token }), signal: AbortSignal.timeout(10000),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.access_token) throw new Error("Your session expired. Please sign out and sign in again, then retry.");
+      const current = JSON.parse(localStorage.getItem("mg_session") || "{}");
+      if (current.refresh_token !== session.refresh_token) throw new Error("Your login changed. Reload this page before continuing.");
+      localStorage.setItem("mg_session", JSON.stringify({ ...session, ...data }));
+    })().finally(() => { refreshPromise = null; });
+  }
+  await refreshPromise;
+}
+async function authorizedFetch(url, opts = {}) {
+  const token = getToken();
+  const send = () => fetch(url, { ...opts, headers: { ...opts.headers, Authorization: `Bearer ${getToken() || SUPA_KEY}` } });
+  let response = await send();
+  if (response.status === 401) { await refreshSession(token); response = await send(); }
+  return response;
+}
 async function supaFetch(path, opts = {}) {
-  const res = await fetch(`${SUPA_URL}/rest/v1${path}`, {
-    ...opts,
-    headers: {
-      "Content-Type": "application/json",
-      apikey: SUPA_KEY,
-      Authorization: `Bearer ${getToken() || SUPA_KEY}`,
-      Prefer: "return=representation",
-      ...(opts.headers || {}),
-    },
+  const res = await authorizedFetch(`${SUPA_URL}/rest/v1${path}`, {
+    ...opts, headers: { "Content-Type": "application/json", apikey: SUPA_KEY, Prefer: "return=representation", ...(opts.headers || {}) },
   });
-
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(
-      err.message ||
-      err.error_description ||
-      "Request failed"
-    );
+    throw new Error(res.status === 401 ? "Your session expired. Please sign out and sign in again." : err.message || err.error_description || "Request failed");
   }
-
   return res.status === 204 ? null : res.json();
 }
 
@@ -91,6 +106,16 @@ const sameTitle = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
 function dateLabel(value, empty = "Not recorded") {
   return value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString() : empty;
 }
+function isSourceCheck(value) {
+  return value && typeof value === "object" && value.kind === "source_check" && value.version === 1
+    && typeof value.source === "string" && ["working", "empty", "partial", "failed", "unsupported", "not_checked"].includes(value.status)
+    && Number.isInteger(value.fetched) && value.fetched >= 0;
+}
+function sameSource(a, b) {
+  try { const left = new URL(a); const right = new URL(b); left.hash = ""; right.hash = ""; return left.href === right.href; }
+  catch { return a === b; }
+}
+
 const CLOCK_TIMES = [["06:00", "6 am"], ["10:00", "10 am"], ["12:00", "12 noon"], ["16:00", "4 pm"]];
 function scheduleDate(value, zone, empty = "Not recorded") {
   if (!value || !Number.isFinite(Date.parse(value))) return empty;
@@ -241,7 +266,7 @@ function JobWatchAccount({ user }) {
         if (run && Date.parse(run.started_at) > resultsStarted.current) {
           setPreviousResults(successful?.[1] ? jobsArray(successful[1].jobs) : null);
           setResults(jobsArray(run.jobs));
-          setWarnings(Array.isArray(run.warnings) ? run.warnings.map(item => typeof item === "string" ? item : JSON.stringify(item)) : []);
+          setWarnings(Array.isArray(run.warnings) ? run.warnings : []);
           setSearchSummary(run.summary || "");
           setLastRun(run.completed_at || "");
           setResultKind(run.run_kind === "scheduled" ? "Scheduled" : "Manual");
@@ -379,11 +404,11 @@ function JobWatchAccount({ user }) {
       setDirty(false);
     }
   }
-  async function runNow() {
+  async function runNow({ keepTab = false } = {}) {
     if (runController.current || mutationLock.current || !ready) return;
 
     if (!sources.length && !customSites.some(site => site.enabled)) { setSearchError("Select at least one job source."); return; }
-    setTab("jobs");
+    if (!keepTab) setTab("jobs");
     const startedAt = new Date().toISOString();
     const controller = new AbortController();
     runController.current = controller;
@@ -411,7 +436,7 @@ function JobWatchAccount({ user }) {
       if (titles.length > 10) throw new Error("Use up to ten distinct job titles including your profile title.");
       const filters = { titles, locations: places, sources: [...sources], sponsorshipRequired, customSites: customSites.filter(site => site.enabled).map(site => site.url) };
       const readJobs = async path => {
-        const response = await fetch(path, { signal: controller.signal, cache: "no-store", headers: getToken() ? { Authorization: `Bearer ${getToken()}` } : {} });
+        const response = await authorizedFetch(path, { signal: controller.signal, cache: "no-store" });
         if (!response.ok) throw new Error("Search service unavailable");
         const data = await response.json();
         if (data.error || !Array.isArray(data.jobs)) throw new Error(data.error || "Invalid search response");
@@ -463,6 +488,8 @@ function JobWatchAccount({ user }) {
   const button = { padding: "10px 16px", border: "1px solid var(--color-border-secondary)", borderRadius: "8px", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", cursor: "pointer", fontFamily: "inherit" };
   const muted = { color: "var(--color-text-secondary)", fontSize: "13px" };
   const busy = saving || running || !ready;
+  const sourceChecks = warnings.filter(isSourceCheck);
+  const displayWarnings = warnings.filter(item => !isSourceCheck(item));
   const hiddenKeys = new Set(hiddenJobs.map(jobKey));
   const visibleJobs = (results || []).filter(job => !hiddenKeys.has(jobKey(job)));
   const previousKeys = previousResults === null ? null : new Set(previousResults.map(jobKey));
@@ -478,7 +505,21 @@ function JobWatchAccount({ user }) {
   const totalPages = Math.max(1, Math.ceil(displayedJobs.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const active = savedSchedule?.is_active !== false && savedSchedule?.schedule_enabled === true;
-  const scheduleLabel = !savedSchedule ? "Not configured" : active ? "Active" : "Paused";
+  const scheduleLabel = !ready ? "Status unavailable" : !savedSchedule ? "Not configured" : active ? "Active" : "Paused";
+
+  function sourceStatus(source, enabled) {
+    const check = sourceChecks.find(item => sameSource(item.source, source));
+    const labels = { working: "Working", empty: "Checked — no listings", partial: "Partly working", failed: "Failed", unsupported: "Unsupported page", not_checked: "Not checked" };
+    const status = !enabled ? "Disabled" : running ? "Checking…" : check ? labels[check.status] : "Not checked in the latest search";
+    const tone = !enabled || !check || running ? "neutral" : check.status === "working" ? "good" : ["failed", "unsupported"].includes(check.status) ? "bad" : "notice";
+    return <span style={{ display: "block", marginTop: "8px" }}>
+      <span className={`jw-source-state jw-source-${tone}`}>{status}</span>
+      {enabled && check && !running && <>
+        <small style={{ ...muted, display: "block", marginTop: "6px" }}>{check.fetched} listings fetched before your filters{check.checked_at ? ` · Last checked ${dateLabel(check.checked_at)}` : ""}</small>
+        {["partial", "failed", "unsupported"].includes(check.status) && check.message && <small style={{ ...muted, display: "block", marginTop: "6px" }}>{check.message}</small>}
+      </>}
+    </span>;
+  }
 
   function jobCard(job, removed = false) {
     const href = safeLink(job.url);
@@ -502,6 +543,11 @@ function JobWatchAccount({ user }) {
     <style>{`
       .jw, .jw * { box-sizing:border-box; }
       .jw [hidden] { display:none !important; }
+      .jw-source-state { display:inline-block; border:1px solid currentColor; border-radius:6px; padding:4px 8px; font-size:12px; }
+      .jw-source-good { color:#159447; }
+      .jw-source-bad { color:#e36e64; }
+      .jw-source-notice { color:#b78a28; }
+      .jw-source-neutral { color:var(--color-text-secondary); }
       .jw-tabs { margin:16px 0 20px; padding-bottom:12px; border-bottom:1px solid var(--color-border-tertiary); }
       .jw-badge { display:inline-block; margin:6px; padding:4px 8px; border-radius:6px; font-size:11px; background:#193e28; color:#c3f5d3; }
       .jw-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px 0; }
@@ -579,7 +625,7 @@ function JobWatchAccount({ user }) {
       {active && savedSchedule?.next_run_at && Date.parse(savedSchedule.next_run_at) < Date.now() && <p role="status">This search is due and waiting for the scheduler. If the time stays in the past, the background scheduler needs checking.</p>}
       <div className="jw-stats">
         <div className="jw-stat">Current matches<strong>{results === null ? "—" : visibleJobs.length}</strong></div>
-        <div className="jw-stat">New since previous search<strong>{results === null || previousKeys === null ? "—" : newJobs.length}</strong></div>
+        <button type="button" className="jw-stat" style={{ ...button, textAlign: "left" }} disabled={previousKeys === null} onClick={() => { setOnlyNew(true); setPage(1); }}>New jobs since previous search<strong>{results === null || previousKeys === null ? "—" : newJobs.length}</strong><small>Show new jobs only</small></button>
         <div className="jw-stat">Target roles<strong>{summaryTitles.length}</strong></div>
       </div>
       <p style={muted}>{previousKeys === null ? "New-job counts appear after two successful searches." : "New means the listing was absent from the previous successful search. Removed jobs are excluded."} Times use {savedSchedule?.schedule_timezone || "Europe/London"}. Searches start when the server checks for due runs.</p>
@@ -587,10 +633,15 @@ function JobWatchAccount({ user }) {
     <section aria-labelledby="jw-results-heading" aria-busy={running}>
       <h2 id="jw-results-heading">Current jobs{results !== null ? ` (${visibleJobs.length})` : ""}</h2>
       <div className="jw-row jw-between" style={{ marginBottom: "12px" }}>
-        <div className="jw-row"><button style={button} aria-pressed={!onlyNew} onClick={() => { setOnlyNew(false); setPage(1); }}>All matches</button><button style={button} aria-pressed={onlyNew} disabled={previousKeys === null} onClick={() => { setOnlyNew(true); setPage(1); }}>New ({previousKeys === null ? "—" : newJobs.length})</button></div>
+        <label htmlFor="jw-job-filter">Show jobs
+          <select id="jw-job-filter" style={{ ...inputStyle, marginTop: "6px" }} value={onlyNew ? "new" : "all"} onChange={e => { setOnlyNew(e.target.value === "new"); setPage(1); }}>
+            <option value="all">All current jobs ({visibleJobs.length})</option>
+            <option value="new" disabled={previousKeys === null}>New jobs only ({previousKeys === null ? "needs a previous search" : newJobs.length})</option>
+          </select>
+        </label>
         <button onClick={runNow} disabled={busy} style={button}>{running ? "Searching…" : "Run now"}</button>
       </div>
-      <p style={muted}>Matches from your latest successful search, excluding jobs you marked Not interested.</p>
+      <p style={muted}>{onlyNew ? "Showing only jobs absent from the previous successful search. This is not a filter by the advert’s publication date." : "Showing all matches from your latest successful search, excluding jobs you marked Not interested."}</p>
       <div aria-live="polite">
         {running && <p>Checking sources… this may take up to 45 seconds.</p>}
         {searchError && <p role="alert" className="jw-notice">{searchError}</p>}
@@ -598,7 +649,7 @@ function JobWatchAccount({ user }) {
         {results === null && !running && <p>No saved results loaded yet. Add a role and use Run now, or wait for a successful scheduled search.</p>}
         {results !== null && !visibleJobs.length && <p>{results.length ? "All matches from this search are in the Removed jobs tab." : "No matches found. Try a broader title, another location or more sources. Sponsorship-only searches exclude unknown sponsorship."}</p>}
       </div>
-      {warnings.length > 0 && <details open className="jw-notice" style={{ marginBottom: "12px" }}><summary>Source warnings ({warnings.length})</summary>{warnings.map((warning, i) => <p key={i}>{typeof warning === "string" ? warning : JSON.stringify(warning)}</p>)}</details>}
+      {displayWarnings.length > 0 && <details open className="jw-notice" style={{ marginBottom: "12px" }}><summary>Source warnings ({displayWarnings.length})</summary>{displayWarnings.map((warning, i) => <p key={i}>{typeof warning === "string" ? warning : JSON.stringify(warning)}</p>)}</details>}
       {onlyNew && previousKeys !== null && !newJobs.length && visibleJobs.length > 0 && <p>No new matches compared with the previous search.</p>}
       <div className="jw-grid">{displayedJobs.slice((currentPage - 1) * pageSize, currentPage * pageSize).map(job => jobCard(job))}</div>
       {displayedJobs.length > pageSize && <nav className="jw-row" aria-label="Job results pages" style={{ justifyContent: "center", marginTop: "12px" }}>
@@ -647,14 +698,16 @@ function JobWatchAccount({ user }) {
       </section>
 
       <section id="jw-panel-sources" role="tabpanel" aria-labelledby="jw-tab-sources" hidden={tab !== "sources"} className="jw-card" style={card}>
-        <h2 id="jw-sources-heading">Job sources</h2>
+        <div className="jw-row jw-between"><h2 id="jw-sources-heading">Job sources</h2><button type="button" style={button} onClick={() => runNow({ keepTab: true })}>{running ? "Checking…" : "Check sources"}</button></div>
+        <p style={muted}>Check sources runs a search using your current roles and settings and updates the jobs. Status describes the last search, not a guarantee that a site will always be available. Save settings for scheduled searches.</p>
         <div className="jw-row">{SOURCES.map(([value, label]) => <label className="jw-row" key={value}><input type="checkbox" checked={sources.includes(value)} onChange={() => edit(setSources, sources.includes(value) ? sources.filter(item => item !== value) : [...sources, value])} />{label}</label>)}</div>
-        <p style={muted}>Availability and coverage vary. Source warnings appear with your results.</p>
+        {sources.includes("jobs_ac_uk") && <div style={{ marginTop: "12px" }}><strong>jobs.ac.uk</strong>{sourceStatus("jobs_ac_uk", true)}</div>}
+        <p style={muted}>Availability and coverage vary. A working source can return no matching jobs after your filters.</p>
         <h3 style={{ marginTop: "20px" }}>Custom monitored sites</h3>
         <p style={muted}>Add a public HTTPS careers page or jobs feed, up to five sites. Save settings to include changes in automatic searches.</p>
         {customSites.map((site, index) => <div className="jw-site jw-item" key={`${site.url}-${index}`}>
           <input id={`jw-site-${index}`} type="checkbox" checked={site.enabled} onChange={e => edit(setCustomSites, customSites.map((item, i) => i === index ? { ...item, enabled: e.target.checked } : item))} />
-          <label htmlFor={`jw-site-${index}`} style={{ overflowWrap: "anywhere" }}>{site.url}<small style={{ ...muted, display: "block" }}>{site.enabled ? "Enabled" : "Disabled"}</small></label>
+          <label htmlFor={`jw-site-${index}`} style={{ overflowWrap: "anywhere" }}>{site.url}{sourceStatus(site.url, site.enabled)}</label>
           <button style={button} onClick={() => edit(setCustomSites, customSites.filter((_, i) => i !== index))} aria-label={`Remove site ${site.url}`}>Remove</button>
         </div>)}
         {!customSites.length && <p style={muted}>No custom sites added.</p>}
