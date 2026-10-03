@@ -603,11 +603,27 @@ export async function fetchWatchJobs({ selected = [], titles = [], customSites =
     fetchCustomSites(customSites.filter(site => !boardHomepage(site))),
   ]);
   const warnings = [...nhs.warnings, ...jobsAc.warnings, ...totaljobs.warnings, ...custom.map(result => result.warning).filter(Boolean)];
+  // Existing job_watch_runs.warnings is JSONB. Versioned diagnostic records
+  // travel with both manual and scheduled runs without adding a database column.
+  const sourceChecks = [];
+  const addCheck = (id, result) => sourceChecks.push({
+    kind: "source_check", version: 1, source: id, status: result.status,
+    checked_at: result.checked_at, fetched: result.jobs.length,
+    message: (result.warnings || [result.warning]).filter(Boolean).join(" "),
+  });
+  if (selected.includes("jobs_ac_uk")) addCheck("jobs_ac_uk", jobsAc);
+  for (const site of customSites) {
+    const board = boardHomepage(site);
+    if (board === "jobs_ac_uk") addCheck(site, jobsAc);
+    else if (board === "totaljobs") addCheck(site, totaljobs);
+  }
+  for (const result of custom) addCheck(result.source, result);
+  warnings.push(...sourceChecks);
   if (selected.includes("trac") || selected.includes("nhs_scotland")) warnings.push("Trac and NHS Scotland currently use stored listings only; direct live feeds are not connected.");
   return {
     available: nhs.available === true || jobsAc.available || totaljobs.available || custom.some(result => result.available),
     jobs: [...nhs.jobs, ...jobsAc.jobs, ...totaljobs.jobs, ...custom.flatMap(result => result.jobs)],
-    warnings, updatedAt: new Date().toISOString(),
+    warnings, sourceChecks, updatedAt: new Date().toISOString(),
   };
 }
 
