@@ -649,7 +649,6 @@ function JobWatchAccount({ user }) {
         {results === null && !running && <p>No saved results loaded yet. Add a role and use Run now, or wait for a successful scheduled search.</p>}
         {results !== null && !visibleJobs.length && <p>{results.length ? "All matches from this search are in the Removed jobs tab." : "No matches found. Try a broader title, another location or more sources. Sponsorship-only searches exclude unknown sponsorship."}</p>}
       </div>
-      {displayWarnings.length > 0 && <details open className="jw-notice" style={{ marginBottom: "12px" }}><summary>Source warnings ({displayWarnings.length})</summary>{displayWarnings.map((warning, i) => <p key={i}>{typeof warning === "string" ? warning : JSON.stringify(warning)}</p>)}</details>}
       {onlyNew && previousKeys !== null && !newJobs.length && visibleJobs.length > 0 && <p>No new matches compared with the previous search.</p>}
       <div className="jw-grid">{displayedJobs.slice((currentPage - 1) * pageSize, currentPage * pageSize).map(job => jobCard(job))}</div>
       {displayedJobs.length > pageSize && <nav className="jw-row" aria-label="Job results pages" style={{ justifyContent: "center", marginTop: "12px" }}>
@@ -657,6 +656,7 @@ function JobWatchAccount({ user }) {
         <span>Page {currentPage} of {totalPages}</span>
         <button style={button} disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>Next</button>
       </nav>}
+      {displayWarnings.length > 0 && <details open className="jw-notice" style={{ marginTop: "16px" }}><summary>Source warnings ({displayWarnings.length})</summary>{displayWarnings.map((warning, i) => <p key={i}>{typeof warning === "string" ? warning : JSON.stringify(warning)}</p>)}</details>}
     </section>
 
     </div>
