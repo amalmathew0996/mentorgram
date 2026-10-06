@@ -1,0 +1,78 @@
+name: Sponsor register daily update
+
+on:
+  schedule:
+    # Daily at 09:17 UTC (10:17 UK summer time / 09:17 UK winter time).
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: mentorgram-sponsor-register-production
+  cancel-in-progress: false
+
+jobs:
+  update-register:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Update or resume sponsor register
+        env:
+          CRON_SECRET: ${{ secrets.SPONSOR_SYNC_CRON_SECRET }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const endpoint = 'https://mentorgramai.com/api/update-sponsor-register';
+          const secret = process.env.CRON_SECRET;
+          const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+          async function main() {
+            if (!secret || /\s/.test(secret)) {
+              throw new Error('Set SPONSOR_SYNC_CRON_SECRET to the current Vercel secret, without whitespace.');
+            }
+            let failures = 0;
+            for (let call = 1; call <= 180; call++) {
+              let response, body;
+              try {
+                response = await fetch(endpoint, {
+                  method: 'POST', redirect: 'error', signal: AbortSignal.timeout(65000),
+                  headers: { Authorization: `Bearer ${secret}` },
+                });
+                body = await response.json();
+              } catch {
+                if (++failures >= 5) throw new Error('Five connection/response failures; saved progress can be resumed.');
+                console.log(`Call ${call}: connection/response failure; retry ${failures}/5.`);
+                await sleep(failures * 5000);
+                continue;
+              }
+              // Log only expected progress fields; never log secrets or arbitrary response bodies.
+              const progress = { call, http: response.status };
+              for (const field of ['status', 'phase', 'staged_rows', 'validated_stage_rows',
+                'validation_cursor', 'applied_rows', 'companies_added', 'companies_updated',
+                'companies_deactivated', 'completed_at', 'skipped']) {
+                if (Object.hasOwn(body || {}, field)) progress[field] = body[field];
+              }
+              console.log(JSON.stringify(progress));
+              if (response.status === 200 && body?.status === 'completed') {
+                console.log(body.skipped ? 'Register already completed; no update needed.' : 'Sponsor register update completed.');
+                return;
+              }
+              if (response.status === 202 && body?.resume_required === true) {
+                failures = 0;
+              } else if ([429, 500, 502, 503, 504].includes(response.status)) {
+                if (++failures >= 5) throw new Error('Five server failures; inspect Vercel logs and the sync audit before resuming.');
+              } else {
+                throw new Error(`Unexpected HTTP ${response.status} or response. Check endpoint and secret; no completion confirmed.`);
+              }
+              await sleep(Math.max(2000, failures * 5000));
+            }
+            throw new Error('Invocation limit reached. Inspect progress, then rerun this workflow to resume.');
+          }
+          await main().catch(error => { console.error(error.message); process.exitCode = 1; });
+          NODE
