@@ -1,0 +1,78 @@
+name: Templeton Garden daily jobs
+
+on:
+  schedule:
+    # Daily 10:43 UTC; GitHub may delay scheduled runs.
+    - cron: '43 10 * * *'
+  workflow_dispatch:
+    inputs:
+      preview_only:
+        description: 'Preview only (leave checked for the first test)'
+        type: boolean
+        required: true
+        default: true
+
+permissions: {}
+concurrency:
+  group: mentorgram-templeton-jobs-production
+  cancel-in-progress: false
+
+jobs:
+  sync-jobs:
+    if: github.event_name == 'workflow_dispatch' || vars.TEMPLETON_DAILY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Preview and synchronize vacancies
+        env:
+          CRON_SECRET: ${{ secrets.SPONSOR_SYNC_CRON_SECRET }}
+          PREVIEW_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.preview_only }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const endpoint = 'https://mentorgramai.com/api/import-templeton-jobs';
+          const secret = process.env.CRON_SECRET;
+          const pause = ms => new Promise(r=>setTimeout(r,ms));
+          async function call(body) {
+            const r = await fetch(endpoint,{method:'POST',redirect:'error',signal:AbortSignal.timeout(55000),
+              headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+            const data = await r.json();
+            return {r,data};
+          }
+          async function main() {
+            if (!secret || /\s/.test(secret)) throw Error('Set SPONSOR_SYNC_CRON_SECRET to the current Vercel secret without whitespace.');
+            for (let attempt=1;attempt<=3;attempt++) {
+              let preview;
+              try {preview=await call({mode:'preview'});} catch {
+                if(attempt===3)throw Error('Preview connection failed three times.');
+                await pause(5000);continue;
+              }
+              if(!preview.r.ok) {
+                if([429,500,502,503,504].includes(preview.r.status)&&attempt<3){await pause(5000);continue;}
+                throw Error(`Preview failed (HTTP ${preview.r.status}). Check migration, deployment and secret.`);
+              }
+              const p=preview.data;
+              if(p.status!=='preview'||p.version!==2||p.writes!==0||!/^[a-f0-9]{64}$/.test(p.preview_token||'')||!p.changes)throw Error('Unexpected preview response; version 2 is required.');
+              console.log(JSON.stringify({status:'preview',checked:p.checked,jobs:p.jobs?.length,changes:p.changes}));
+              if(process.env.PREVIEW_ONLY==='true')return;
+              let applied;
+              try{applied=await call({mode:'import',preview_token:p.preview_token});}catch{
+                if(attempt===3)throw Error('Import response interrupted; inspect the Supabase audit before rerunning.');
+                await pause(5000);continue;
+              }
+              if(applied.r.ok&&applied.data.status==='completed'&&applied.data.version===2){
+                const d=applied.data;
+                console.log(JSON.stringify({status:'completed',inserted:d.inserted,updated:d.updated,expired:d.expired,pending_missing:d.pending_missing}));return;
+              }
+              if([409,429,500,502,503,504].includes(applied.r.status)&&attempt<3){await pause(5000);continue;}
+              throw Error(`Import failed (HTTP ${applied.r.status}). Inspect source and audit; no completion confirmed.`);
+            }
+            throw Error('Retry limit reached.');
+          }
+          await main().catch(e=>{console.error(e.message);process.exitCode=1;});
+          NODE
