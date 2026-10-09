@@ -8,7 +8,7 @@ const hash = x => createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const clean = x => typeof x === 'string' ? x.replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/\s+/g, ' ').trim() : '';
 const uk = x => ['united kingdom', 'gb', 'uk'].includes(clean(x).toLowerCase());
 const postcode = x => clean(x).replace(/\s/g, '').toUpperCase();
-export function parseJob(html, id, now = Date.now()) {
+export function parseJob(html, id, now = Date.now(), includeExpired = false) {
   const jobs = [];
   function walk(x) {
     if (Array.isArray(x)) return x.forEach(walk);
@@ -24,14 +24,15 @@ export function parseJob(html, id, now = Date.now()) {
       clean(j.hiringOrganization?.name) !== 'Miiro') return null;
   const expires = Date.parse(j.validThrough), posted = Date.parse(j.datePosted);
   if (!Number.isFinite(expires) || !Number.isFinite(posted)) throw new Error('Missing or invalid job dates');
-  if (expires <= now || posted > now) return null;
+  if (posted > now) throw new Error('Unexpected future publication date');
+  if (expires <= now && !includeExpired) return null;
   if (!clean(j.title) || !/^\d+$/.test(String(id))) throw new Error('Invalid job identity');
   return { title: clean(j.title), company: COMPANY, location: 'London, SW5 9NB',
-    salary: null, sector: 'Other', posted: new Date(posted).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}),
+    salary: null, sector: 'Hospitality', posted: new Date(posted).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}),
     url: `${BOARD}/job/${id}`, source: SOURCE, sponsorship: null,
     expires_at: new Date(expires).toISOString() };
 }
-export async function collect(fetcher = fetch, now = Date.now()) {
+export async function collect(fetcher = fetch, now = Date.now(), knownUrls = []) {
   const cfg = await (await fetcher(`${API}/api/careerssites/site/config/get?host=miiro.talosats-careers.com`)).json();
   const c = cfg.siteConfig;
   if (c?.domain !== 'miiro.talosats-careers.com' || c.siteType !== 'External' || !c.obfuscatedId) throw new Error('Unexpected careers site configuration');
@@ -42,14 +43,36 @@ export async function collect(fetcher = fetch, now = Date.now()) {
   if (!Array.isArray(rows) || rows.length > 100) throw new Error('Unexpected vacancy feed or pilot limit exceeded');
   const candidates = [...new Set(rows.filter(j => uk(j.country) && postcode(j.postcode) === 'SW59NB').map(j => String(j.jobPostId)))].sort();
   if (candidates.length > 30 || candidates.some(id => !/^\d+$/.test(id))) throw new Error('Unexpected vacancy IDs or pilot limit exceeded');
-  const accepted = [];
+  if (knownUrls.length > 30 || knownUrls.some(u => !/^https:\/\/miiro\.talosats-careers\.com\/job\/\d+$/.test(u))) throw new Error('Unexpected stored source URLs');
+  const ids = [...new Set([...candidates, ...knownUrls.map(u => u.split('/').pop())])].sort();
+  if (ids.length > 30) throw new Error('Pilot detail limit exceeded');
+  const accepted = [], missing_urls = [], closed_urls = [];
+  const known = new Set(knownUrls);
   // Small concurrent groups keep the pilot inside the function deadline.
-  for (let i=0; i<candidates.length; i+=4) {
-    const group = await Promise.all(candidates.slice(i,i+4).map(async id => parseJob(await (await fetcher(`${BOARD}/job/${id}`)).text(), id, now)));
+  for (let i=0; i<ids.length; i+=4) {
+    const group = await Promise.all(ids.slice(i,i+4).map(async id => {
+      const url = `${BOARD}/job/${id}`;
+      const r = await fetcher(url);
+      if ([404,410].includes(r.status)) {
+        if (!known.has(url)) throw new Error('Listed job unavailable; retry later');
+        missing_urls.push(url); return null;
+      }
+      const job = parseJob(await r.text(), id, now, true);
+      if (!job) {
+        if (known.has(url)) throw new Error('Stored job identity changed; manual review required');
+        return null;
+      }
+      if (Date.parse(job.expires_at) <= now) {
+        if (known.has(url)) closed_urls.push(url);
+        return null;
+      }
+      return job;
+    }));
     accepted.push(...group.filter(Boolean));
   }
   accepted.sort((a,b)=>a.url.localeCompare(b.url));
-  return {feed_rows: rows.length, checked: candidates.length, jobs: accepted, preview_token: hash(accepted)};
+  missing_urls.sort(); closed_urls.sort();
+  return {feed_rows: rows.length, checked: ids.length, jobs: accepted, missing_urls, closed_urls};
 }
 export function makeHandler({ fetchImpl = fetch, env = process.env, now = () => Date.now() } = {}) {
   return async (req,res) => {
@@ -68,7 +91,7 @@ export function makeHandler({ fetchImpl = fetch, env = process.env, now = () => 
       const remaining = 48000-(now()-start);
       if (remaining < 1000) throw new Error('Pilot deadline reached; no complete result');
       const r = await fetchImpl(url,{...options,redirect:'error',signal:AbortSignal.timeout(Math.min(10000,remaining))});
-      if (!r.ok) throw new Error(`Upstream request failed (HTTP ${r.status})`);
+      if (!r.ok && !(String(url).startsWith(`${BOARD}/job/`) && [404,410].includes(r.status))) throw new Error(`Upstream request failed (HTTP ${r.status})`);
       return r;
     };
     try {
@@ -77,21 +100,26 @@ export function makeHandler({ fetchImpl = fetch, env = process.env, now = () => 
       const headers = {apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`};
       const sponsor = await (await request(`${base.origin}/rest/v1/sponsor_companies?id=eq.47&select=id,organisation_name,is_current_sponsor,careers_url,careers_platform`,{headers})).json();
       if (sponsor.length !== 1 || sponsor[0].organisation_name !== COMPANY || sponsor[0].is_current_sponsor !== true || sponsor[0].careers_url !== `${BOARD}/vacancies` || sponsor[0].careers_platform !== 'talos') throw new Error('Sponsor source is not configured or no longer current');
-      const result = await collect(request,now());
-      if (body.mode === 'preview') return res.status(200).json({status:'preview',writes:0,...result});
-      if (body.preview_token !== result.preview_token) return res.status(409).json({error:'Vacancies changed. Run and review a new preview.'});
-      if (now()-start > 40000) throw new Error('Not enough time to safely start import; retry');
-      if (!result.jobs.length) return res.status(200).json({status:'completed',inserted:0,skipped_existing:0});
-      const r = await request(`${base.origin}/rest/v1/jobs?on_conflict=url&select=id,url`,{
-        method:'POST',headers:{...headers,'Content-Type':'application/json',Prefer:'resolution=ignore-duplicates,return=representation'},body:JSON.stringify(result.jobs)
-      });
-      const inserted = await r.json();
-      if (!Array.isArray(inserted)) throw new Error('Unexpected database result; preview and retry safely');
-      return res.status(200).json({status:'completed',inserted:inserted.length,skipped_existing:result.jobs.length-inserted.length});
+      const stored = await (await request(`${base.origin}/rest/v1/jobs?source=eq.${encodeURIComponent(SOURCE)}&company=eq.${encodeURIComponent(COMPANY)}&select=url&limit=31`,{headers})).json();
+      if (!Array.isArray(stored) || stored.length>30) throw new Error('Stored-job pilot limit exceeded');
+      const observed_at = new Date(start).toISOString();
+      const result = await collect(request,now(),stored.map(j=>j.url));
+      const args = {p_jobs:result.jobs,p_missing_urls:result.missing_urls,p_closed_urls:result.closed_urls,p_observed_at:observed_at,p_preview:true};
+      const rpc = async data => (await request(`${base.origin}/rest/v1/rpc/sync_templeton_jobs`,{
+        method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify(data)
+      })).json();
+      const changes = await rpc(args);
+      if (!changes || !['inserted','updated','expired','pending_missing'].every(k=>Number.isInteger(changes[k])&&changes[k]>=0)) throw new Error('Unexpected sync result');
+      const preview_token = hash({version:2,jobs:result.jobs,missing_urls:result.missing_urls,closed_urls:result.closed_urls,changes});
+      if (body.mode === 'preview') return res.status(200).json({status:'preview',version:2,writes:0,...result,changes,preview_token});
+      if (body.preview_token !== preview_token) return res.status(409).json({error:'Source or database changed. Run and review a new preview.'});
+      if (now()-start > 38000) throw new Error('Not enough time to start transaction; retry');
+      const applied = await rpc({...args,p_preview:false});
+      return res.status(200).json({status:'completed',version:2,...applied});
     } catch {
       // Do not expose upstream bodies or credentials. An interrupted insert may have committed;
       // URL uniqueness makes retry safe. Never delete jobs after an incomplete source read.
-      return res.status(502).json({error:'Pilot could not complete. Check source availability/configuration and retry preview. An interrupted import can be retried without duplicating URLs.'});
+      return res.status(502).json({error:'Sync could not complete. Check the SQL migration, source availability and configuration, then retry a fresh preview. No partial transaction is committed; an interrupted response may follow a completed transaction.'});
     }
   };
 }
