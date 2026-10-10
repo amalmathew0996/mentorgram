@@ -683,8 +683,7 @@ function makeHandler({fetchImpl=fetch,env=process.env,now=()=>Date.now()}={}){
   if(a.length!==b.length||!timingSafeEqual(a,b))return res.status(401).json({error:'Unauthorised'});
   if(req.method!=='POST')return res.status(405).json({error:'Use POST'});
   let body;try{body=typeof req.body==='string'?JSON.parse(req.body):req.body||{};}catch{return res.status(400).json({error:'Invalid JSON'});}
-  const c=SOURCES.find(c=>c.id===body.sponsor_id);
-  if(!c||!['preview','import'].includes(body.mode))return res.status(400).json({error:'Unknown source or mode'});
+  if(!Number.isSafeInteger(body.sponsor_id)||!['preview','import'].includes(body.mode))return res.status(400).json({error:'Unknown source or mode'});
   if(body.mode==='import'&&!/^[a-f0-9]{64}$/.test(body.preview_token||''))return res.status(400).json({error:'Preview token required'});
   const start=now();
   const request=async(url,options={})=>{
@@ -695,9 +694,18 @@ function makeHandler({fetchImpl=fetch,env=process.env,now=()=>Date.now()}={}){
   try{
    const base=new URL(env.VITE_SUPABASE_URL);
    if(base.protocol!=='https:'||base.username||base.password||base.search||base.hash||!env.SUPABASE_SERVICE_ROLE_KEY)throw Error('Database configuration invalid');
+   const headers={apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`};
+   let c=SOURCES.find(source=>source.id===body.sponsor_id);
+   if(!c){
+    const rows=await request(`${base.origin}/rest/v1/bulk_job_sources?sponsor_id=eq.${body.sponsor_id}&enabled=eq.true&select=sponsor_id,organisation_name,careers_url,platform,board,brand&limit=2`,{headers});
+    if(!Array.isArray(rows)||rows.length!==1)throw Error('Unknown source');
+    const row=rows[0];
+    if(!Number.isSafeInteger(row.sponsor_id)||!clean(row.organisation_name)||!clean(row.careers_url)||!clean(row.platform)||!clean(row.board)||!clean(row.brand))throw Error('Invalid source configuration');
+    c={id:row.sponsor_id,name:row.organisation_name,careers_url:row.careers_url,platform:row.platform,board:row.board,brand:row.brand};
+   }
    const result=normalize(c,await collectBulkFeed(c,request),now());
    const args={p_sponsor_id:c.id,p_jobs:result.jobs,p_seen_urls:result.seen_urls,p_closed_urls:result.closed_urls,p_feed_rows:result.feed_rows,p_observed_at:new Date(start).toISOString(),p_preview:true};
-   const rpc=data=>request(`${base.origin}/rest/v1/rpc/sync_bulk_employer_jobs`,{method:'POST',headers:{apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(data)});
+   const rpc=data=>request(`${base.origin}/rest/v1/rpc/sync_bulk_employer_jobs`,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify(data)});
    const changes=await rpc(args);
    const valid=x=>['inserted','updated','expired','pending_missing','conflicts'].every(k=>Number.isInteger(x?.[k])&&x[k]>=0);
    if(!valid(changes))throw Error('Invalid database response');
@@ -712,14 +720,105 @@ function makeHandler({fetchImpl=fetch,env=process.env,now=()=>Date.now()}={}){
 }
 return {makeHandler,normalize,SOURCES,collectBulkFeed};
 })();
+const discovery=(()=>{
+ const clean=x=>typeof x==='string'?x.replace(/\s+/g,' ').trim():'';
+ function publicHttps(value){
+  try{
+   const url=new URL(value);
+   if(url.protocol!=='https:'||url.username||url.password||url.port||url.hostname==='localhost'||url.hostname.endsWith('.local')||/^[0-9.]+$/.test(url.hostname)||url.hostname.includes(':'))return null;
+   return url;
+  }catch{return null;}
+ }
+ function sourceFromUrl(value){
+  const url=publicHttps(value);if(!url)return null;
+  const path=url.pathname.split('/').filter(Boolean);
+  const board=path[0];
+  if(!/^[A-Za-z0-9._-]{1,120}$/.test(board||''))return null;
+  if(url.hostname==='jobs.ashbyhq.com')return {platform:'ashby',board};
+  if(['boards.greenhouse.io','job-boards.greenhouse.io'].includes(url.hostname))return {platform:'greenhouse',board};
+  if(url.hostname==='jobs.lever.co')return {platform:'lever',board};
+  if(url.hostname==='jobs.smartrecruiters.com')return {platform:'smartrecruiters',board};
+  if(url.hostname==='apply.workable.com')return {platform:'workable',board};
+  return null;
+ }
+ function discoverSource(careersUrl,html){
+  const links=[careersUrl,...(html.replace(/\\\//g,'/').match(/https:\/\/[^\s"'<>\\]+/g)||[])];
+  const found=new Map();
+  for(const link of links){const source=sourceFromUrl(link);if(source)found.set(`${source.platform}:${source.board.toLowerCase()}`,source);}
+  return found.size===1?[...found.values()][0]:null;
+ }
+ function feedBrand(config,data){
+  if(config.platform==='greenhouse')return clean(data.jobs?.find(job=>clean(job.company_name))?.company_name);
+  if(config.platform==='smartrecruiters')return clean(data.content?.find(job=>clean(job.company?.name))?.company?.name);
+  if(config.platform==='workable')return clean(data.name);
+  return clean(config.organisation_name);
+ }
+ function makeHandler({fetchImpl=fetch,env=process.env,now=()=>Date.now()}={}){
+  return async(req,res)=>{
+   res.setHeader('Cache-Control','no-store');
+   const secret=env.CRON_SECRET;
+   if(!secret||/\s/.test(secret))return res.status(500).json({error:'Server secret configuration invalid'});
+   const actual=Buffer.from(req.headers.authorization||''),expected=Buffer.from(`Bearer ${secret}`);
+   if(actual.length!==expected.length||!timingSafeEqual(actual,expected))return res.status(401).json({error:'Unauthorised'});
+   if(req.method!=='POST')return res.status(405).json({error:'Use POST'});
+   let body;try{body=typeof req.body==='string'?JSON.parse(req.body):req.body||{};}catch{return res.status(400).json({error:'Invalid JSON'});}
+   if(!['discover','list_sources'].includes(body.mode))return res.status(400).json({error:'Unknown discovery mode'});
+   const start=now();
+   try{
+    const base=new URL(env.VITE_SUPABASE_URL);
+    if(base.protocol!=='https:'||base.username||base.password||base.search||base.hash||!env.SUPABASE_SERVICE_ROLE_KEY)throw Error('Database configuration invalid');
+    const headers={apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`};
+    const requestJson=async(url,options={})=>{
+     const remaining=50000-(now()-start);if(remaining<1000)throw Error('Discovery deadline reached');
+     const response=await fetchImpl(url,{...options,redirect:'error',signal:AbortSignal.timeout(Math.min(10000,remaining))});
+     if(!response.ok)throw Error('Upstream request failed');return response.json();
+    };
+    if(body.mode==='list_sources'){
+     const rows=await requestJson(`${base.origin}/rest/v1/bulk_job_sources?enabled=eq.true&select=sponsor_id&order=sponsor_id.asc&limit=1001`,{headers});
+     if(!Array.isArray(rows)||rows.length>1000||rows.some(row=>!Number.isSafeInteger(row.sponsor_id)))throw Error('Invalid source list');
+     return res.status(200).json({status:'completed',sponsor_ids:rows.map(row=>row.sponsor_id)});
+    }
+    const limit=Number.isInteger(body.limit)?body.limit:12;
+    if(limit<1||limit>12)return res.status(400).json({error:'Invalid discovery limit'});
+    const candidates=await requestJson(`${base.origin}/rest/v1/rpc/claim_bulk_job_discovery_batch`,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({p_limit:limit})});
+    if(!Array.isArray(candidates)||candidates.length>limit)throw Error('Invalid discovery batch');
+    let connected=0,skipped=0;
+    const processCandidate=async candidate=>{
+     if(!Number.isSafeInteger(candidate?.id)||!clean(candidate.organisation_name)||!publicHttps(candidate.careers_url)){skipped++;return;}
+     try{
+      const page=await fetchImpl(candidate.careers_url,{redirect:'error',signal:AbortSignal.timeout(8000)});
+      if(!page.ok){skipped++;return;}
+      const detected=discoverSource(candidate.careers_url,await page.text());
+      if(!detected){skipped++;return;}
+      const config={id:candidate.id,organisation_name:candidate.organisation_name,careers_url:candidate.careers_url,...detected};
+      const data=await bulk.collectBulkFeed(config,requestJson);
+      config.brand=feedBrand(config,data);
+      if(!config.brand){skipped++;return;}
+      bulk.normalize(config,data,now());
+      const result=await requestJson(`${base.origin}/rest/v1/rpc/connect_bulk_job_discovery`,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({p_sponsor_id:config.id,p_organisation_name:config.organisation_name,p_careers_url:config.careers_url,p_platform:config.platform,p_board:config.board,p_brand:config.brand})});
+      if(result?.status==='connected')connected++;else skipped++;
+     }catch{skipped++;}
+    };
+    for(let offset=0;offset<candidates.length;offset+=4)await Promise.all(candidates.slice(offset,offset+4).map(processCandidate));
+    const remaining=50000-(now()-start);if(remaining<1000)throw Error('Discovery deadline reached');
+    const audit=await fetchImpl(`${base.origin}/rest/v1/bulk_job_discovery_runs`,{method:'POST',headers:{...headers,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({scanned:candidates.length,connected,skipped}),redirect:'error',signal:AbortSignal.timeout(Math.min(10000,remaining))});
+    if(!audit.ok)throw Error('Discovery audit did not confirm completion');
+    return res.status(200).json({status:'completed',scanned:candidates.length,connected,skipped});
+   }catch{return res.status(502).json({error:'Employer discovery did not confirm completion. A source is connected only after its public board and feed validate.'});}
+  };
+ }
+ return {makeHandler,discoverSource,sourceFromUrl};
+})();
 export const {parseJob,collect}=templeton;
 export const {normalize,SOURCES,collectBulkFeed}=bulk;
 export function makeHandler(options={}) {
  const templetonHandler=templeton.makeHandler(options);
  const bulkHandler=bulk.makeHandler(options);
+  const discoveryHandler=discovery.makeHandler(options);
  return (req,res)=>{
   let body;
   try {body=typeof req.body==='string'?JSON.parse(req.body):req.body;} catch {return templetonHandler(req,res);}
+    if(body && typeof body==='object' && ['discover','list_sources'].includes(body.mode))return discoveryHandler(req,res);
   // Existing Templeton requests have no sponsor_id. Bulk requests include it.
   return body && typeof body==='object' && Object.hasOwn(body,'sponsor_id')
    ? bulkHandler(req,res) : templetonHandler(req,res);
