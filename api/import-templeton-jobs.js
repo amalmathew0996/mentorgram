@@ -129,6 +129,30 @@ return {makeHandler,parseJob,collect};
 const bulk=(()=>{
 const SOURCES=[
   {
+    "id": 2849,
+    "name": "AccuRx Limited",
+    "careers_url": "https://www.accurx.com/careers",
+    "platform": "ashby",
+    "board": "accurx",
+    "brand": "Accurx"
+  },
+  {
+    "id": 4816,
+    "name": "Airwallex (UK) Limited",
+    "careers_url": "https://careers.airwallex.com/",
+    "platform": "ashby",
+    "board": "airwallex",
+    "brand": "Airwallex"
+  },
+  {
+    "id": 5807,
+    "name": "Algolia Limited",
+    "careers_url": "https://www.algolia.com/careers",
+    "platform": "greenhouse",
+    "board": "algolia",
+    "brand": "Algolia"
+  },
+  {
     "id": 7314,
     "name": "Amplitude Analytics Limited",
     "careers_url": "https://amplitude.com/careers",
@@ -137,12 +161,36 @@ const SOURCES=[
     "brand": "Amplitude"
   },
   {
+    "id": 8097,
+    "name": "Anthropic Limited",
+    "careers_url": "https://www.anthropic.com/careers",
+    "platform": "greenhouse",
+    "board": "anthropic",
+    "brand": "Anthropic"
+  },
+  {
+    "id": 9841,
+    "name": "Asana Software UK Limited",
+    "careers_url": "https://asana.com/jobs",
+    "platform": "greenhouse",
+    "board": "asana",
+    "brand": "Asana"
+  },
+  {
     "id": 15732,
     "name": "Birdie Care Services Limited",
     "careers_url": "https://www.birdie.care/join-us",
     "platform": "ashby",
     "board": "birdie",
     "brand": "Birdie"
+  },
+  {
+    "id": 17918,
+    "name": "Braze Limited",
+    "careers_url": "https://www.braze.com/company/careers",
+    "platform": "greenhouse",
+    "board": "braze",
+    "brand": "Braze"
   },
   {
     "id": 20787,
@@ -169,12 +217,52 @@ const SOURCES=[
     "brand": "Cleo"
   },
   {
+    "id": 25344,
+    "name": "Cloudflare Limited",
+    "careers_url": "https://www.cloudflare.com/careers/jobs/",
+    "platform": "greenhouse",
+    "board": "cloudflare",
+    "brand": "Cloudflare"
+  },
+  {
+    "id": 26841,
+    "name": "CONTENTFUL (UK) LIMITED",
+    "careers_url": "https://www.contentful.com/careers/",
+    "platform": "greenhouse",
+    "board": "contentful",
+    "brand": "Contentful"
+  },
+  {
+    "id": 29912,
+    "name": "Databricks UK Limited",
+    "careers_url": "https://www.databricks.com/company/careers",
+    "platform": "greenhouse",
+    "board": "databricks",
+    "brand": "Databricks"
+  },
+  {
+    "id": 35698,
+    "name": "Elasticsearch Limited",
+    "careers_url": "https://www.elastic.co/careers",
+    "platform": "greenhouse",
+    "board": "elastic",
+    "brand": "Elastic"
+  },
+  {
     "id": 40368,
     "name": "Figma UK Limited",
     "careers_url": "https://www.figma.com/careers/",
     "platform": "greenhouse",
     "board": "figma",
     "brand": "Figma"
+  },
+  {
+    "id": 41310,
+    "name": "Flo Health UK Limited",
+    "careers_url": "https://flo.health/careers",
+    "platform": "greenhouse",
+    "board": "flohealth",
+    "brand": "Flo Health"
   },
   {
     "id": 42994,
@@ -209,6 +297,22 @@ const SOURCES=[
     "brand": "Fin"
   },
   {
+    "id": 62067,
+    "name": "Klaviyo Ltd",
+    "careers_url": "https://www.klaviyo.com/careers",
+    "platform": "greenhouse",
+    "board": "klaviyo",
+    "brand": "Klaviyo"
+  },
+  {
+    "id": 74333,
+    "name": "MongoDB UK Limited",
+    "careers_url": "https://www.mongodb.com/company/careers",
+    "platform": "greenhouse",
+    "board": "mongodb",
+    "brand": "MongoDB"
+  },
+  {
     "id": 74493,
     "name": "Monzo Bank Ltd",
     "careers_url": "https://monzo.com/careers",
@@ -217,12 +321,44 @@ const SOURCES=[
     "brand": "Monzo"
   },
   {
+    "id": 82113,
+    "name": "OpenAI UK Ltd",
+    "careers_url": "https://openai.com/careers/search/",
+    "platform": "ashby",
+    "board": "openai",
+    "brand": "OpenAI"
+  },
+  {
     "id": 83518,
     "name": "Paddle.com Market Limited",
     "careers_url": "https://www.paddle.com/careers",
     "platform": "ashby",
     "board": "paddle",
     "brand": "Paddle"
+  },
+  {
+    "id": 103292,
+    "name": "Snyk Limited",
+    "careers_url": "https://snyk.io/careers/",
+    "platform": "ashby",
+    "board": "98cd1a00-2706-4aa8-ab72-38a7b8c9c20c",
+    "brand": "Snyk"
+  },
+  {
+    "id": 107328,
+    "name": "Stripe Payments UK Ltd",
+    "careers_url": "https://stripe.com/gb/careers",
+    "platform": "greenhouse",
+    "board": "stripe",
+    "brand": "Stripe"
+  },
+  {
+    "id": 109238,
+    "name": "Synthesia Limited",
+    "careers_url": "https://www.synthesia.io/careers",
+    "platform": "ashby",
+    "board": "synthesia",
+    "brand": "Synthesia"
   },
   {
     "id": 115459,
@@ -239,6 +375,22 @@ const SOURCES=[
     "platform": "ashby",
     "board": "tractable",
     "brand": "Tractable"
+  },
+  {
+    "id": 117805,
+    "name": "Trustpilot Ltd",
+    "careers_url": "https://corporate.trustpilot.com/careers",
+    "platform": "greenhouse",
+    "board": "trustpilot",
+    "brand": "Trustpilot"
+  },
+  {
+    "id": 123164,
+    "name": "Wayve Technologies Ltd",
+    "careers_url": "https://wayve.ai/careers/",
+    "platform": "ashby",
+    "board": "wayve",
+    "brand": "Wayve"
   }
 ];
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
@@ -256,7 +408,12 @@ function identity(c,j){
  }
  if(!/^\d+$/.test(id))throw Error('Invalid Greenhouse identity');
  const url=new URL(j.absolute_url);
- if(url.protocol!=='https:'||!['boards.greenhouse.io','job-boards.greenhouse.io'].includes(url.hostname)||url.username||url.password||url.pathname!==`/${c.board}/jobs/${id}`)throw Error('Unexpected Greenhouse job URL');
+ const custom={asana:['www.asana.com',`/jobs/apply/${id}`],klaviyo:['www.klaviyo.com',`/careers/jobs/${id}`],
+  databricks:['databricks.com','/company/careers/open-positions/job'],elastic:['jobs.elastic.co','/jobs'],
+  stripe:['stripe.com','/jobs/search'],trustpilot:['corporate.trustpilot.com',`/careers/job/${id}`],mongodb:['www.mongodb.com','/careers/job/']}[c.board];
+ const hosted=['boards.greenhouse.io','job-boards.greenhouse.io'].includes(url.hostname)&&url.pathname===`/${c.board}/jobs/${id}`;
+ const customMatches=custom&&url.hostname===custom[0]&&url.pathname===custom[1]&&url.searchParams.getAll('gh_jid').length>0&&url.searchParams.getAll('gh_jid').every(v=>v===id);
+ if(url.protocol!=='https:'||url.username||url.password||(!hosted&&!customMatches))throw Error('Unexpected Greenhouse job URL');
  // Keep the exact URL convention used by the original bulk import, including Figma's query.
  return c.board==='figma'?`https://boards.greenhouse.io/figma/jobs/${id}?gh_jid=${id}`:`https://job-boards.greenhouse.io/${c.board}/jobs/${id}`;
 }
@@ -271,7 +428,7 @@ function normalize(c,data,now=Date.now()){
   if(c.platform==='ashby'&&!j.isListed)continue;
   if(c.platform==='greenhouse'&&j.internal_job_id==null)continue;
   const url=identity(c,j);seen.push(url);
-  if(c.platform==='greenhouse'&&j.company_name!==c.brand)throw Error('Source brand changed');
+  if(c.platform==='greenhouse'&&clean(j.company_name)!==c.brand)throw Error('Source brand changed');
   const title=clean(j.title);if(!title||title.length>500)throw Error('Invalid title');
   const deadline=c.platform==='greenhouse'?date(j.application_deadline):null;
   if(deadline!==null&&deadline<=now){closed.push(url);continue;}
@@ -281,11 +438,16 @@ function normalize(c,data,now=Date.now()){
    if(!Array.isArray(j.secondaryLocations))throw Error('Missing secondary locations');
    for(const l of [{location:j.location,address:j.address},...j.secondaryLocations]){
     const a=l.address?.postalAddress||l.address||{};
-    if(country(a.addressCountry))locations.push(clean(l.location)||'United Kingdom');
+    // A stated foreign country takes precedence over location text.
+    if(country(a.addressCountry)||(!clean(a.addressCountry)&&ukText(clean(l.location))))locations.push(clean(l.location)||'United Kingdom');
    }
   }else{
    if(typeof j.location?.name!=='string')throw Error('Missing location');
    locations=j.location.name.split(/;| • /).filter(ukText).map(clean);
+   // Greenhouse's job-associated offices can disambiguate a bare city name.
+   if(!locations.length&&Array.isArray(j.offices)){
+    locations=j.offices.filter(o=>typeof o.location==='string'&&ukText(o.location)).map(o=>clean(o.location));
+   }
   }
   if(!locations.length)continue;
   // Greenhouse first_published is original publication. Ashby publishedAt is last publication.
