@@ -177,6 +177,14 @@ const SOURCES=[
     "brand": "Asana"
   },
   {
+    "id": 13926,
+    "name": "Beamery Ltd",
+    "careers_url": "https://careers.beamery.com/",
+    "platform": "ashby",
+    "board": "beamery",
+    "brand": "Beamery"
+  },
+  {
     "id": 15732,
     "name": "Birdie Care Services Limited",
     "careers_url": "https://www.birdie.care/join-us",
@@ -201,12 +209,28 @@ const SOURCES=[
     "brand": "Canonical"
   },
   {
+    "id": 20822,
+    "name": "CANVA UK OPERATIONS LIMITED",
+    "careers_url": "https://www.lifeatcanva.com/en/locations/united-kingdom/",
+    "platform": "smartrecruiters",
+    "board": "canva",
+    "brand": "Canva"
+  },
+  {
     "id": 21757,
     "name": "carwow Ltd.",
     "careers_url": "https://www.carwow.co.uk/jobs.html",
     "platform": "ashby",
     "board": "Carwow",
     "brand": "Carwow"
+  },
+  {
+    "id": 23297,
+    "name": "CHECKOUT LTD",
+    "careers_url": "https://www.checkout.com/careers",
+    "platform": "ashby",
+    "board": "checkout.com",
+    "brand": "Checkout.com"
   },
   {
     "id": 25081,
@@ -305,6 +329,14 @@ const SOURCES=[
     "brand": "Klaviyo"
   },
   {
+    "id": 64741,
+    "name": "Lendable Operations Ltd",
+    "careers_url": "https://careers.lendable.com/",
+    "platform": "ashby",
+    "board": "lendable",
+    "brand": "Lendable"
+  },
+  {
     "id": 74333,
     "name": "MongoDB UK Limited",
     "careers_url": "https://www.mongodb.com/company/careers",
@@ -319,6 +351,31 @@ const SOURCES=[
     "platform": "greenhouse",
     "board": "monzo",
     "brand": "Monzo"
+  },
+  {
+    "id": 76014,
+    "name": "Multiverse Group Limited",
+    "careers_url": "https://www.multiverse.io/careers/were-hiring",
+    "platform": "ashby",
+    "board": "multiverse",
+    "brand": "Multiverse"
+  },
+  {
+    "id": 80828,
+    "name": "OakNorth Bank Plc",
+    "careers_url": "https://oaknorth.co.uk/about/careers/",
+    "platform": "ashby",
+    "board": "oaknorth",
+    "brand": "OakNorth"
+  },
+  {
+    "id": 81092,
+    "name": "Octopus Energy Limited",
+    "careers_url": "https://octopus.energy/careers/",
+    "platform": "lever",
+    "board": "octoenergy",
+    "brand": "Octopus Energy",
+    "department": "Octopus Energy UK \ud83c\uddec\ud83c\udde7"
   },
   {
     "id": 82113,
@@ -337,12 +394,45 @@ const SOURCES=[
     "brand": "Paddle"
   },
   {
+    "id": 90217,
+    "name": "Quantexa Ltd",
+    "careers_url": "https://www.quantexa.com/careers/",
+    "platform": "ashby",
+    "board": "quantexa",
+    "brand": "Quantexa"
+  },
+  {
+    "id": 93992,
+    "name": "Rippling UK Limited",
+    "careers_url": "https://www.rippling.com/careers",
+    "platform": "rippling",
+    "board": "rippling",
+    "brand": "Rippling"
+  },
+  {
+    "id": 94990,
+    "name": "Roofoods Ltd t/a Deliveroo",
+    "careers_url": "https://careers.deliveroo.co.uk/join-the-team/",
+    "platform": "greenhouse",
+    "board": "deliveroo",
+    "brand": "Deliveroo"
+  },
+  {
     "id": 103292,
     "name": "Snyk Limited",
     "careers_url": "https://snyk.io/careers/",
     "platform": "ashby",
     "board": "98cd1a00-2706-4aa8-ab72-38a7b8c9c20c",
     "brand": "Snyk"
+  },
+  {
+    "id": 106413,
+    "name": "STARLING BANK LIMITED",
+    "careers_url": "https://www.starlingbank.com/careers/",
+    "platform": "workable",
+    "board": "starling-bank",
+    "brand": "Starling Bank",
+    "feed_brand": "Starling"
   },
   {
     "id": 107328,
@@ -377,6 +467,23 @@ const SOURCES=[
     "brand": "Tractable"
   },
   {
+    "id": 116975,
+    "name": "Trainline.com Ltd",
+    "careers_url": "https://www.trainlinegroup.com/careers/",
+    "platform": "ashby",
+    "board": "trainline",
+    "brand": "Trainline"
+  },
+  {
+    "id": 117722,
+    "name": "TrueLayer Limited",
+    "careers_url": "https://truelayer.com/careers/",
+    "platform": "greenhouse",
+    "board": "truelayer",
+    "brand": "TrueLayer",
+    "greenhouse_host": "job-boards.eu.greenhouse.io"
+  },
+  {
     "id": 117805,
     "name": "Trustpilot Ltd",
     "careers_url": "https://corporate.trustpilot.com/careers",
@@ -391,8 +498,113 @@ const SOURCES=[
     "platform": "ashby",
     "board": "wayve",
     "brand": "Wayve"
+  },
+  {
+    "id": 125020,
+    "name": "Wise Payments Limited",
+    "careers_url": "https://wise.jobs/jobs",
+    "platform": "smartrecruiters",
+    "board": "wise",
+    "brand": "Wise"
+  },
+  {
+    "id": 127821,
+    "name": "Zopa Bank Limited",
+    "careers_url": "https://careers.zopa.com/",
+    "platform": "lever",
+    "board": "zopa",
+    "brand": "Zopa"
   }
 ];
+async function collectBulkFeed(c,request){
+ if(c.platform==='ashby')return request(`https://api.ashbyhq.com/posting-api/job-board/${c.board}`);
+ if(c.platform==='greenhouse')return request(`https://boards-api.greenhouse.io/v1/boards/${c.board}/jobs?content=true`);
+ if(c.platform==='lever')return request(`https://api.lever.co/v0/postings/${c.board}?mode=json&limit=3001`);
+ if(c.platform==='workable')return request(`https://apply.workable.com/api/v1/widget/accounts/${c.board}`);
+ if(c.platform==='rippling')return request(`https://api.rippling.com/platform/api/ats/v1/board/${c.board}/jobs`);
+ if(c.platform==='smartrecruiters'){
+  const url=`https://api.smartrecruiters.com/v1/companies/${c.board}/postings?limit=100`;
+  const first=await request(url);const total=first.totalFound;
+  if(!Number.isInteger(total)||total<0||total>3000||first.offset!==0||!Array.isArray(first.content)||first.content.length!==Math.min(100,total))throw Error('Invalid posting pagination');
+  const content=[...first.content];
+  for(let offset=100;offset<total;offset+=100){
+   const page=await request(`${url}&offset=${offset}`);
+   if(page.totalFound!==total||page.offset!==offset||!Array.isArray(page.content)||page.content.length!==Math.min(100,total-offset))throw Error('Incomplete posting pagination');
+   content.push(...page.content);
+  }
+  return {...first,content,complete:true};
+ }
+ throw Error('Unsupported source');
+}
+function normalizeAdditional(c,data,now){
+ let raw;
+ if(c.platform==='smartrecruiters'){
+  if(data.complete!==true||!Array.isArray(data.content)||data.totalFound!==data.content.length)throw Error('Incomplete SmartRecruiters feed');raw=data.content;
+ }else if(c.platform==='workable'){
+  if(clean(data.name)!==(c.feed_brand||c.brand)||!Array.isArray(data.jobs))throw Error('Workable brand or feed changed');raw=data.jobs;
+ }else{if(!Array.isArray(data))throw Error('Invalid source list');raw=data;}
+ if(raw.length>3000)throw Error('Feed size limit');
+ const feedRows=raw.length;
+ if(c.platform==='workable'){
+  const grouped=new Map();
+  for(const j of raw){
+   if(!Array.isArray(j.locations))throw Error('Missing Workable locations');
+   const previous=grouped.get(j.shortcode);
+   if(previous){
+    if(previous.title!==j.title||previous.url!==j.url||previous.department!==j.department||previous.published_on!==j.published_on)throw Error('Conflicting Workable identity');
+    previous.locations.push(...j.locations);
+   }else grouped.set(j.shortcode,{...j,locations:[...j.locations]});
+  }
+  raw=[...grouped.values()];
+ }
+ if(c.platform==='rippling'){
+  const grouped=new Map();
+  for(const j of raw){
+   if(typeof j.workLocation?.label!=='string')throw Error('Missing Rippling location');
+   const previous=grouped.get(j.uuid);
+   if(previous){
+    if(previous.name!==j.name||previous.url!==j.url||previous.department?.id!==j.department?.id)throw Error('Conflicting Rippling identity');
+    previous.workLocations.push(j.workLocation.label);
+   }else grouped.set(j.uuid,{...j,workLocations:[j.workLocation.label]});
+  }
+  raw=[...grouped.values()];
+ }
+ const jobs=[],seen=[],closed=[];const ttl=Date.UTC(new Date(now).getUTCFullYear(),new Date(now).getUTCMonth(),new Date(now).getUTCDate()+7);
+ const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
+ for(const j of raw){
+  let title,url,locations=[],published=null;
+  if(c.platform==='lever'){
+   if(!uuid.test(j.id)||j.hostedUrl!==`https://jobs.lever.co/${c.board}/${j.id}`)throw Error('Unexpected Lever identity');
+   url=j.hostedUrl;title=clean(j.text);
+   if(typeof j.categories?.location!=='string')throw Error('Missing Lever location');
+   // This board includes separate Octopus businesses. Only the UK supply team is connected here.
+   if(c.department&&j.categories.department!==c.department)continue;
+   if(country(j.country)||(!clean(j.country)&&ukText(j.categories.location)))locations=[clean(j.categories.location)];
+  }else if(c.platform==='workable'){
+   if(!/^[A-F0-9]+$/.test(j.shortcode)||j.url!==`https://apply.workable.com/j/${j.shortcode}`)throw Error('Unexpected Workable identity');url=j.url;title=clean(j.title);
+   if(!Array.isArray(j.locations))throw Error('Missing Workable locations');
+   locations=j.locations.filter(l=>l.hidden===false&&country(l.countryCode||l.country)).map(l=>[clean(l.city),clean(l.region),'United Kingdom'].filter(Boolean).join(', '));
+   // published_on is source publication; absent dates remain unknown.
+   published=date(j.published_on);
+  }else if(c.platform==='smartrecruiters'){
+   if(!/^\d+$/.test(j.id)||j.company?.identifier?.toLowerCase()!==c.board||clean(j.company?.name)!==c.brand||typeof j.location?.country!=='string')throw Error('Unexpected SmartRecruiters identity');
+   url=`https://jobs.smartrecruiters.com/${c.board}/${j.id}`;title=clean(j.name);
+   if(country(j.location.country))locations=[[clean(j.location.city),clean(j.location.region),'United Kingdom'].filter(Boolean).join(', ')];
+  }else if(c.platform==='rippling'){
+   if(!uuid.test(j.uuid)||j.url!==`https://ats.rippling.com/${c.board}/jobs/${j.uuid}`||typeof j.workLocation?.label!=='string')throw Error('Unexpected Rippling identity');url=j.url;title=clean(j.name);
+   locations=j.workLocations.filter(ukText).map(clean);
+  }else throw Error('Unsupported source');
+  seen.push(url);
+  if(!title||title.length>500)throw Error('Invalid title');
+  if(!locations.length||/talent (?:pool|community|network)|general application|speculative|expression of interest|future opportunit/i.test(title))continue;
+  if(published!==null&&published>now)continue;
+  jobs.push({title,company:c.brand,location:[...new Set(locations)].join('; '),salary:null,sector:'Other',posted:published===null?null:new Date(published).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'}),url,source:`${c.brand} (official careers)`,sponsorship:null,expires_at:new Date(ttl).toISOString()});
+ }
+ if(new Set(seen).size!==seen.length)throw Error('Duplicate source identities');
+ jobs.sort((a,b)=>a.url.localeCompare(b.url));seen.sort();
+ return {jobs,seen_urls:seen,closed_urls:closed,feed_rows:feedRows};
+}
+
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const clean=x=>typeof x==='string'?x.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#(?:39|x27);/gi,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim():'';
 const country=x=>['gb','gbr','uk','united kingdom','great britain'].includes(clean(x).toLowerCase());
@@ -411,13 +623,14 @@ function identity(c,j){
  const custom={asana:['www.asana.com',`/jobs/apply/${id}`],klaviyo:['www.klaviyo.com',`/careers/jobs/${id}`],
   databricks:['databricks.com','/company/careers/open-positions/job'],elastic:['jobs.elastic.co','/jobs'],
   stripe:['stripe.com','/jobs/search'],trustpilot:['corporate.trustpilot.com',`/careers/job/${id}`],mongodb:['www.mongodb.com','/careers/job/']}[c.board];
- const hosted=['boards.greenhouse.io','job-boards.greenhouse.io'].includes(url.hostname)&&url.pathname===`/${c.board}/jobs/${id}`;
+ const hosted=(c.greenhouse_host?[c.greenhouse_host]:['boards.greenhouse.io','job-boards.greenhouse.io']).includes(url.hostname)&&url.pathname===`/${c.board}/jobs/${id}`;
  const customMatches=custom&&url.hostname===custom[0]&&url.pathname===custom[1]&&url.searchParams.getAll('gh_jid').length>0&&url.searchParams.getAll('gh_jid').every(v=>v===id);
  if(url.protocol!=='https:'||url.username||url.password||(!hosted&&!customMatches))throw Error('Unexpected Greenhouse job URL');
  // Keep the exact URL convention used by the original bulk import, including Figma's query.
- return c.board==='figma'?`https://boards.greenhouse.io/figma/jobs/${id}?gh_jid=${id}`:`https://job-boards.greenhouse.io/${c.board}/jobs/${id}`;
+ return c.board==='figma'?`https://boards.greenhouse.io/figma/jobs/${id}?gh_jid=${id}`:`https://${c.greenhouse_host||'job-boards.greenhouse.io'}/${c.board}/jobs/${id}`;
 }
 function normalize(c,data,now=Date.now()){
+ if(!['ashby','greenhouse'].includes(c.platform))return normalizeAdditional(c,data,now);
  if(!Array.isArray(data.jobs)||data.jobs.length>3000)throw Error('Feed shape or size changed');
  if(c.platform==='greenhouse'&&data.meta?.total!==data.jobs.length)throw Error('Incomplete Greenhouse feed');
  if(c.platform==='ashby'&&data.apiVersion!=='1')throw Error('Unsupported Ashby version');
@@ -482,8 +695,7 @@ function makeHandler({fetchImpl=fetch,env=process.env,now=()=>Date.now()}={}){
   try{
    const base=new URL(env.VITE_SUPABASE_URL);
    if(base.protocol!=='https:'||base.username||base.password||base.search||base.hash||!env.SUPABASE_SERVICE_ROLE_KEY)throw Error('Database configuration invalid');
-   const feed=c.platform==='ashby'?`https://api.ashbyhq.com/posting-api/job-board/${c.board}`:`https://boards-api.greenhouse.io/v1/boards/${c.board}/jobs?content=true`;
-   const result=normalize(c,await request(feed),now());
+   const result=normalize(c,await collectBulkFeed(c,request),now());
    const args={p_sponsor_id:c.id,p_jobs:result.jobs,p_seen_urls:result.seen_urls,p_closed_urls:result.closed_urls,p_feed_rows:result.feed_rows,p_observed_at:new Date(start).toISOString(),p_preview:true};
    const rpc=data=>request(`${base.origin}/rest/v1/rpc/sync_bulk_employer_jobs`,{method:'POST',headers:{apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(data)});
    const changes=await rpc(args);
@@ -498,10 +710,10 @@ function makeHandler({fetchImpl=fetch,env=process.env,now=()=>Date.now()}={}){
   }catch{return res.status(502).json({error:'Source sync did not confirm completion. Check source configuration, feed health and database audit. Retry with a fresh preview; an interrupted response may follow a committed transaction.'});}
  };
 }
-return {makeHandler,normalize,SOURCES};
+return {makeHandler,normalize,SOURCES,collectBulkFeed};
 })();
 export const {parseJob,collect}=templeton;
-export const {normalize,SOURCES}=bulk;
+export const {normalize,SOURCES,collectBulkFeed}=bulk;
 export function makeHandler(options={}) {
  const templetonHandler=templeton.makeHandler(options);
  const bulkHandler=bulk.makeHandler(options);
