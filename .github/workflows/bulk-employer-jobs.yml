@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           node --input-type=module <<'NODE'
-          const sources = [7314,15732,20787,21757,25081,40368,42994,45807,46540,55710,74493,83518,115459,116864];
+          const sources = [2849,4816,5807,7314,8097,9841,15732,17918,20787,21757,25081,25344,26841,29912,35698,40368,41310,42994,45807,46540,55710,62067,74333,74493,82113,83518,103292,107328,109238,115459,116864,117805,123164];
           const endpoint = 'https://mentorgramai.com/api/import-templeton-jobs';
           const secret = process.env.CRON_SECRET;
           if (!secret || /\s/.test(secret)) throw Error('SPONSOR_SYNC_CRON_SECRET is missing or contains whitespace.');
