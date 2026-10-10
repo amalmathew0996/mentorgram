@@ -35,7 +35,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           const sources = [7314,15732,20787,21757,25081,40368,42994,45807,46540,55710,74493,83518,115459,116864];
-          const endpoint = 'https://mentorgramai.com/api/sync-bulk-employer-jobs';
+          const endpoint = 'https://mentorgramai.com/api/import-templeton-jobs';
           const secret = process.env.CRON_SECRET;
           if (!secret || /\s/.test(secret)) throw Error('SPONSOR_SYNC_CRON_SECRET is missing or contains whitespace.');
           const pause = ms => new Promise(r => setTimeout(r,ms));
