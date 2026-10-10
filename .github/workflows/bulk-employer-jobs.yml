@@ -1,0 +1,81 @@
+name: Bulk employer daily jobs
+
+on:
+  schedule:
+    - cron: '23 11 * * *'
+  workflow_dispatch:
+    inputs:
+      preview_only:
+        description: 'Preview only (leave checked for the first test)'
+        type: boolean
+        required: true
+        default: true
+
+permissions: {}
+concurrency:
+  group: mentorgram-bulk-employer-jobs-production
+  cancel-in-progress: false
+
+jobs:
+  sync-jobs:
+    if: github.event_name == 'workflow_dispatch' || vars.BULK_JOBS_DAILY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Preview and synchronize connected employer jobs
+        env:
+          CRON_SECRET: ${{ secrets.SPONSOR_SYNC_CRON_SECRET }}
+          PREVIEW_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.preview_only }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const sources = [7314,15732,20787,21757,25081,40368,42994,45807,46540,55710,74493,83518,115459,116864];
+          const endpoint = 'https://mentorgramai.com/api/sync-bulk-employer-jobs';
+          const secret = process.env.CRON_SECRET;
+          if (!secret || /\s/.test(secret)) throw Error('SPONSOR_SYNC_CRON_SECRET is missing or contains whitespace.');
+          const pause = ms => new Promise(r => setTimeout(r,ms));
+          const countsValid = x => ['inserted','updated','expired','pending_missing','conflicts'].every(k => Number.isInteger(x?.[k]) && x[k]>=0);
+          async function call(body) {
+            const r = await fetch(endpoint,{method:'POST',redirect:'error',signal:AbortSignal.timeout(55000),
+              headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+            if ([401,403].includes(r.status)) throw Error('AUTH');
+            return {status:r.status,ok:r.ok,data:await r.json()};
+          }
+          async function sync(id) {
+            for (let attempt=1; attempt<=3; attempt++) {
+              try {
+                const p = await call({sponsor_id:id,mode:'preview'});
+                if (!p.ok) throw Error(`Preview HTTP ${p.status}`);
+                const d = p.data;
+                if (d.version!==1 || d.status!=='preview' || d.sponsor_id!==id || d.writes!==0 || !countsValid(d.changes) || !/^[a-f0-9]{64}$/.test(d.preview_token||'')) throw Error('Invalid preview response');
+                console.log(JSON.stringify({sponsor_id:id,status:'preview',jobs:d.jobs?.length,changes:d.changes}));
+                if (process.env.PREVIEW_ONLY==='true') return;
+                const applied = await call({sponsor_id:id,mode:'import',preview_token:d.preview_token});
+                if (!applied.ok || applied.data.status!=='completed' || applied.data.version!==1 || applied.data.sponsor_id!==id || !countsValid(applied.data)) throw Error(`Import not confirmed (HTTP ${applied.status})`);
+                const a=applied.data;
+                console.log(JSON.stringify({sponsor_id:id,status:'completed',inserted:a.inserted,updated:a.updated,expired:a.expired,pending_missing:a.pending_missing,conflicts:a.conflicts}));
+                if(a.conflicts>0) throw Error('SOURCE_CONFLICT');
+                return;
+              } catch(e) {
+                if(e.message==='AUTH' || e.message==='SOURCE_CONFLICT') throw e;
+                if(attempt===3)throw Error('Source did not complete after three fresh-preview attempts. Check source configuration and Supabase bulk_job_runs.');
+                await pause(5000);
+              }
+            }
+          }
+          let failed=0;
+          for(const id of sources) {
+            try {await sync(id);}
+            catch(e){
+              if(e.message==='AUTH')throw Error('Authentication failed. Check the shared GitHub/Vercel secret.');
+              failed++;console.error(`Employer ${id}: ${e.message}`);
+            }
+          }
+          if(failed)throw Error(`${failed} employer(s) need attention. Other employer updates may have completed.`);
+          console.log(process.env.PREVIEW_ONLY==='true'?'All employer previews completed; no writes.':'All employer updates completed.');
+          NODE
