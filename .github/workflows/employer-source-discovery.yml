@@ -1,1 +1,35 @@
+name: Employer source discovery
 
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch: {}
+
+permissions: {}
+concurrency:
+  group: mentorgram-employer-source-discovery-production
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    if: github.event_name == 'workflow_dispatch' || vars.BULK_DISCOVERY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Discover safe public job boards
+        env:
+          CRON_SECRET: ${{ secrets.SPONSOR_SYNC_CRON_SECRET }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const secret=process.env.CRON_SECRET;
+          if(!secret||/\s/.test(secret))throw Error('SPONSOR_SYNC_CRON_SECRET is missing or invalid.');
+          const r=await fetch('https://mentorgramai.com/api/import-templeton-jobs',{
+            method:'POST',redirect:'error',signal:AbortSignal.timeout(55000),
+            headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/json'},
+            body:JSON.stringify({mode:'discover',limit:12})
+          });
+          const data=await r.json();
+          if(!r.ok||data.status!=='completed'||!Number.isInteger(data.scanned)||!Number.isInteger(data.connected)||!Number.isInteger(data.skipped))throw Error('Discovery did not confirm completion.');
+          console.log(JSON.stringify(data));
+          NODE
