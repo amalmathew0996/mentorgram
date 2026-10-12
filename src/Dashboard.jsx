@@ -634,7 +634,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   // show that fact clearly in the interface instead of treating it as a promise.
   const isRegisteredSponsorJob = (job) => /\(official(?: careers)?\)$/i.test(job.source || "");
   const hasProfileFilters = sectors.length > 0 || location || jobTitle || skills.trim();
-  const profileTerms = [jobTitle, ...skills.split(/[,\n;]+/)].map(term => term.trim().toLowerCase()).filter(term => term.length >= 3);
+  const profileTerms = [...jobTitle.split(/[,\n;]+/), ...skills.split(/[,\n;]+/)].map(term => term.trim().toLowerCase()).filter(term => term.length >= 3);
   const matchedJobs = !hasProfileFilters ? [] : jobs.map(j => {
     const tL = (j.title || "").toLowerCase();
     const sectorByTitle = (() => {
@@ -1067,7 +1067,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 <ProfileSection T={T} num={1} done={!!(fullName && jobTitle)} title="The basics">
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                     <div><label style={lbl}>Full name</label><input style={fullName ? inpFilled : inpEmpty} value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" /></div>
-                    <div><label style={lbl}>Target role</label><input style={jobTitle ? inpFilled : inpEmpty} value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder="e.g. Software Engineer" /></div>
+                    <div><label style={lbl}>Target job titles</label><input style={jobTitle ? inpFilled : inpEmpty} value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder="e.g. Software Engineer, Data Analyst" /><p style={{ fontSize: "10px", color: T.dim, margin: "5px 0 0" }}>Add more than one title with commas.</p></div>
                   </div>
                   <div style={{ marginTop: "10px" }}>
                     <label style={lbl}>About me</label>
@@ -1290,7 +1290,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
               <div>
                 <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Sponsor matches</h1>
-                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>{hasProfileFilters ? `${matchedJobs.length} official vacancies from registered sponsor employers matched to your profile` : "Add your sector, location, job title, or skills to see personalised matches"}</p>
+                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>{hasProfileFilters ? `${matchedJobs.length} official vacancies from registered sponsor employers matched to your target job titles and profile` : "Add your target job titles, sector, location, or skills to see personalised matches"}</p>
               </div>
               <button onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }} style={btnPrimary}>
                 View all on jobs board ↗
@@ -1303,7 +1303,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                   <Icon path={ICONS.search} size={22} />
                 </div>
                 <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>No sponsor matches yet</p>
-                <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px" }}>Add your sector, preferred location, job title, or skills. We will match you with vacancies published by registered sponsor employers.</p>
+                <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px" }}>Add target job titles, your sector, preferred location, or skills. We will match you with vacancies published by registered sponsor employers.</p>
                 <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
                   <button onClick={() => setView("cv")} style={{ ...btnPrimary, background: T.purple }}>Analyse my CV</button>
                   <button onClick={() => setView("profile")} style={btnGhost}>Update profile</button>
