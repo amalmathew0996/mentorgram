@@ -629,9 +629,13 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   }
 
   // ── Derived data ──
-  // Only calculate matches if the profile has at least one filter set
-  const hasProfileFilters = sectors.length > 0 || location || visaStatus;
-  const matchedJobs = !hasProfileFilters ? [] : jobs.filter(j => {
+  // Jobs imported from a registered sponsor's own careers site have this source label.
+  // A sponsor licence does not guarantee that every vacancy offers sponsorship, so we
+  // show that fact clearly in the interface instead of treating it as a promise.
+  const isRegisteredSponsorJob = (job) => /\(official(?: careers)?\)$/i.test(job.source || "");
+  const hasProfileFilters = sectors.length > 0 || location || jobTitle || skills.trim();
+  const profileTerms = [jobTitle, ...skills.split(/[,\n;]+/)].map(term => term.trim().toLowerCase()).filter(term => term.length >= 3);
+  const matchedJobs = !hasProfileFilters ? [] : jobs.map(j => {
     const tL = (j.title || "").toLowerCase();
     const sectorByTitle = (() => {
       if (/software|developer|devops|cloud|cyber|network|it.tech|helpdesk|full.stack|backend|frontend|react|python|java|aws|azure|linux|systems.eng|platform.eng/.test(tL)) return "Technology";
@@ -648,9 +652,12 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     const es = j.sector || sectorByTitle || "Other";
     const sm = sectors.length === 0 || sectors.includes(es) || sectors.includes(sectorByTitle);
     const lm = !location || (j.location || "").toLowerCase().includes(location.toLowerCase());
-    const vm = visaStatus !== "I need visa sponsorship" || j.sponsorship === true;
-    return sm && lm && vm;
-  });
+    const titleAndCompany = `${j.title || ""} ${j.company || ""}`.toLowerCase();
+    const termHits = profileTerms.filter(term => titleAndCompany.includes(term)).length;
+    const score = (sm ? 40 : 0) + (lm ? 20 : 0) + Math.min(termHits * 15, 30) + (isRegisteredSponsorJob(j) ? 10 : 0);
+    return { ...j, _profileMatch: sm && lm, _matchScore: score };
+  }).filter(j => j._profileMatch && isRegisteredSponsorJob(j))
+    .sort((a, b) => b._matchScore - a._matchScore || new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
   // Profile completion %
   const profileFields = [fullName, jobTitle, location, sectors.length > 0, experience, skills, visaStatus, bio];
@@ -689,7 +696,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     ]},
     { group: "Job search", items: [
       { id: "opportunities", label: "Opportunities", icon: ICONS.target, hasSub: true, children: [
-        { id: "matches", label: "Job Matches", count: matchedJobs.length || null },
+        { id: "matches", label: "Sponsor matches", count: matchedJobs.length || null },
         { id: "phd", label: "PhD Finder" },
       ]},
       { id: "tracker", label: "Applications", icon: ICONS.clipboard, count: applications.length || null },
@@ -871,7 +878,7 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
             {/* Stats */}
             <div className="mg-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "22px" }}>
               {[
-                { lbl: "Job Matches",    val: hasProfileFilters ? stats.matches : "—",      sub: hasProfileFilters ? (stats.matches > 0 ? "Matched to your profile" : "No matches yet") : "Complete profile to see matches", onClick: () => setView(hasProfileFilters ? "matches" : "profile") },
+                { lbl: "Sponsor matches", val: hasProfileFilters ? stats.matches : "—", sub: hasProfileFilters ? (stats.matches > 0 ? "Official employer vacancies" : "No matches yet") : "Complete profile to see matches", onClick: () => setView(hasProfileFilters ? "matches" : "profile") },
                 { lbl: "Applications",   val: stats.applications, sub: applications.filter(a => a.status === "Applied").length + " awaiting response", onClick: () => setView("tracker") },
                 { lbl: "Interviews",     val: stats.interviews,   sub: stats.interviews > 0 ? "Active interview rounds" : "No interviews yet", onClick: () => setView("tracker") },
                 { lbl: "Offers",         val: stats.offers,       sub: stats.offers > 0 ? "🎉 Well done!" : "Keep going", onClick: () => setView("tracker") },
@@ -1282,8 +1289,8 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
               <div>
-                <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Job matches</h1>
-                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>{hasProfileFilters ? `${matchedJobs.length} visa sponsorship jobs matched to your profile` : "Complete your profile to see personalised matches"}</p>
+                <h1 style={{ fontSize: "24px", fontWeight: 500, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Sponsor matches</h1>
+                <p style={{ fontSize: "13px", color: T.mute, margin: 0 }}>{hasProfileFilters ? `${matchedJobs.length} official vacancies from registered sponsor employers matched to your profile` : "Add your sector, location, job title, or skills to see personalised matches"}</p>
               </div>
               <button onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }} style={btnPrimary}>
                 View all on jobs board ↗
@@ -1295,8 +1302,8 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                 <div style={{ width: "48px", height: "48px", borderRadius: "10px", background: T.accentBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: T.accent }}>
                   <Icon path={ICONS.search} size={22} />
                 </div>
-                <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>No matches yet</p>
-                <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px" }}>Update your profile with sectors and location to see matching jobs</p>
+                <p style={{ fontWeight: 500, margin: "0 0 6px", fontSize: "14px" }}>No sponsor matches yet</p>
+                <p style={{ color: T.mute, fontSize: "13px", marginBottom: "16px" }}>Add your sector, preferred location, job title, or skills. We will match you with vacancies published by registered sponsor employers.</p>
                 <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
                   <button onClick={() => setView("cv")} style={{ ...btnPrimary, background: T.purple }}>Analyse my CV</button>
                   <button onClick={() => setView("profile")} style={btnGhost}>Update profile</button>
@@ -1314,9 +1321,10 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
                           <span style={{ width: "22px", height: "22px", borderRadius: "6px", background: T.accentBg, color: T.accent, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 600, flexShrink: 0 }}>{i + 1}</span>
                           <p style={{ fontWeight: 500, margin: 0, fontSize: "14px", lineHeight: 1.35, wordBreak: "break-word" }}>{j.title}</p>
                         </div>
-                        {j.sponsorship && <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.12)", color: T.green, whiteSpace: "nowrap", flexShrink: 0 }}>✓ Visa</span>}
+                        <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.12)", color: T.green, whiteSpace: "nowrap", flexShrink: 0 }}>Registered sponsor</span>
                       </div>
-                      <p style={{ color: T.mute, fontSize: "12px", margin: "0 0 10px", paddingLeft: "30px" }}>{j.company}</p>
+                      <p style={{ color: T.mute, fontSize: "12px", margin: "0 0 5px", paddingLeft: "30px" }}>{j.company}</p>
+                      <p style={{ color: T.dim, fontSize: "10px", margin: "0 0 10px", paddingLeft: "30px" }}>Check the employer’s application page for this vacancy’s visa eligibility.</p>
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center", fontSize: "11px", color: T.mute, paddingLeft: "30px" }}>
                         {j.sector && <span style={{ padding: "2px 9px", borderRadius: "12px", background: T.accentBg, color: T.accent, fontWeight: 500 }}>{j.sector}</span>}
                         <span>📍 {j.location}</span>
