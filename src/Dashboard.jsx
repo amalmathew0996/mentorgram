@@ -634,7 +634,9 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
   // show that fact clearly in the interface instead of treating it as a promise.
   const isRegisteredSponsorJob = (job) => /\(official(?: careers)?\)$/i.test(job.source || "");
   const hasProfileFilters = sectors.length > 0 || location || jobTitle || skills.trim();
-  const profileTerms = [...jobTitle.split(/[,\n;]+/), ...skills.split(/[,\n;]+/)].map(term => term.trim().toLowerCase()).filter(term => term.length >= 3);
+  const targetTitles = jobTitle.split(/[,\n;]+/).map(term => term.trim().toLowerCase()).filter(term => term.length >= 3);
+  const skillTerms = skills.split(/[,\n;]+/).map(term => term.trim().toLowerCase()).filter(term => term.length >= 3);
+  const profileTerms = [...targetTitles, ...skillTerms];
   const matchedJobs = !hasProfileFilters ? [] : jobs.map(j => {
     const tL = (j.title || "").toLowerCase();
     const sectorByTitle = (() => {
@@ -653,9 +655,10 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
     const sm = sectors.length === 0 || sectors.includes(es) || sectors.includes(sectorByTitle);
     const lm = !location || (j.location || "").toLowerCase().includes(location.toLowerCase());
     const titleAndCompany = `${j.title || ""} ${j.company || ""}`.toLowerCase();
+    const titleMatch = targetTitles.length === 0 || targetTitles.some(title => tL.includes(title));
     const termHits = profileTerms.filter(term => titleAndCompany.includes(term)).length;
     const score = (sm ? 40 : 0) + (lm ? 20 : 0) + Math.min(termHits * 15, 30) + (isRegisteredSponsorJob(j) ? 10 : 0);
-    return { ...j, _profileMatch: sm && lm, _matchScore: score };
+    return { ...j, _profileMatch: sm && lm && titleMatch, _matchScore: score };
   }).filter(j => j._profileMatch && isRegisteredSponsorJob(j))
     .sort((a, b) => b._matchScore - a._matchScore || new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
@@ -1295,6 +1298,20 @@ export default function Dashboard({ user, onLogout, allJobs, onFilterByProfile, 
               <button onClick={() => { onFilterByProfile({ sectors, location, visaStatus }); onNavigate("Sponsorship Jobs"); }} style={btnPrimary}>
                 View all on jobs board ↗
               </button>
+            </div>
+
+            <div style={{ ...panelCard, marginBottom: "16px" }}>
+              <label style={{ ...lbl, fontSize: "12px", fontWeight: 500, color: T.text }}>What job titles are you looking for?</label>
+              <input
+                style={inp}
+                value={jobTitle}
+                onChange={e => setJobTitle(e.target.value)}
+                placeholder="e.g. Software Engineer, Data Analyst, Project Manager"
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", flexWrap: "wrap", marginTop: "8px" }}>
+                <p style={{ fontSize: "11px", color: T.dim, margin: 0 }}>Separate more than one title with commas. Your matches update as you type.</p>
+                {jobTitle && <button onClick={saveProfile} disabled={saving} style={{ ...btnGhost, padding: "5px 10px", fontSize: "11px" }}>{saving ? "Saving..." : saved ? "✓ Saved" : "Save to profile"}</button>}
+              </div>
             </div>
 
             {matchedJobs.length === 0 ? (
