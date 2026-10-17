@@ -110,10 +110,15 @@ export function createHandler({ fetcher = fetch, env = process.env, now = Date.n
     let version;
     let auditErrors = false;
     const rpc = async (op, values = {}, timeout = 10000) => {
-      const response = await fetcher(`${env.VITE_SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rpc/sponsor_register_sync`, {
+      // Status is deliberately a separate, small database function. It avoids
+      // routing every invocation through the large synchronisation function
+      // before the real work can begin.
+      const statusRequest = op === 'status';
+      const functionName = statusRequest ? 'sponsor_register_status' : 'sponsor_register_sync';
+      const response = await fetcher(`${env.VITE_SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rpc/${functionName}`, {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(timeout),
         headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_op: op, p_data: values }),
+        body: JSON.stringify(statusRequest ? {} : { p_op: op, p_data: values }),
       });
       if (!response.ok) {
         // Never return upstream bodies, which may contain credentials or row data.
