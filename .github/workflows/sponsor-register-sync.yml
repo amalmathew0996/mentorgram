@@ -55,7 +55,7 @@ jobs:
               const progress = { call, http: response.status };
               for (const field of ['status', 'phase', 'staged_rows', 'validated_stage_rows',
                 'validation_cursor', 'applied_rows', 'companies_added', 'companies_updated',
-                'companies_deactivated', 'completed_at', 'skipped']) {
+                'companies_deactivated', 'completed_at', 'skipped', 'error', 'register_version']) {
                 if (Object.hasOwn(body || {}, field)) progress[field] = body[field];
               }
               console.log(JSON.stringify(progress));
