@@ -422,7 +422,7 @@ const SOURCES=[
     "name": "Snyk Limited",
     "careers_url": "https://snyk.io/careers/",
     "platform": "ashby",
-    "board": "98cd1a00-2706-4aa8-ab72-38a7b8c9c20c",
+    "board": "snyk",
     "brand": "Snyk"
   },
   {
