@@ -423,6 +423,102 @@ function JobDetailPage({ job, onBack, onAskMentor }) {
   );
 }
 
+// ─── Jobs board redesign ───────────────────────────────────────────────────
+function ModernJobsBoard({
+  allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, profileFilter, onClearProfileFilter,
+  titleQuery, locationQuery, onTitleChange, onLocationChange, onSearch,
+  sector, setSector, visaType, setVisaType, sourceFilter, setSourceFilter,
+  employerType, setEmployerType, country, setCountry, setPage,
+  sortBy, setSortBy, paginated, filtered, safePage, totalPages, getPageNums,
+  isJobSaved, onSaveJob, onClearFilters,
+}) {
+  const sectorIcons = { All: "⚡", Technology: "💻", "AI & Data": "✦", Healthcare: "✚", Finance: "£", Engineering: "⚙", Business: "▣", Education: "⌁", Hospitality: "✦", "Public Sector": "⌂" };
+  const sources = ["All", ...[...new Set(allJobs.map(job => (job.source || "").trim()).filter(Boolean))].sort()].slice(0, 10);
+  const showFilters = sector !== "All" || visaType !== "All Jobs" || sourceFilter !== "All" || employerType !== "All" || titleQuery || locationQuery;
+  const formatPosted = value => !value || /invalid|nan/i.test(value) ? "Recently added" : value;
+  const employerLabel = job => {
+    const text = `${job.company || ""} ${job.source || ""}`.toLowerCase();
+    if (text.includes("nhs") || text.includes("hospital")) return "NHS";
+    if (text.includes("universit") || text.includes("college")) return "University";
+    if (text.includes("council") || text.includes("borough")) return "Council";
+    return "Employer";
+  };
+
+  return (
+    <main className="mg-jobs-board">
+      <style>{`
+        .mg-jobs-board { max-width: 1240px; margin: 0 auto; padding: 24px 20px 64px; color: var(--color-text-primary); }
+        .mg-jobs-hero { background: linear-gradient(116deg,#102a64 0%,#173b87 58%,#2356c5 100%); border: 1px solid rgba(124,158,255,.28); border-radius: 20px; padding: 22px; box-shadow: 0 18px 40px rgba(7,18,45,.2); }
+        .mg-jobs-hero h1 { font-size: clamp(24px,3.2vw,34px); letter-spacing:-.04em; margin:0 0 5px; color:white; }
+        .mg-jobs-hero p { color:rgba(255,255,255,.76); margin:0 0 18px; font-size:14px; }
+        .mg-search-row { display:grid; grid-template-columns: minmax(0,1.3fr) minmax(180px,.8fr) auto; gap:10px; }
+        .mg-search-field { display:flex; align-items:center; gap:9px; padding:0 13px; background:#fff; border:1px solid rgba(255,255,255,.5); border-radius:10px; color:#1d3568; min-height:48px; }
+        .mg-search-field input { width:100%; min-width:0; border:0; outline:0; font:inherit; color:#112c65; background:transparent; }
+        .mg-search-field input::placeholder { color:#7487ad; }
+        .mg-search-btn { border:0; border-radius:10px; background:#4cc4ca; color:#08204b; font:600 14px inherit; padding:0 22px; min-height:48px; cursor:pointer; }
+        .mg-jobs-notice { display:flex; gap:12px; align-items:flex-start; margin:18px 0 14px; padding:14px 16px; border:1px solid var(--color-border-tertiary); border-radius:13px; background:var(--color-background-primary); }
+        .mg-notice-icon { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:rgba(76,196,202,.14); color:#41bec4; flex:0 0 auto; }
+        .mg-jobs-notice strong { display:block; font-size:14px; margin-bottom:2px; }
+        .mg-jobs-notice span { font-size:13px; color:var(--color-text-secondary); line-height:1.45; }
+        .mg-jobs-layout { display:grid; grid-template-columns:260px minmax(0,1fr); gap:18px; align-items:start; }
+        .mg-filter-panel { background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:14px; overflow:hidden; position:sticky; top:18px; }
+        .mg-filter-head { display:flex; align-items:center; justify-content:space-between; padding:14px; border-bottom:1px solid var(--color-border-tertiary); }
+        .mg-filter-head strong { font-size:14px; }.mg-filter-head button,.mg-filter-link { border:0; padding:0; color:#42c7cc; background:transparent; cursor:pointer; font:600 12px inherit; }
+        .mg-filter-group { padding:14px; border-bottom:1px solid var(--color-border-tertiary); }.mg-filter-group:last-child{border-bottom:0}
+        .mg-filter-group h3 { font-size:13px; margin:0 0 10px; }.mg-filter-option { width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:5px 0; background:transparent; border:0; color:var(--color-text-secondary); text-align:left; cursor:pointer; font:13px inherit; }.mg-filter-option:hover { color:var(--color-text-primary); }.mg-filter-option.active { color:#57d1d7; font-weight:600; }.mg-filter-option span:last-child { font-size:11px; opacity:.7; }
+        .mg-filter-select { width:100%; padding:9px 10px; color:var(--color-text-primary); background:var(--color-background-secondary); border:1px solid var(--color-border-tertiary); border-radius:8px; font:13px inherit; }
+        .mg-results-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:2px 0 12px; }.mg-results-top h2 { font-size:15px; margin:0; }.mg-results-top p { margin:3px 0 0; color:var(--color-text-secondary); font-size:12px; }.mg-sort { padding:9px 11px; border:1px solid var(--color-border-tertiary); border-radius:8px; background:var(--color-background-primary); color:var(--color-text-primary); font:13px inherit; }
+        .mg-job-list { display:grid; gap:10px; }.mg-job-row { display:grid; grid-template-columns:52px minmax(160px,1.2fr) minmax(190px,1fr) minmax(170px,.9fr) auto; gap:14px; align-items:center; padding:16px; background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:13px; cursor:pointer; transition:.18s ease; }.mg-job-row:hover { transform:translateY(-2px); border-color:rgba(76,196,202,.65); box-shadow:0 14px 26px rgba(0,0,0,.14); }
+        .mg-company-mark { width:52px; height:52px; border-radius:11px; border:1px solid var(--color-border-tertiary); display:grid; place-items:center; color:#57d1d7; background:linear-gradient(145deg,rgba(76,196,202,.16),rgba(44,85,196,.12)); font-size:20px; font-weight:700; }.mg-role { min-width:0; }.mg-role h3 { margin:0 0 4px; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.mg-role p { margin:0; font-size:12px; color:var(--color-text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.mg-sponsor { display:inline-flex; margin-top:7px; padding:3px 7px; border-radius:5px; font-size:10px; background:rgba(76,196,202,.14); color:#57d1d7; }.mg-meta { display:grid; gap:7px; font-size:12px; color:var(--color-text-secondary); }.mg-meta b { color:var(--color-text-primary); font-weight:500; }.mg-pay { display:grid; gap:7px; font-size:12px; color:var(--color-text-secondary); }.mg-posted { color:#50c878; font-weight:600; }.mg-job-actions { display:flex; align-items:center; gap:7px; justify-content:flex-end; }.mg-icon-action { height:34px; min-width:34px; display:grid; place-items:center; background:transparent; color:var(--color-text-secondary); border:1px solid var(--color-border-tertiary); border-radius:8px; cursor:pointer; }.mg-view { border:1px solid #4b79e8; background:transparent; color:#77a2ff; border-radius:8px; padding:8px 11px; font:600 12px inherit; cursor:pointer; }.mg-apply { border:0; background:#4cc4ca; color:#08204b; border-radius:8px; padding:9px 11px; font:600 12px inherit; text-decoration:none; white-space:nowrap; }
+        .mg-page-row { display:flex; justify-content:center; gap:7px; align-items:center; margin-top:24px; }.mg-page-row button { width:34px; height:34px; border-radius:8px; border:1px solid var(--color-border-tertiary); background:var(--color-background-primary); color:var(--color-text-primary); cursor:pointer; }.mg-page-row button.active { background:#315cc5; color:white; border-color:#315cc5; }
+        @media(max-width:900px){.mg-jobs-layout{grid-template-columns:1fr}.mg-filter-panel{position:static}.mg-filter-panel .mg-filter-group{display:none}.mg-search-row{grid-template-columns:1fr}.mg-search-btn{padding:0 18px}.mg-job-row{grid-template-columns:48px minmax(0,1fr) auto}.mg-meta,.mg-pay{grid-column:2/3}.mg-job-actions{grid-column:3/4;grid-row:1/4;align-self:end;flex-direction:column}.mg-apply{display:none}} 
+        @media(max-width:540px){.mg-jobs-board{padding:14px 12px 44px}.mg-jobs-hero{padding:17px}.mg-job-row{grid-template-columns:42px minmax(0,1fr);padding:13px}.mg-company-mark{width:42px;height:42px}.mg-job-actions{grid-column:1/-1;grid-row:auto;flex-direction:row;justify-content:flex-end}.mg-meta,.mg-pay{grid-column:2/3}.mg-results-top{align-items:flex-start;flex-direction:column}.mg-sort{width:100%}}
+      `}</style>
+
+      <section className="mg-jobs-hero">
+        <h1>Find your next sponsorship opportunity</h1>
+        <p>Search live roles from registered UK sponsor employers and trusted job sources.</p>
+        <div className="mg-search-row">
+          <label className="mg-search-field"><span>⌕</span><input value={titleQuery} onChange={e => onTitleChange(e.target.value)} onKeyDown={e => e.key === "Enter" && onSearch()} placeholder="Job title, skill or employer" /></label>
+          <label className="mg-search-field"><span>⌖</span><input value={locationQuery} onChange={e => onLocationChange(e.target.value)} onKeyDown={e => e.key === "Enter" && onSearch()} placeholder="Town, city or postcode" /></label>
+          <button className="mg-search-btn" onClick={onSearch} disabled={jobsLoading}>{jobsLoading ? "Searching…" : "Search jobs  →"}</button>
+        </div>
+      </section>
+
+      <section className="mg-jobs-notice">
+        <div className="mg-notice-icon">⌕</div>
+        <div><strong>Find roles that fit your plans</strong><span>Explore {allJobs.length.toLocaleString()} jobs, filter by sector or visa information, and save roles to review later.</span></div>
+      </section>
+
+      {profileFilter && <section className="mg-jobs-notice" style={{ borderColor: "rgba(76,196,202,.35)" }}><div className="mg-notice-icon">◎</div><div><strong>Using your profile preferences</strong><span>{profileFilter.sectors?.join(", ") || "Your preferences"}{profileFilter.location ? ` · ${profileFilter.location}` : ""}</span></div><button className="mg-filter-link" style={{ marginLeft:"auto" }} onClick={onClearProfileFilter}>Clear</button></section>}
+
+      <div className="mg-jobs-layout">
+        <aside className="mg-filter-panel">
+          <div className="mg-filter-head"><strong>Filters</strong>{showFilters && <button onClick={onClearFilters}>Clear all</button>}</div>
+          <div className="mg-filter-group"><h3>Country</h3>{[["UK","🇬🇧 United Kingdom"],["DE","🇩🇪 Germany"]].map(([key,label]) => <button key={key} className={`mg-filter-option ${country===key?"active":""}`} onClick={() => setCountry(key)}><span>{label}</span>{country===key && <span>✓</span>}</button>)}</div>
+          <div className="mg-filter-group"><h3>Visa support</h3>{VISA_TYPES.map(value => <button key={value} className={`mg-filter-option ${visaType===value?"active":""}`} onClick={() => {setVisaType(value);setPage(1)}}><span>{value}</span>{visaType===value && <span>✓</span>}</button>)}</div>
+          <div className="mg-filter-group"><h3>Sector</h3>{SECTORS.map(value => <button key={value} className={`mg-filter-option ${sector===value?"active":""}`} onClick={() => {setSector(value);setPage(1)}}><span>{sectorIcons[value]}&nbsp; {value}</span><span>{value === "All" ? allJobs.length.toLocaleString() : allJobs.filter(job => job.sector===value).length || ""}</span></button>)}</div>
+          <div className="mg-filter-group"><h3>Employer type</h3>{["All","NHS","University","Council","Private"].map(value => <button key={value} className={`mg-filter-option ${employerType===value?"active":""}`} onClick={() => {setEmployerType(value);setPage(1)}}><span>{value}</span>{employerType===value && <span>✓</span>}</button>)}</div>
+          <div className="mg-filter-group"><h3>Source</h3><select className="mg-filter-select" value={sourceFilter} onChange={e => {setSourceFilter(e.target.value);setPage(1)}}>{sources.map(source => <option key={source} value={source}>{source}</option>)}</select></div>
+        </aside>
+
+        <section>
+          <div className="mg-results-top"><div><h2>{filtered.length.toLocaleString()} jobs{titleQuery ? ` for “${titleQuery}”` : ""}</h2><p>{updatedAt ? `Updated ${new Date(updatedAt).toLocaleString("en-GB", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })}` : "Live job results"}</p></div><select className="mg-sort" value={sortBy} onChange={e => {setSortBy(e.target.value);setPage(1)}}><option value="relevance">Sort: Relevance</option><option value="newest">Sort: Newest</option><option value="salary">Sort: Salary</option></select></div>
+          {jobsLoading ? <div className="mg-job-list">{[1,2,3,4].map(n => <div key={n} className="mg-job-row" style={{ minHeight:100, opacity:.45 }}><div className="mg-company-mark">…</div><div><h3 style={{margin:0}}>Loading jobs…</h3></div></div>)}</div> : <div className="mg-job-list">{paginated.map((job, index) => <article className="mg-job-row" key={job.url || `${job.title}-${index}`} onClick={() => onSelectJob(job)}>
+            <div className="mg-company-mark">{(job.company || "M").slice(0,1).toUpperCase()}</div>
+            <div className="mg-role"><h3>{job.title}</h3><p>{job.company || "Employer"}</p><span className="mg-sponsor">{job.sponsorship === true ? "Visa sponsorship" : employerLabel(job)}</span></div>
+            <div className="mg-meta"><span>⌖&nbsp; {job.location || "United Kingdom"}</span><span>▦&nbsp; <b>{job.sector || "Other"}</b></span></div>
+            <div className="mg-pay"><span>◉&nbsp; {job.salary || "Competitive"}</span><span className="mg-posted">◷&nbsp; {formatPosted(job.posted)}</span></div>
+            <div className="mg-job-actions" onClick={event => event.stopPropagation()}><ShareButton job={job}/><button className="mg-icon-action" onClick={event => onSaveJob(job,event)} title={isJobSaved(job) ? "Remove saved job" : "Save job"}>{isJobSaved(job) ? "✓" : "♧"}</button><button className="mg-view" onClick={() => onSelectJob(job)}>View</button>{job.url && <a className="mg-apply" href={job.url} target="_blank" rel="noopener noreferrer">Apply&nbsp; →</a>}</div>
+          </article>)}</div>}
+          {!jobsLoading && !paginated.length && <div className="mg-jobs-notice"><div className="mg-notice-icon">⌕</div><div><strong>No jobs match these filters</strong><span>Clear one or more filters and try again.</span></div><button className="mg-filter-link" style={{marginLeft:"auto"}} onClick={onClearFilters}>Show all</button></div>}
+          {totalPages > 1 && <div className="mg-page-row"><button onClick={() => safePage>1 && setPage(safePage-1)} aria-label="Previous page">‹</button>{getPageNums().map(number => <button key={number} className={number===safePage?"active":""} onClick={() => setPage(number)}>{number}</button>)}<button onClick={() => safePage<totalPages && setPage(safePage+1)} aria-label="Next page">›</button></div>}
+        </section>
+      </div>
+    </main>
+  );
+}
+
 // ─── Jobs Page ─────────────────────────────────────────────────────────────
 function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, profileFilter, onClearProfileFilter, user, onNavigate }) {
   // ── Saved jobs state ──
@@ -476,6 +572,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   const [titleQuery, setTitleQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState("relevance");
   const [clickedJob, setClickedJob] = useState(null);
   const topRef = useRef(null);
 
@@ -488,7 +585,7 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
   }, [profileFilter]);
   const searchTimer = useRef(null);
 
-  useEffect(() => { setPage(1); }, [sector, visaType, titleQuery, locationQuery]);
+  useEffect(() => { setPage(1); }, [sector, visaType, sourceFilter, employerType, titleQuery, locationQuery]);
   const isFirstPageRender = useRef(true);
   useEffect(() => {
     if (isFirstPageRender.current) {
@@ -556,9 +653,20 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
     return matchSector && matchVisa && matchSource && matchEmployer && matchTitle && matchLoc;
   });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / JOBS_PER_PAGE));
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "salary") {
+      const amount = value => Number(String(value || "").replace(/,/g, "").match(/\d+/)?.[0] || 0);
+      return amount(b.salary) - amount(a.salary);
+    }
+    if (sortBy === "newest") {
+      const stamp = value => Date.parse(value || "") || 0;
+      return stamp(b.posted) - stamp(a.posted);
+    }
+    return 0;
+  });
+  const totalPages = Math.max(1, Math.ceil(sorted.length / JOBS_PER_PAGE));
   const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice((safePage - 1) * JOBS_PER_PAGE, safePage * JOBS_PER_PAGE);
+  const paginated = sorted.slice((safePage - 1) * JOBS_PER_PAGE, safePage * JOBS_PER_PAGE);
 
   function getPageNums() {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -566,6 +674,23 @@ function JobsPage({ allJobs, jobsLoading, updatedAt, onFetchJobs, onSelectJob, p
     if (safePage >= totalPages - 2) return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
     return [safePage - 2, safePage - 1, safePage, safePage + 1, safePage + 2];
   }
+
+  const clearFilters = () => {
+    setSector("All"); setVisaType("All Jobs"); setSourceFilter("All"); setEmployerType("All");
+    setTitleQuery(""); setLocationQuery(""); setPage(1); onFetchJobs("", "", country);
+  };
+
+  return <ModernJobsBoard
+    allJobs={allJobs} jobsLoading={jobsLoading} updatedAt={updatedAt}
+    onFetchJobs={onFetchJobs} onSelectJob={onSelectJob} profileFilter={profileFilter} onClearProfileFilter={onClearProfileFilter}
+    titleQuery={titleQuery} locationQuery={locationQuery} onTitleChange={handleTitleChange} onLocationChange={handleLocationChange}
+    onSearch={() => { clearTimeout(searchTimer.current); onFetchJobs(titleQuery, locationQuery, country); }}
+    sector={sector} setSector={setSector} visaType={visaType} setVisaType={setVisaType} sourceFilter={sourceFilter} setSourceFilter={setSourceFilter}
+    employerType={employerType} setEmployerType={setEmployerType} country={country}
+    setCountry={value => { setCountry(value); setPage(1); onFetchJobs(titleQuery, locationQuery, value); }} setPage={setPage}
+    sortBy={sortBy} setSortBy={setSortBy} paginated={paginated} filtered={filtered} safePage={safePage} totalPages={totalPages} getPageNums={getPageNums}
+    isJobSaved={isJobSaved} onSaveJob={toggleSaveJob} onClearFilters={clearFilters}
+  />;
 
   return (
     <div style={S.section}>
