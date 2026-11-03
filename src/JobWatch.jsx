@@ -596,6 +596,13 @@ function JobWatchAccount({ user }) {
       .jw-card h2 { font-size:16px; }.jw-card h3 { font-size:14px; }.jw-card p { font-size:13px; }
       .jw-card button:hover, .jw-tabs button:hover { border-color:rgba(76,196,202,.4)!important; background:rgba(76,196,202,.1)!important; }
       .jw-grid .jw-card { transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease; }.jw-grid .jw-card:hover { transform:translateY(-2px); border-color:rgba(76,196,202,.5)!important; box-shadow:0 14px 26px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.08); }
+      .jw-site.jw-item { padding:12px; margin:10px 0; border:1px solid rgba(255,255,255,.1); border-radius:11px; background:rgba(7,11,20,.2); box-shadow:inset 0 1px 0 rgba(255,255,255,.045); }
+      .jw-site.jw-item:first-of-type { margin-top:12px; }
+      .jw-site label { line-height:1.45; }
+      .jw-site button { background:rgba(255,255,255,.055)!important; }
+      .jw-site + p { margin-top:14px!important; }
+      .jw-site + form { padding-top:4px; }
+      .jw-card form.jw-row { align-items:end; padding:12px; border:1px solid rgba(255,255,255,.09); border-radius:11px; background:rgba(255,255,255,.025); }
       @media(max-width:650px) { .jw-grid { grid-template-columns:1fr; } .jw .jw-card { padding:14px; } .jw-top { align-items:flex-start; flex-direction:column; } }
       @media(max-width:380px) { .jw-site { grid-template-columns:20px minmax(0,1fr); } .jw-site button { grid-column:2; justify-self:start; } }
     `}</style>
