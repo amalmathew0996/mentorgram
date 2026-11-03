@@ -61,19 +61,22 @@ const SOURCES = [
 ];
 
 const card = {
-  background: "var(--color-background-primary)",
-  border: "0.5px solid var(--color-border-tertiary)",
-  borderRadius: "var(--border-radius-lg)",
-  padding: "1.5rem",
+  background: "linear-gradient(135deg, rgba(255,255,255,.075), rgba(255,255,255,.025))",
+  border: "1px solid rgba(255,255,255,.12)",
+  borderRadius: "14px",
+  padding: "18px",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,.06)",
+  backdropFilter: "blur(18px) saturate(135%)",
+  WebkitBackdropFilter: "blur(18px) saturate(135%)",
 };
 
 const inputStyle = {
   width: "100%",
   boxSizing: "border-box",
-  padding: "11px 14px",
-  borderRadius: "var(--border-radius-md)",
-  border: "0.5px solid var(--color-border-secondary)",
-  background: "var(--color-background-secondary)",
+  padding: "10px 12px",
+  borderRadius: "9px",
+  border: "1px solid rgba(255,255,255,.13)",
+  background: "rgba(7,11,20,.34)",
   color: "var(--color-text-primary)",
   fontSize: "14px",
   fontFamily: "inherit",
@@ -485,7 +488,7 @@ function JobWatchAccount({ user }) {
 
 
   if (loading) return <p style={{ padding: "2rem" }} role="status">Loading Job Watch…</p>;
-  const button = { padding: "10px 16px", border: "1px solid var(--color-border-secondary)", borderRadius: "8px", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", cursor: "pointer", fontFamily: "inherit" };
+  const button = { padding: "9px 13px", border: "1px solid rgba(255,255,255,.14)", borderRadius: "9px", background: "rgba(255,255,255,.055)", color: "var(--color-text-primary)", cursor: "pointer", fontFamily: "inherit" };
   const muted = { color: "var(--color-text-secondary)", fontSize: "13px" };
   const busy = saving || running || !ready;
   const sourceChecks = warnings.filter(isSourceCheck);
@@ -542,16 +545,24 @@ function JobWatchAccount({ user }) {
   return <div className="jw" style={{ maxWidth: "1150px", width: "100%", minWidth: 0, margin: "0 auto", padding: "20px 16px", color: "var(--color-text-primary)" }}>
     <style>{`
       .jw, .jw * { box-sizing:border-box; }
+      .jw { position:relative; }
+      .jw::before { content:""; position:absolute; width:460px; height:360px; top:-90px; right:-170px; z-index:-1; border-radius:50%; background:radial-gradient(circle,rgba(76,196,202,.12),transparent 68%); pointer-events:none; }
       .jw [hidden] { display:none !important; }
-      .jw-source-state { display:inline-block; border:1px solid currentColor; border-radius:6px; padding:4px 8px; font-size:12px; }
+      .jw-source-state { display:inline-block; border:1px solid currentColor; border-radius:999px; padding:4px 8px; font-size:11px; }
       .jw-source-good { color:#159447; }
       .jw-source-bad { color:#e36e64; }
       .jw-source-notice { color:#b78a28; }
       .jw-source-neutral { color:var(--color-text-secondary); }
-      .jw-tabs { margin:16px 0 20px; padding-bottom:12px; border-bottom:1px solid var(--color-border-tertiary); }
-      .jw-badge { display:inline-block; margin:6px; padding:4px 8px; border-radius:6px; font-size:11px; background:#193e28; color:#c3f5d3; }
+      .jw-top { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px 16px; margin-bottom:12px; background:linear-gradient(135deg,rgba(255,255,255,.085),rgba(255,255,255,.025)); border:1px solid rgba(255,255,255,.14); border-radius:14px; box-shadow:0 14px 32px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.09); backdrop-filter:blur(20px) saturate(140%); -webkit-backdrop-filter:blur(20px) saturate(140%); }
+      .jw-top h1 { font-size:16px!important; letter-spacing:-.01em; margin:0 0 4px!important; }
+      .jw-status { display:inline-flex; align-items:center; gap:7px; padding:6px 10px; border:1px solid rgba(76,196,202,.28); border-radius:999px; background:rgba(76,196,202,.11); color:#70dfe4; font-size:12px; }
+      .jw-status::before { content:""; width:6px; height:6px; background:#4cc4ca; border-radius:50%; box-shadow:0 0 10px #4cc4ca; }
+      .jw-tabs { gap:7px; margin:0 0 14px; padding:8px; border:1px solid rgba(255,255,255,.11); border-radius:13px; background:rgba(255,255,255,.035); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+      .jw-tabs button { padding:8px 12px!important; border-color:transparent!important; background:transparent!important; color:var(--color-text-secondary)!important; font-size:12px; }
+      .jw-tabs button[aria-selected="true"] { background:rgba(76,196,202,.17)!important; border-color:rgba(76,196,202,.3)!important; color:#71dde2!important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+      .jw-badge { display:inline-block; margin:6px; padding:4px 8px; border-radius:999px; font-size:11px; background:rgba(76,196,202,.14); color:#70dfe4; }
       .jw-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px 0; }
-      .jw-stat { padding:12px; background:var(--color-background-secondary); border-radius:8px; }
+      .jw-stat { padding:13px; background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.1); border-radius:11px; color:var(--color-text-primary); }
       .jw-stat strong { display:block; font-size:1.4rem; margin-top:8px; }
       @media(max-width:480px) { .jw-stats { grid-template-columns:1fr; } }
       .jw { overflow-wrap:anywhere; }
@@ -569,24 +580,30 @@ function JobWatchAccount({ user }) {
       .jw input:not([type=checkbox]), .jw select { min-width:0; max-width:100%; }
       .jw input[type=checkbox] { flex:0 0 auto; width:16px; height:16px; margin:0; }
       .jw button { white-space:normal; flex-shrink:0; }
-      .jw a { color:#729fff; overflow-wrap:anywhere; }
+      .jw a { color:#70dfe4; overflow-wrap:anywhere; }
       .jw summary { cursor:pointer; }
       .jw button:disabled, .jw fieldset:disabled { opacity:.6; }
       .jw button:disabled { cursor:default; }
       .jw fieldset { border:0; padding:0; margin:0; min-width:0; }
-      .jw input:focus-visible, .jw select:focus-visible, .jw button:focus-visible, .jw a:focus-visible, .jw summary:focus-visible { outline:2px solid #729fff; outline-offset:3px; }
+      .jw input:focus-visible, .jw select:focus-visible, .jw button:focus-visible, .jw a:focus-visible, .jw summary:focus-visible { outline:2px solid #70dfe4; outline-offset:3px; }
       .jw-item { padding:12px 0; border-bottom:1px solid var(--color-border-tertiary); }
       .jw-fill { flex:1 1 230px; min-width:0; }
       .jw-site { display:grid; grid-template-columns:20px minmax(0,1fr) auto; gap:10px; align-items:center; }
-      .jw-notice { padding:12px; border:1px solid var(--color-border-secondary); border-radius:8px; }
-      @media(max-width:650px) { .jw-grid { grid-template-columns:1fr; } .jw .jw-card { padding:14px; } }
+      .jw-notice { padding:12px; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:rgba(255,255,255,.04); }
+      .jw-main-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:20px 0 12px; }
+      .jw-main-heading h2 { margin:0; }
+      .jw-run { background:rgba(76,196,202,.18)!important; border-color:rgba(97,216,221,.42)!important; color:#74e0e4!important; }
+      .jw-card h2 { font-size:16px; }.jw-card h3 { font-size:14px; }.jw-card p { font-size:13px; }
+      .jw-card button:hover, .jw-tabs button:hover { border-color:rgba(76,196,202,.4)!important; background:rgba(76,196,202,.1)!important; }
+      .jw-grid .jw-card { transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease; }.jw-grid .jw-card:hover { transform:translateY(-2px); border-color:rgba(76,196,202,.5)!important; box-shadow:0 14px 26px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.08); }
+      @media(max-width:650px) { .jw-grid { grid-template-columns:1fr; } .jw .jw-card { padding:14px; } .jw-top { align-items:flex-start; flex-direction:column; } }
       @media(max-width:380px) { .jw-site { grid-template-columns:20px minmax(0,1fr); } .jw-site button { grid-column:2; justify-self:start; } }
     `}</style>
 
     <header>
-      <div className="jw-row jw-between">
+      <div className="jw-top">
         <div><h1>Job Watch</h1><p style={muted}>Your jobs and automatic searches.</p></div>
-        <span><strong>{scheduleLabel}</strong></span>
+        <span className="jw-status"><strong>{scheduleLabel}</strong></span>
       </div>
       <div role="tablist" aria-label="Job Watch sections" className="jw-row jw-tabs">
         {panels.map(([id, label], index) => <button key={id} id={`jw-tab-${id}`} type="button" role="tab" aria-selected={tab === id} aria-controls={`jw-panel-${id}`} tabIndex={tab === id ? 0 : -1}
@@ -631,7 +648,7 @@ function JobWatchAccount({ user }) {
       <p style={muted}>{previousKeys === null ? "New-job counts appear after two successful searches." : "New means the listing was absent from the previous successful search. Removed jobs are excluded."} Times use {savedSchedule?.schedule_timezone || "Europe/London"}. Searches start when the server checks for due runs.</p>
     </section>
     <section aria-labelledby="jw-results-heading" aria-busy={running}>
-      <h2 id="jw-results-heading">Current jobs{results !== null ? ` (${visibleJobs.length})` : ""}</h2>
+      <div className="jw-main-heading"><h2 id="jw-results-heading">Current jobs{results !== null ? ` (${visibleJobs.length})` : ""}</h2><button onClick={runNow} disabled={busy} style={button} className="jw-run">{running ? "Searching…" : "Run now"}</button></div>
       <div className="jw-row jw-between" style={{ marginBottom: "12px" }}>
         <label htmlFor="jw-job-filter">Show jobs
           <select id="jw-job-filter" style={{ ...inputStyle, marginTop: "6px" }} value={onlyNew ? "new" : "all"} onChange={e => { setOnlyNew(e.target.value === "new"); setPage(1); }}>
@@ -639,7 +656,6 @@ function JobWatchAccount({ user }) {
             <option value="new" disabled={previousKeys === null}>New jobs only ({previousKeys === null ? "needs a previous search" : newJobs.length})</option>
           </select>
         </label>
-        <button onClick={runNow} disabled={busy} style={button}>{running ? "Searching…" : "Run now"}</button>
       </div>
       <p style={muted}>{onlyNew ? "Showing only jobs absent from the previous successful search. This is not a filter by the advert’s publication date." : "Showing all matches from your latest successful search, excluding jobs you marked Not interested."}</p>
       <div aria-live="polite">
@@ -732,7 +748,7 @@ function JobWatchAccount({ user }) {
         </select></label>
         <p style={muted}>{dayInterval === 2 ? "Every other day starts on the day you first save this repeat pattern. Changing the timezone or repeat pattern starts a new cycle. Changing only the times keeps your existing cycle." : "Searches run at the selected clock times each day."} The next future slot is calculated when you save; there is no manual date or time to enter. A failed run may retry after 15 minutes.</p>
         <p style={muted}>Both switches must be enabled. The background scheduler must be running; enabling this preference alone cannot start the server.</p>
-        <button style={{ ...button, background: "#1A3FA8", color: "white" }} onClick={() => savePreferences(true)}>Save schedule and settings</button>
+        <button style={button} className="jw-run" onClick={() => savePreferences(true)}>Save schedule and settings</button>
       </section>
       {tab !== "schedule" && ["roles", "sources", "locations"].includes(tab) && <div className="jw-row" style={{ marginBottom: "20px" }}><button style={button} onClick={() => savePreferences()}>Save settings</button><span style={muted}>{dirty || titleDraft.trim() ? "Unsaved changes" : "Settings saved"}</span></div>}
     </fieldset>
