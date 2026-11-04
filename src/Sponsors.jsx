@@ -155,6 +155,8 @@ export default function SponsorsPage() {
   const [latestNotice, setLatestNotice] = useState("");
   const [latestLoading, setLatestLoading] = useState(true);
   const [latestMonths, setLatestMonths] = useState(1);
+  const [latestPage, setLatestPage] = useState(1);
+  const [latestTotal, setLatestTotal] = useState(0);
 
   const topRef = useRef(null);
   const searchTimer = useRef(null);
@@ -188,18 +190,20 @@ export default function SponsorsPage() {
   useEffect(() => {
     let active = true;
     setLatestLoading(true);
-    fetch(`/api/sponsors?latest=1&months=${latestMonths}&limit=12`)
+    fetch(`/api/sponsors?latest=1&period=${latestMonths}&limit=12&offset=${(latestPage - 1) * 12}`)
       .then(async response => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Latest sponsors are unavailable");
         if (!active) return;
-        setLatestSponsors(Array.isArray(data.sponsors) ? data.sponsors : []);
+        const nextSponsors = Array.isArray(data.sponsors) ? data.sponsors : [];
+        setLatestSponsors(latestPage === 1 ? nextSponsors : previous => [...previous, ...nextSponsors]);
+        setLatestTotal(Number.isSafeInteger(data.total) ? data.total : nextSponsors.length);
         setLatestNotice(data.note || "");
       })
       .catch(() => active && setLatestNotice("Latest additions are temporarily unavailable."))
       .finally(() => active && setLatestLoading(false));
     return () => { active = false; };
-  }, [latestMonths]);
+  }, [latestMonths, latestPage]);
 
   // Debounced search
   function handleSearch(val) {
@@ -311,7 +315,7 @@ export default function SponsorsPage() {
             <span style={{ padding: "5px 9px", borderRadius: "999px", background: "rgba(76,196,202,.14)", color: "#55d1d7", fontSize: "11px", fontWeight: 600 }}>Official register sync</span>
           </div>
           <div style={{ display: "flex", gap: "7px", flexWrap: "wrap", marginBottom: "13px" }} aria-label="Choose a time period">
-            {[[1, "1 month"], [2, "2 months"], [3, "3 months"], [6, "6 months"], [12, "1 year"]].map(([months, label]) => <button key={months} type="button" onClick={() => setLatestMonths(months)} style={{ padding: "6px 10px", borderRadius: "999px", border: latestMonths === months ? "1px solid rgba(76,196,202,.5)" : "1px solid rgba(255,255,255,.12)", background: latestMonths === months ? "rgba(76,196,202,.18)" : "rgba(255,255,255,.035)", color: latestMonths === months ? "#70dfe4" : "var(--color-text-secondary)", cursor: "pointer", fontFamily: "inherit", fontSize: "12px" }}>{label}</button>)}
+            {[[1, "Last month"], [2, "1–2 months ago"], [3, "2–3 months ago"], [6, "3–6 months ago"], [12, "6–12 months ago"]].map(([months, label]) => <button key={months} type="button" onClick={() => { setLatestMonths(months); setLatestPage(1); }} style={{ padding: "6px 10px", borderRadius: "999px", border: latestMonths === months ? "1px solid rgba(76,196,202,.5)" : "1px solid rgba(255,255,255,.12)", background: latestMonths === months ? "rgba(76,196,202,.18)" : "rgba(255,255,255,.035)", color: latestMonths === months ? "#70dfe4" : "var(--color-text-secondary)", cursor: "pointer", fontFamily: "inherit", fontSize: "12px" }}>{label}</button>)}
           </div>
           {latestLoading && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>Loading latest additions…</p>}
           {!latestLoading && latestSponsors.length > 0 && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "9px" }}>
@@ -322,7 +326,8 @@ export default function SponsorsPage() {
               <span style={{ display: "block", fontSize: "11px", color: "var(--color-text-secondary)", marginTop: "5px" }}>Search company careers ↗</span>
             </button>)}
           </div>}
-          {!latestLoading && !latestSponsors.length && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{latestNotice || `No sponsors were added in the last ${latestMonths === 1 ? "month" : `${latestMonths} months`}.`}</p>}
+          {!latestLoading && latestSponsors.length > 0 && <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginTop: "13px", flexWrap: "wrap" }}><span style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>Showing {latestSponsors.length} of {latestTotal.toLocaleString()} companies</span>{latestSponsors.length < latestTotal && <button type="button" onClick={() => setLatestPage(value => value + 1)} style={{ padding: "7px 11px", borderRadius: "8px", border: "1px solid rgba(76,196,202,.38)", background: "rgba(76,196,202,.12)", color: "#70dfe4", cursor: "pointer", fontFamily: "inherit", fontSize: "12px" }}>Show 12 more</button>}</div>}
+          {!latestLoading && !latestSponsors.length && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{latestNotice || "No sponsors were added during this period."}</p>}
           {latestNotice && latestSponsors.length > 0 && <p style={{ color: "var(--color-text-secondary)", fontSize: "11px", margin: "10px 0 0" }}>{latestNotice}</p>}
         </section>
 
