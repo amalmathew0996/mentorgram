@@ -27,7 +27,8 @@ export default async function handler(req) {
       const [newerMonths, olderMonths] = periods[latestPeriod];
       const newer = new Date(); newer.setUTCMonth(newer.getUTCMonth() - newerMonths);
       const older = new Date(); older.setUTCMonth(older.getUTCMonth() - olderMonths);
-      const path = `sponsor_companies?is_current_sponsor=eq.true&created_at=gte.${encodeURIComponent(older.toISOString())}&created_at=lt.${encodeURIComponent(newer.toISOString())}&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}`;
+      const dateRange = encodeURIComponent(`(created_at.gte.${older.toISOString()},created_at.lt.${newer.toISOString()})`);
+      const path = `sponsor_companies?is_current_sponsor=eq.true&and=${dateRange}&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}`;
       const response = await fetch(`${base}/rest/v1/${path}`, {
         headers,
         signal: AbortSignal.timeout(8000),
