@@ -61,6 +61,11 @@ function SponsorCard({ sponsor, onClick }) {
   );
 }
 
+function addedDate(value) {
+  if (!value || !Number.isFinite(Date.parse(value))) return "Recently added";
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
+}
+
 function SponsorDetail({ sponsor, onBack }) {
   const color = SECTOR_COLORS[sponsor.sector] || "#534AB7";
   return (
@@ -146,6 +151,9 @@ export default function SponsorsPage() {
   const [sector, setSector] = useState("All");
   const [route, setRoute] = useState("All Routes");
   const [page, setPage] = useState(1);
+  const [latestSponsors, setLatestSponsors] = useState([]);
+  const [latestNotice, setLatestNotice] = useState("");
+  const [latestLoading, setLatestLoading] = useState(true);
 
   const topRef = useRef(null);
   const searchTimer = useRef(null);
@@ -173,6 +181,23 @@ export default function SponsorsPage() {
 
   // Initial load
   useEffect(() => { fetchSponsors({ page: 1 }); }, []);
+
+  // This is separate from the paginated directory so the latest additions
+  // remain visible even while visitors search or filter the main register.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/latest-sponsors?limit=8")
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Latest sponsors are unavailable");
+        if (!active) return;
+        setLatestSponsors(Array.isArray(data.sponsors) ? data.sponsors : []);
+        setLatestNotice(data.note || "");
+      })
+      .catch(() => active && setLatestNotice("Latest additions are temporarily unavailable."))
+      .finally(() => active && setLatestLoading(false));
+    return () => { active = false; };
+  }, []);
 
   // Debounced search
   function handleSearch(val) {
@@ -273,6 +298,27 @@ export default function SponsorsPage() {
             Every employer licensed by the UK Home Office to sponsor Skilled Worker and Health & Care visas — sourced live from the official GOV.UK register.
           </p>
         </div>
+
+        {/* Latest register additions */}
+        <section style={{ ...S.card, marginBottom: "1.25rem", background: "linear-gradient(135deg, rgba(76,196,202,.11), rgba(255,255,255,.025))", borderColor: "rgba(76,196,202,.28)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.08)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }} aria-labelledby="latest-sponsors-heading">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", marginBottom: latestSponsors.length ? "12px" : 0 }}>
+            <div>
+              <h3 id="latest-sponsors-heading" style={{ fontSize: "15px", margin: "0 0 4px" }}>Latest sponsor additions</h3>
+              <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: 0 }}>Newly detected in Mentorgram’s synced official register.</p>
+            </div>
+            <span style={{ padding: "5px 9px", borderRadius: "999px", background: "rgba(76,196,202,.14)", color: "#55d1d7", fontSize: "11px", fontWeight: 600 }}>Official register sync</span>
+          </div>
+          {latestLoading && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>Loading latest additions…</p>}
+          {!latestLoading && latestSponsors.length > 0 && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "9px" }}>
+            {latestSponsors.map(sponsor => <button key={sponsor.id || sponsor.name} type="button" onClick={() => handleSearch(sponsor.name)} style={{ textAlign: "left", padding: "11px", borderRadius: "10px", border: "1px solid rgba(255,255,255,.1)", background: "rgba(7,11,20,.22)", color: "var(--color-text-primary)", cursor: "pointer", fontFamily: "inherit" }}>
+              <strong style={{ display: "block", fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: "4px" }}>{sponsor.name}</strong>
+              <span style={{ display: "block", fontSize: "12px", color: "var(--color-text-secondary)", marginBottom: "7px" }}>📍 {sponsor.location || "UK"}</span>
+              <span style={{ display: "inline-block", fontSize: "11px", color: "#55d1d7" }}>Added {addedDate(sponsor.added_at)}</span>
+            </button>)}
+          </div>}
+          {!latestLoading && !latestSponsors.length && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{latestNotice || "No recently detected additions yet."}</p>}
+          {latestNotice && latestSponsors.length > 0 && <p style={{ color: "var(--color-text-secondary)", fontSize: "11px", margin: "10px 0 0" }}>{latestNotice}</p>}
+        </section>
 
         {/* Search & filters */}
         <div style={{ ...S.card, marginBottom: "1.25rem" }}>
