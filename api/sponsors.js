@@ -11,7 +11,9 @@ export default async function handler(req) {
   try {
     const url = new URL(req.url);
     const latest = url.searchParams.get("latest") === "1";
-    const latestLimit = Math.max(1, Math.min(Number.parseInt(url.searchParams.get("limit") || "8", 10) || 8, 20));
+    const latestLimit = Math.max(1, Math.min(Number.parseInt(url.searchParams.get("limit") || "12", 10) || 12, 20));
+    const requestedMonths = Number.parseInt(url.searchParams.get("months") || "1", 10);
+    const latestMonths = [1, 2, 3, 6, 12].includes(requestedMonths) ? requestedMonths : 1;
 
     if (latest) {
       const base = process.env.VITE_SUPABASE_URL?.replace(/\/$/, "");
@@ -19,29 +21,15 @@ export default async function handler(req) {
       if (!base || !key) throw new Error("Sponsor directory is not configured");
 
       const headers = { apikey: key, Authorization: `Bearer ${key}` };
-      const paths = [
-        `sponsor_companies?is_current_sponsor=eq.true&select=id,organisation_name,town_city,county,type_rating,routes,first_seen_at&order=first_seen_at.desc.nullslast&limit=${latestLimit}`,
-        `sponsor_companies?is_current_sponsor=eq.true&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}`,
-      ];
-
-      let rows;
-      let usedFallback = false;
-
-      for (let index = 0; index < paths.length; index += 1) {
-        const response = await fetch(`${base}/rest/v1/${paths[index]}`, {
-          headers,
-          signal: AbortSignal.timeout(8000),
-        });
-
-        if (!response.ok) {
-          if (index === 0 && response.status === 400) continue;
-          throw new Error("Could not load recent sponsor additions");
-        }
-
-        rows = await response.json();
-        usedFallback = index === 1;
-        break;
-      }
+      const since = new Date();
+      since.setUTCMonth(since.getUTCMonth() - latestMonths);
+      const path = `sponsor_companies?is_current_sponsor=eq.true&created_at=gte.${encodeURIComponent(since.toISOString())}&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}`;
+      const response = await fetch(`${base}/rest/v1/${path}`, {
+        headers,
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!response.ok) throw new Error("Could not load sponsor additions");
+      const rows = await response.json();
 
       if (!Array.isArray(rows)) throw new Error("Could not load recent sponsor additions");
 
@@ -56,11 +44,9 @@ export default async function handler(req) {
             .join(", ") || "UK",
           rating: String(row.type_rating || "").trim(),
           route: Array.isArray(row.routes) ? row.routes.join(" · ") : String(row.routes || "").trim(),
-          added_at: row.first_seen_at || row.created_at || null,
+          added_at: row.created_at || null,
         })),
-        note: usedFallback
-          ? "Dates show when Mentorgram first imported the sponsor."
-          : "Dates show when Mentorgram first detected the sponsor in the official register.",
+        note: `Showing additions from the last ${latestMonths === 1 ? "month" : `${latestMonths} months`}.`,
       }), {
         headers: {
           ...cors,
