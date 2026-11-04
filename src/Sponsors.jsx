@@ -190,6 +190,13 @@ export default function SponsorsPage() {
   useEffect(() => {
     let active = true;
     setLatestLoading(true);
+    setLatestNotice("");
+    // Do not leave cards from a previous period on screen while a different
+    // period is loading or when that new period has no records.
+    if (latestPage === 1) {
+      setLatestSponsors([]);
+      setLatestTotal(0);
+    }
     fetch(`/api/sponsors?latest=1&period=${latestMonths}&limit=12&offset=${(latestPage - 1) * 12}`)
       .then(async response => {
         const data = await response.json();
@@ -200,7 +207,12 @@ export default function SponsorsPage() {
         setLatestTotal(Number.isSafeInteger(data.total) ? data.total : nextSponsors.length);
         setLatestNotice(data.note || "");
       })
-      .catch(() => active && setLatestNotice("Latest additions are temporarily unavailable."))
+      .catch(() => {
+        if (!active) return;
+        setLatestSponsors([]);
+        setLatestTotal(0);
+        setLatestNotice("Latest additions are temporarily unavailable.");
+      })
       .finally(() => active && setLatestLoading(false));
     return () => { active = false; };
   }, [latestMonths, latestPage]);
@@ -327,7 +339,7 @@ export default function SponsorsPage() {
             </button>)}
           </div>}
           {!latestLoading && latestSponsors.length > 0 && <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginTop: "13px", flexWrap: "wrap" }}><span style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>Showing {latestSponsors.length} of {latestTotal.toLocaleString()} companies</span>{latestSponsors.length < latestTotal && <button type="button" onClick={() => setLatestPage(value => value + 1)} style={{ padding: "7px 11px", borderRadius: "8px", border: "1px solid rgba(76,196,202,.38)", background: "rgba(76,196,202,.12)", color: "#70dfe4", cursor: "pointer", fontFamily: "inherit", fontSize: "12px" }}>Show 12 more</button>}</div>}
-          {!latestLoading && !latestSponsors.length && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{latestNotice || "No sponsors were added during this period."}</p>}
+          {!latestLoading && !latestSponsors.length && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{latestNotice || "No sponsors were added during this period. Mentorgram is now tracking daily register changes, so older time periods will build up as future updates run."}</p>}
           {latestNotice && latestSponsors.length > 0 && <p style={{ color: "var(--color-text-secondary)", fontSize: "11px", margin: "10px 0 0" }}>{latestNotice}</p>}
         </section>
 
