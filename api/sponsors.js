@@ -28,8 +28,8 @@ export default async function handler(req) {
       const [newerMonths, olderMonths] = periods[latestPeriod];
       const newer = new Date(); newer.setUTCMonth(newer.getUTCMonth() - newerMonths);
       const older = new Date(); older.setUTCMonth(older.getUTCMonth() - olderMonths);
-      const dateRange = encodeURIComponent(`(created_at.gte.${older.toISOString()},created_at.lt.${newer.toISOString()})`);
-      const path = `sponsor_companies?is_current_sponsor=eq.true&and=${dateRange}&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}&offset=${latestOffset}`;
+      const dateRange = encodeURIComponent(`(first_seen_at.gte.${older.toISOString().slice(0, 10)},first_seen_at.lt.${newer.toISOString().slice(0, 10)})`);
+      const path = `sponsor_companies?is_current_sponsor=eq.true&first_seen_at=not.is.null&and=${dateRange}&select=id,organisation_name,town_city,county,type_rating,routes,first_seen_at&order=first_seen_at.desc.nullslast&limit=${latestLimit}&offset=${latestOffset}`;
       const response = await fetch(`${base}/rest/v1/${path}`, {
         headers,
         signal: AbortSignal.timeout(8000),
@@ -52,7 +52,7 @@ export default async function handler(req) {
             .join(", ") || "UK",
           rating: String(row.type_rating || "").trim(),
           route: Array.isArray(row.routes) ? row.routes.join(" · ") : String(row.routes || "").trim(),
-          added_at: row.created_at || null,
+          added_at: row.first_seen_at || null,
         })),
         total,
         note: "Showing a separate, non-overlapping time period.",
