@@ -12,8 +12,8 @@ export default async function handler(req) {
     const url = new URL(req.url);
     const latest = url.searchParams.get("latest") === "1";
     const latestLimit = Math.max(1, Math.min(Number.parseInt(url.searchParams.get("limit") || "12", 10) || 12, 20));
-    const requestedMonths = Number.parseInt(url.searchParams.get("months") || "1", 10);
-    const latestMonths = [1, 2, 3, 6, 12].includes(requestedMonths) ? requestedMonths : 1;
+    const requestedPeriod = Number.parseInt(url.searchParams.get("period") || "1", 10);
+    const latestPeriod = [1, 2, 3, 6, 12].includes(requestedPeriod) ? requestedPeriod : 1;
 
     if (latest) {
       const base = process.env.VITE_SUPABASE_URL?.replace(/\/$/, "");
@@ -21,9 +21,13 @@ export default async function handler(req) {
       if (!base || !key) throw new Error("Sponsor directory is not configured");
 
       const headers = { apikey: key, Authorization: `Bearer ${key}` };
-      const since = new Date();
-      since.setUTCMonth(since.getUTCMonth() - latestMonths);
-      const path = `sponsor_companies?is_current_sponsor=eq.true&created_at=gte.${encodeURIComponent(since.toISOString())}&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}`;
+      // These ranges do not overlap. For example, the 3–6 months tab does
+      // not repeat sponsors already shown in the last-month tabs.
+      const periods = { 1: [0, 1], 2: [1, 2], 3: [2, 3], 6: [3, 6], 12: [6, 12] };
+      const [newerMonths, olderMonths] = periods[latestPeriod];
+      const newer = new Date(); newer.setUTCMonth(newer.getUTCMonth() - newerMonths);
+      const older = new Date(); older.setUTCMonth(older.getUTCMonth() - olderMonths);
+      const path = `sponsor_companies?is_current_sponsor=eq.true&created_at=gte.${encodeURIComponent(older.toISOString())}&created_at=lt.${encodeURIComponent(newer.toISOString())}&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}`;
       const response = await fetch(`${base}/rest/v1/${path}`, {
         headers,
         signal: AbortSignal.timeout(8000),
@@ -46,7 +50,7 @@ export default async function handler(req) {
           route: Array.isArray(row.routes) ? row.routes.join(" · ") : String(row.routes || "").trim(),
           added_at: row.created_at || null,
         })),
-        note: `Showing additions from the last ${latestMonths === 1 ? "month" : `${latestMonths} months`}.`,
+        note: "Showing a separate, non-overlapping time period.",
       }), {
         headers: {
           ...cors,
