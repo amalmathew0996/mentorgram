@@ -12,6 +12,7 @@ export default async function handler(req) {
     const url = new URL(req.url);
     const latest = url.searchParams.get("latest") === "1";
     const latestLimit = Math.max(1, Math.min(Number.parseInt(url.searchParams.get("limit") || "12", 10) || 12, 20));
+    const latestOffset = Math.max(0, Number.parseInt(url.searchParams.get("offset") || "0", 10) || 0);
     const requestedPeriod = Number.parseInt(url.searchParams.get("period") || "1", 10);
     const latestPeriod = [1, 2, 3, 6, 12].includes(requestedPeriod) ? requestedPeriod : 1;
 
@@ -20,7 +21,7 @@ export default async function handler(req) {
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!base || !key) throw new Error("Sponsor directory is not configured");
 
-      const headers = { apikey: key, Authorization: `Bearer ${key}` };
+      const headers = { apikey: key, Authorization: `Bearer ${key}`, Prefer: "count=exact" };
       // These ranges do not overlap. For example, the 3–6 months tab does
       // not repeat sponsors already shown in the last-month tabs.
       const periods = { 1: [0, 1], 2: [1, 2], 3: [2, 3], 6: [3, 6], 12: [6, 12] };
@@ -28,13 +29,15 @@ export default async function handler(req) {
       const newer = new Date(); newer.setUTCMonth(newer.getUTCMonth() - newerMonths);
       const older = new Date(); older.setUTCMonth(older.getUTCMonth() - olderMonths);
       const dateRange = encodeURIComponent(`(created_at.gte.${older.toISOString()},created_at.lt.${newer.toISOString()})`);
-      const path = `sponsor_companies?is_current_sponsor=eq.true&and=${dateRange}&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}`;
+      const path = `sponsor_companies?is_current_sponsor=eq.true&and=${dateRange}&select=id,organisation_name,town_city,county,type_rating,routes,created_at&order=created_at.desc.nullslast&limit=${latestLimit}&offset=${latestOffset}`;
       const response = await fetch(`${base}/rest/v1/${path}`, {
         headers,
         signal: AbortSignal.timeout(8000),
       });
       if (!response.ok) throw new Error("Could not load sponsor additions");
       const rows = await response.json();
+      const contentRange = response.headers.get("content-range") || "";
+      const total = Number.parseInt(contentRange.split("/")[1] || "0", 10) || 0;
 
       if (!Array.isArray(rows)) throw new Error("Could not load recent sponsor additions");
 
@@ -51,6 +54,7 @@ export default async function handler(req) {
           route: Array.isArray(row.routes) ? row.routes.join(" · ") : String(row.routes || "").trim(),
           added_at: row.created_at || null,
         })),
+        total,
         note: "Showing a separate, non-overlapping time period.",
       }), {
         headers: {
