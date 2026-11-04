@@ -315,10 +315,11 @@ export default function SponsorsPage() {
           </div>
           {latestLoading && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>Loading latest additions…</p>}
           {!latestLoading && latestSponsors.length > 0 && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "9px" }}>
-            {latestSponsors.map(sponsor => <button key={sponsor.id || sponsor.name} type="button" onClick={() => handleSearch(sponsor.name)} style={{ textAlign: "left", padding: "11px", borderRadius: "10px", border: "1px solid rgba(255,255,255,.1)", background: "rgba(7,11,20,.22)", color: "var(--color-text-primary)", cursor: "pointer", fontFamily: "inherit" }}>
+            {latestSponsors.map(sponsor => <button key={sponsor.id || sponsor.name} type="button" onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(`${sponsor.name} careers`)}`, "_blank", "noopener,noreferrer")} title={`Search Google for ${sponsor.name} careers`} style={{ textAlign: "left", padding: "11px", borderRadius: "10px", border: "1px solid rgba(255,255,255,.1)", background: "rgba(7,11,20,.22)", color: "var(--color-text-primary)", cursor: "pointer", fontFamily: "inherit" }}>
               <strong style={{ display: "block", fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: "4px" }}>{sponsor.name}</strong>
               <span style={{ display: "block", fontSize: "12px", color: "var(--color-text-secondary)", marginBottom: "7px" }}>📍 {sponsor.location || "UK"}</span>
               <span style={{ display: "inline-block", fontSize: "11px", color: "#55d1d7" }}>Added {addedDate(sponsor.added_at)}</span>
+              <span style={{ display: "block", fontSize: "11px", color: "var(--color-text-secondary)", marginTop: "5px" }}>Search company careers ↗</span>
             </button>)}
           </div>}
           {!latestLoading && !latestSponsors.length && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{latestNotice || `No sponsors were added in the last ${latestMonths === 1 ? "month" : `${latestMonths} months`}.`}</p>}
