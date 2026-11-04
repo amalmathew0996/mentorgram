@@ -154,6 +154,7 @@ export default function SponsorsPage() {
   const [latestSponsors, setLatestSponsors] = useState([]);
   const [latestNotice, setLatestNotice] = useState("");
   const [latestLoading, setLatestLoading] = useState(true);
+  const [latestMonths, setLatestMonths] = useState(1);
 
   const topRef = useRef(null);
   const searchTimer = useRef(null);
@@ -186,7 +187,8 @@ export default function SponsorsPage() {
   // remain visible even while visitors search or filter the main register.
   useEffect(() => {
     let active = true;
-    fetch("/api/sponsors?latest=1&limit=8")
+    setLatestLoading(true);
+    fetch(`/api/sponsors?latest=1&months=${latestMonths}&limit=12`)
       .then(async response => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Latest sponsors are unavailable");
@@ -197,7 +199,7 @@ export default function SponsorsPage() {
       .catch(() => active && setLatestNotice("Latest additions are temporarily unavailable."))
       .finally(() => active && setLatestLoading(false));
     return () => { active = false; };
-  }, []);
+  }, [latestMonths]);
 
   // Debounced search
   function handleSearch(val) {
@@ -304,9 +306,12 @@ export default function SponsorsPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", marginBottom: latestSponsors.length ? "12px" : 0 }}>
             <div>
               <h3 id="latest-sponsors-heading" style={{ fontSize: "15px", margin: "0 0 4px" }}>Latest sponsor additions</h3>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: 0 }}>Newly detected in Mentorgram’s synced official register.</p>
+              <p style={{ color: "var(--color-text-secondary)", fontSize: "12px", margin: 0 }}>Companies added to Mentorgram’s sponsor register during the selected period.</p>
             </div>
             <span style={{ padding: "5px 9px", borderRadius: "999px", background: "rgba(76,196,202,.14)", color: "#55d1d7", fontSize: "11px", fontWeight: 600 }}>Official register sync</span>
+          </div>
+          <div style={{ display: "flex", gap: "7px", flexWrap: "wrap", marginBottom: "13px" }} aria-label="Choose a time period">
+            {[[1, "1 month"], [2, "2 months"], [3, "3 months"], [6, "6 months"], [12, "1 year"]].map(([months, label]) => <button key={months} type="button" onClick={() => setLatestMonths(months)} style={{ padding: "6px 10px", borderRadius: "999px", border: latestMonths === months ? "1px solid rgba(76,196,202,.5)" : "1px solid rgba(255,255,255,.12)", background: latestMonths === months ? "rgba(76,196,202,.18)" : "rgba(255,255,255,.035)", color: latestMonths === months ? "#70dfe4" : "var(--color-text-secondary)", cursor: "pointer", fontFamily: "inherit", fontSize: "12px" }}>{label}</button>)}
           </div>
           {latestLoading && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>Loading latest additions…</p>}
           {!latestLoading && latestSponsors.length > 0 && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "9px" }}>
@@ -316,7 +321,7 @@ export default function SponsorsPage() {
               <span style={{ display: "inline-block", fontSize: "11px", color: "#55d1d7" }}>Added {addedDate(sponsor.added_at)}</span>
             </button>)}
           </div>}
-          {!latestLoading && !latestSponsors.length && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{latestNotice || "No recently detected additions yet."}</p>}
+          {!latestLoading && !latestSponsors.length && <p style={{ color: "var(--color-text-secondary)", fontSize: "13px", margin: 0 }}>{latestNotice || `No sponsors were added in the last ${latestMonths === 1 ? "month" : `${latestMonths} months`}.`}</p>}
           {latestNotice && latestSponsors.length > 0 && <p style={{ color: "var(--color-text-secondary)", fontSize: "11px", margin: "10px 0 0" }}>{latestNotice}</p>}
         </section>
 
