@@ -186,7 +186,7 @@ export default function SponsorsPage() {
   // remain visible even while visitors search or filter the main register.
   useEffect(() => {
     let active = true;
-    fetch("/api/latest-sponsors?limit=8")
+    fetch("/api/sponsors?latest=1&limit=8")
       .then(async response => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Latest sponsors are unavailable");
